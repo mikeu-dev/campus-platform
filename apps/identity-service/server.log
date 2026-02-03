@@ -21,3 +21,5 @@ Error: Email already registered
 [0mPOST /auth/register [31m500[0m 11.078 ms - 55[0m
 [0mPOST /auth/login [32m200[0m 73.887 ms - 519[0m
 [0mGET /auth/me [32m200[0m 1.112 ms - 231[0m
+Database connected successfully
+[0mPOST /auth/login [32m200[0m 72.575 ms - 519[0m
