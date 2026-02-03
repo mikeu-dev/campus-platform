@@ -1,0 +1,7 @@
+plan
+
+apps/academic-service/node_modules
+apps/identity-service/node_modules
+apps/learning-service/node_modules
+apps/portal/node_modules
+
