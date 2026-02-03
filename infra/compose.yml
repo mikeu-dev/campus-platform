@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: campus-platform-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: campus_identity_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - campus_db_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  campus_db_data:
