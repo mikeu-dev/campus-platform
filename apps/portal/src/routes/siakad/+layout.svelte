@@ -54,19 +54,7 @@
 
 		<nav class="mt-2 flex-1 space-y-1 overflow-y-auto px-4">
 			<a
-				href="/dashboard"
-				onclick={() => (sidebarOpen = false)}
-				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page
-					.url.pathname === '/dashboard'
-					? 'bg-indigo-50 text-indigo-600'
-					: ''}"
-			>
-				<LayoutDashboard class="mr-3 h-5 w-5" />
-				Dashboard
-			</a>
-
-			<a
-				href="/dashboard/enrollment"
+				href="/siakad/enrollment"
 				onclick={() => (sidebarOpen = false)}
 				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 					'/enrollment'
@@ -79,20 +67,7 @@
 			</a>
 
 			<a
-				href="/dashboard/classes"
-				onclick={() => (sidebarOpen = false)}
-				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-					'/classes'
-				)
-					? 'bg-indigo-50 text-indigo-600'
-					: ''}"
-			>
-				<GraduationCap class="mr-3 h-5 w-5" />
-				My Classes
-			</a>
-
-			<a
-				href="/dashboard/grades"
+				href="/siakad/grades"
 				onclick={() => (sidebarOpen = false)}
 				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 					'/grades'
@@ -105,7 +80,7 @@
 			</a>
 
 			<a
-				href="/dashboard/calendar"
+				href="/siakad/calendar"
 				onclick={() => (sidebarOpen = false)}
 				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 					'/calendar'
@@ -117,25 +92,12 @@
 				Calendar
 			</a>
 
-			<a
-				href="/dashboard/chat"
-				onclick={() => (sidebarOpen = false)}
-				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-					'/chat'
-				)
-					? 'bg-indigo-50 text-indigo-600'
-					: ''}"
-			>
-				<MessageSquare class="mr-3 h-5 w-5" />
-				Messages
-			</a>
-
 			{#if page.data.user?.roles?.includes('lecturer')}
 				<div class="pt-4 pb-2">
 					<p class="px-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Lecturer</p>
 				</div>
 				<a
-					href="/dashboard/teaching"
+					href="/siakad/teaching"
 					onclick={() => (sidebarOpen = false)}
 					class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 						'/teaching'
@@ -145,48 +107,6 @@
 				>
 					<BookOpen class="mr-3 h-5 w-5" />
 					Teaching
-				</a>
-			{/if}
-
-			{#if page.data.user?.roles?.includes('admin')}
-				<div class="pt-4 pb-2">
-					<p class="px-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Admin</p>
-				</div>
-				<a
-					href="/dashboard/admin/users"
-					onclick={() => (sidebarOpen = false)}
-					class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-						'/admin/users'
-					)
-						? 'bg-indigo-50 text-indigo-600'
-						: ''}"
-				>
-					<User class="mr-3 h-5 w-5" />
-					Users
-				</a>
-				<a
-					href="/dashboard/admin/courses"
-					onclick={() => (sidebarOpen = false)}
-					class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-						'/admin/courses'
-					)
-						? 'bg-indigo-50 text-indigo-600'
-						: ''}"
-				>
-					<BookOpen class="mr-3 h-5 w-5" />
-					Courses
-				</a>
-				<a
-					href="/dashboard/admin/classes"
-					onclick={() => (sidebarOpen = false)}
-					class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-						'/admin/classes'
-					)
-						? 'bg-indigo-50 text-indigo-600'
-						: ''}"
-				>
-					<GraduationCap class="mr-3 h-5 w-5" />
-					Classes
 				</a>
 			{/if}
 		</nav>

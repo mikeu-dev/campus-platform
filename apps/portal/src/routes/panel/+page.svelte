@@ -69,7 +69,7 @@
 				</div>
 			</div>
 			<a
-				href="/dashboard/classes"
+				href="/lms/classes"
 				class="mt-4 flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800"
 			>
 				View Classes <ArrowRight class="ml-1 h-4 w-4" />
@@ -144,15 +144,14 @@
 		<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-semibold text-gray-900">Recent Classes</h2>
-				<a
-					href="/dashboard/classes"
-					class="text-sm font-medium text-indigo-600 hover:text-indigo-800">View All</a
+				<a href="/lms/classes" class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+					>View All</a
 				>
 			</div>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each data.recentClasses as item (item.class_id)}
 					<a
-						href="/dashboard/classes/{item.class_id}"
+						href="/lms/classes/{item.class_id}"
 						class="group block rounded-lg border border-gray-200 p-4 transition-all hover:border-indigo-300 hover:shadow-md"
 					>
 						<div class="flex items-center gap-3">

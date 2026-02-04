@@ -22,7 +22,7 @@
 			<nav class="-mb-px flex space-x-8">
 				<!-- eslint-disable svelte/no-navigation-without-resolve -->
 				<a
-					href="/dashboard/classes/{data.classId}/materials"
+					href="/lms/classes/{data.classId}/materials"
 					class="border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors
                    {page.url.pathname.includes('/materials')
 						? 'border-indigo-500 text-indigo-600'
@@ -32,7 +32,7 @@
 				</a>
 
 				<a
-					href="/dashboard/classes/{data.classId}/assignments"
+					href="/lms/classes/{data.classId}/assignments"
 					class="border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors
                    {page.url.pathname.includes('/assignments')
 						? 'border-indigo-500 text-indigo-600'
@@ -42,7 +42,7 @@
 				</a>
 
 				<a
-					href="/dashboard/classes/{data.classId}/discussions"
+					href="/lms/classes/{data.classId}/discussions"
 					class="border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors
                    {page.url.pathname.includes('/discussions')
 						? 'border-indigo-500 text-indigo-600'

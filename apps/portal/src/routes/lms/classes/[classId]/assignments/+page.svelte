@@ -83,7 +83,7 @@
 				<li>
 					<!-- eslint-disable svelte/no-navigation-without-resolve -->
 					<a
-						href="/dashboard/classes/{data.classId}/assignments/{item.id}"
+						href="/lms/classes/{data.classId}/assignments/{item.id}"
 						class="block hover:bg-gray-50"
 					>
 						<div class="flex items-center px-4 py-4 sm:px-6">

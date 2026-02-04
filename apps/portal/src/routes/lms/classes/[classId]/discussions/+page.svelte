@@ -33,10 +33,7 @@
 <div class="space-y-6">
 	<!-- Header -->
 	<div class="flex items-center gap-4">
-		<a
-			href="/dashboard/classes/{data.classId}"
-			class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-		>
+		<a href="/lms/classes/{data.classId}" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
 			<ArrowLeft class="h-5 w-5" />
 		</a>
 		<div>
