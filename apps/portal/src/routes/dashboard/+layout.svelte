@@ -1,6 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { LayoutDashboard, BookOpen, LogOut, GraduationCap, User, Menu, X } from 'lucide-svelte';
+	import {
+		LayoutDashboard,
+		BookOpen,
+		LogOut,
+		GraduationCap,
+		User,
+		Menu,
+		X,
+		MessageSquare
+	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -106,6 +115,19 @@
 			>
 				<BookOpen class="mr-3 h-5 w-5" />
 				Calendar
+			</a>
+
+			<a
+				href="/dashboard/chat"
+				onclick={() => (sidebarOpen = false)}
+				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
+					'/chat'
+				)
+					? 'bg-indigo-50 text-indigo-600'
+					: ''}"
+			>
+				<MessageSquare class="mr-3 h-5 w-5" />
+				Messages
 			</a>
 
 			{#if page.data.user?.roles?.includes('lecturer')}

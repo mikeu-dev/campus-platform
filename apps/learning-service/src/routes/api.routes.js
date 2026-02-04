@@ -38,4 +38,9 @@ router.get('/students/:studentId/deadlines', learningController.getStudentDeadli
 router.post('/classes/:classId/discussions', learningController.createDiscussion);
 router.get('/classes/:classId/discussions', learningController.getDiscussions);
 
+// Messaging
+router.post('/messages', learningController.sendMessage);
+router.get('/messages/conversations', learningController.getConversations);
+router.get('/messages/:userId', learningController.getMessages);
+
 module.exports = router;

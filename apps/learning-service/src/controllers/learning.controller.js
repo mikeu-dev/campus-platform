@@ -325,6 +325,77 @@ class LearningController {
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
+
+    // --- Messaging ---
+    async sendMessage(req, res, next) {
+        try {
+            const { receiver_id, content } = req.body;
+            const tenantId = req.user.tenant_id;
+            const senderId = req.user.sub;
+            const senderEmail = req.user.email;
+
+            if (!content || content.trim().length === 0) {
+                return res.status(400).json({ status: 'fail', message: 'Content is required' });
+            }
+
+            const result = await db.query(
+                'INSERT INTO messages (tenant_id, sender_id, sender_email, receiver_id, content) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [tenantId, senderId, senderEmail, receiver_id, content]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getConversations(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            // Get list of users involved in chats with current user
+            // This is complex in SQL without a separate conversations table
+            // We'll approximate by finding unique users from message history
+            // and getting the latest message for each.
+
+            const result = await db.query(
+                `SELECT DISTINCT ON (partner_id)
+                    CASE 
+                        WHEN sender_id = $1 THEN receiver_id 
+                        ELSE sender_id 
+                    END as partner_id,
+                    content as last_message,
+                    created_at,
+                    sender_email
+                 FROM messages
+                 WHERE (sender_id = $1 OR receiver_id = $1) AND tenant_id = $2
+                 ORDER BY partner_id, created_at DESC`,
+                [userId, tenantId]
+            );
+
+            // Note: sender_email in the result is inconsistent (it's the sender of the last message)
+            // Ideally we'd join with Identity Service users table, but services are decoupled.
+            // For MVP, the frontend can fetch user details or we rely on what we have.
+
+            res.json({ status: 'success', data: result.rows.sort((a, b) => b.created_at - a.created_at) });
+        } catch (err) { next(err); }
+    }
+
+    async getMessages(req, res, next) {
+        try {
+            const { userId: partnerId } = req.params;
+            const myId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `SELECT * FROM messages 
+                 WHERE tenant_id = $1 
+                 AND ((sender_id = $2 AND receiver_id = $3) OR (sender_id = $3 AND receiver_id = $2))
+                 ORDER BY created_at ASC 
+                 LIMIT 100`,
+                [tenantId, myId, partnerId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new LearningController();
