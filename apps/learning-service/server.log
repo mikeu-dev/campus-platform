@@ -1,0 +1,13 @@
+
+> learning-service@1.0.0 start
+> node src/index.js
+
+[dotenv@17.2.3] injecting env (4) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+Database connected successfully
+Database verification successful.
+Learning Service running on port 3003
+[0mPOST /api/v1/classes/550e8400-e29b-41d4-a716-446655440000/materials [32m201[0m 16.332 ms - 316[0m
+[0mPOST /api/v1/classes/550e8400-e29b-41d4-a716-446655440000/assignments [32m201[0m 3.950 ms - 349[0m
+[0mPOST /api/v1/assignments/dc40b0ec-51aa-4d75-b638-c77b119598c7/submit [32m201[0m 7.970 ms - 330[0m
+[0mGET /api/v1/assignments/dc40b0ec-51aa-4d75-b638-c77b119598c7/my-submission?studentId=550e8400-e29b-41d4-a716-446655440099 [32m200[0m 2.137 ms - 330[0m

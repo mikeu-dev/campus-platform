@@ -2,13 +2,8 @@
 > academic-service@1.0.0 start
 > node src/index.js
 
-[dotenv@17.2.3] injecting env (4) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (4) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
 Database connected successfully
 Database verification successful.
 Academic Service running on port 3002
-[0mPOST /api/v1/courses [32m201[0m 16.913 ms - 226[0m
-[0mPOST /api/v1/students [32m201[0m 3.462 ms - 329[0m
-[0mPOST /api/v1/classes [32m201[0m 4.650 ms - 280[0m
-[0mPOST /api/v1/enrollments [32m201[0m 3.399 ms - 286[0m
-[0mGET /api/v1/enrollments/my [32m200[0m 2.981 ms - 191[0m

@@ -2,24 +2,12 @@
 > identity-service@1.0.0 start
 > node src/index.js
 
-[dotenv@17.2.3] injecting env (4) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
-[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.2.3] injecting env (4) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
 Database connected successfully
 Database verification successful.
 Identity Service running on port 3001
-[0mGET /health [32m200[0m 1.555 ms - 44[0m
-Error: Tenant slug already exists
-    at AuthService.createTenant (/var/www/html/campus-platform/apps/identity-service/src/services/auth.service.js:136:45)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async createTenant (/var/www/html/campus-platform/apps/identity-service/src/controllers/auth.controller.js:57:28)
-[0mPOST /auth/tenants [31m500[0m 9.350 ms - 57[0m
 Database connected successfully
-Error: Email already registered
-    at AuthService.register (/var/www/html/campus-platform/apps/identity-service/src/services/auth.service.js:29:19)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async register (/var/www/html/campus-platform/apps/identity-service/src/controllers/auth.controller.js:28:26)
-[0mPOST /auth/register [31m500[0m 11.078 ms - 55[0m
-[0mPOST /auth/login [32m200[0m 73.887 ms - 519[0m
-[0mGET /auth/me [32m200[0m 1.112 ms - 231[0m
+[0mPOST /auth/login [32m200[0m 144.179 ms - 519[0m
 Database connected successfully
-[0mPOST /auth/login [32m200[0m 72.575 ms - 519[0m
+[0mPOST /auth/login [32m200[0m 77.709 ms - 519[0m

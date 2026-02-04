@@ -1,0 +1,19 @@
+const express = require('express');
+const router = express.Router();
+const learningController = require('../controllers/learning.controller');
+const { verifyToken } = require('../middlewares/auth.middleware');
+
+router.use(verifyToken);
+
+// Class Resources
+router.post('/classes/:classId/materials', learningController.addMaterial);
+router.get('/classes/:classId/materials', learningController.getMaterials);
+
+router.post('/classes/:classId/assignments', learningController.createAssignment);
+router.get('/classes/:classId/assignments', learningController.getAssignments);
+
+// Assignment Submissions
+router.post('/assignments/:assignmentId/submit', learningController.submitAssignment);
+router.get('/assignments/:assignmentId/my-submission', learningController.getMySubmission);
+
+module.exports = router;
