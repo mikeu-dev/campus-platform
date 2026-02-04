@@ -291,6 +291,40 @@ class LearningController {
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
+
+    // --- Discussions ---
+    async createDiscussion(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const { content } = req.body;
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+            const userEmail = req.user.email;
+
+            if (!content || content.trim().length === 0) {
+                return res.status(400).json({ status: 'fail', message: 'Content is required' });
+            }
+
+            const result = await db.query(
+                'INSERT INTO discussions (tenant_id, class_id, user_id, user_email, content) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [tenantId, classId, userId, userEmail, content]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getDiscussions(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT * FROM discussions WHERE tenant_id = $1 AND class_id = $2 ORDER BY created_at DESC LIMIT 50',
+                [tenantId, classId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new LearningController();

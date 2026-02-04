@@ -34,4 +34,8 @@ router.get('/students/:studentId/grades', learningController.getStudentGrades);
 router.get('/students/:studentId/stats', learningController.getStudentStats);
 router.get('/students/:studentId/deadlines', learningController.getStudentDeadlines);
 
+// Discussions
+router.post('/classes/:classId/discussions', learningController.createDiscussion);
+router.get('/classes/:classId/discussions', learningController.getDiscussions);
+
 module.exports = router;
