@@ -182,7 +182,7 @@ class AcademicController {
             const userId = req.user.sub; // Identity User ID
 
             const result = await db.query(`
-        SELECT e.id, e.status, c.semester, c.year, co.name as course_name, co.code as course_code
+        SELECT e.id, e.status, c.id as class_id, c.semester, c.year, co.name as course_name, co.code as course_code
         FROM enrollments e
         JOIN students s ON e.student_id = s.id
         JOIN classes c ON e.class_id = c.id

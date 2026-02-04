@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	export let data;
+	export let form;
 
 	let showForm = false;
 </script>

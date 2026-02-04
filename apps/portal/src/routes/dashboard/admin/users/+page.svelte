@@ -153,7 +153,11 @@
 										</span>
 									</td>
 									<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-										<a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+										<button
+											type="button"
+											class="cursor-pointer border-none bg-transparent text-indigo-600 hover:text-indigo-900"
+											>Edit</button
+										>
 									</td>
 								</tr>
 							{:else}

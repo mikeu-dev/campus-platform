@@ -14,15 +14,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 		try {
 			const base64Url = token.split('.')[1];
 			const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-			const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-				return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-			}).join(''));
+			const jsonPayload = decodeURIComponent(
+				atob(base64)
+					.split('')
+					.map(function (c) {
+						return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+					})
+					.join('')
+			);
 
 			const user = JSON.parse(jsonPayload);
 			event.locals.user = user;
 			event.locals.token = token;
 		} catch (e) {
-			console.error("Invalid token format in cookie");
+			console.error('Invalid token format in cookie');
 			event.cookies.delete('jwt', { path: '/' });
 		}
 	}

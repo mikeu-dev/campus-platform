@@ -142,7 +142,8 @@
 										{#if item.lecturer_id}
 											<!-- Finding lecturer name from loaded data might change item structure or need lookup -->
 											<div class="text-sm text-gray-500">
-												{data.lecturers.find((l) => l.id === item.lecturer_id)?.name || 'Unknown'}
+												{data.lecturers.find((l: any) => l.id === item.lecturer_id)?.name ||
+													'Unknown'}
 											</div>
 										{:else}
 											<span
