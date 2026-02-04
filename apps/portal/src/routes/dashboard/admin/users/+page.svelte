@@ -127,7 +127,7 @@
 								<tr>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center">
-											<div class="h-10 w-10 flex-shrink-0">
+											<div class="h-10 w-10 shrink-0">
 												<div
 													class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100"
 												>

@@ -30,13 +30,13 @@
 		<!-- Logo & Header -->
 		<div class="mb-8 text-center">
 			<div
-				class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg"
+				class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 shadow-lg"
 			>
 				<GraduationCap class="h-8 w-8 text-white" />
 			</div>
 			<h1 class="text-2xl font-bold text-gray-900">
 				Campus<span
-					class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
+					class="bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
 					>App</span
 				>
 			</h1>
@@ -48,7 +48,7 @@
 			<div
 				class="mb-6 flex items-center rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
 			>
-				<svg class="mr-2 h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+				<svg class="mr-2 h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
 					<path
 						fill-rule="evenodd"
 						d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"

@@ -98,9 +98,9 @@
 										{/if}
 									</div>
 								</div>
-								<div class="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+								<div class="mt-4 shrink-0 sm:mt-0 sm:ml-5">
 									<div class="flex items-center text-sm text-gray-500">
-										<Calendar class="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+										<Calendar class="mr-1.5 h-5 w-5 shrink-0 text-gray-400" />
 										<p>
 											Due on <time datetime={item.deadline}
 												>{new Date(item.deadline).toLocaleDateString()}</time
@@ -109,7 +109,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="ml-5 flex-shrink-0">
+							<div class="ml-5 shrink-0">
 								<ChevronRight class="h-5 w-5 text-gray-400" />
 							</div>
 						</div>

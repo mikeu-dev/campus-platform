@@ -13,7 +13,7 @@
 				</h3>
 				<div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
 					<div class="mt-2 flex items-center text-sm text-gray-500">
-						<Clock class="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+						<Clock class="mr-1.5 h-5 w-5 shrink-0 text-gray-400" />
 						Due {data.assignment?.deadline
 							? new Date(data.assignment.deadline).toLocaleDateString()
 							: 'N/A'}
@@ -31,7 +31,7 @@
 	{#if data.submission && !data.isLecturer}
 		<div class="rounded-md border border-green-200 bg-green-50 p-4">
 			<div class="flex">
-				<div class="flex-shrink-0">
+				<div class="shrink-0">
 					<CheckCircle class="h-5 w-5 text-green-400" />
 				</div>
 				<div class="ml-3">
@@ -68,7 +68,9 @@
 									<p class="text-xs text-gray-400">
 										At: {new Date(sub.submitted_at).toLocaleString()}
 									</p>
-									<p class="mt-1 max-w-md rounded bg-gray-50 p-2 text-sm break-words text-gray-800">
+									<p
+										class="mt-1 max-w-md rounded bg-gray-50 p-2 text-sm wrap-break-word text-gray-800"
+									>
 										{sub.content}
 									</p>
 								</div>

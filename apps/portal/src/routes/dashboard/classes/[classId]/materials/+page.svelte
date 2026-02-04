@@ -116,7 +116,7 @@
 					<div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
 						<div class="flex items-center">
 							<div
-								class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100"
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100"
 							>
 								<SvelteComponent class="h-5 w-5 text-indigo-600" />
 							</div>
@@ -127,7 +127,7 @@
 								{/if}
 							</div>
 						</div>
-						<div class="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+						<div class="mt-4 shrink-0 sm:mt-0 sm:ml-5">
 							<span
 								class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 capitalize"
 							>

@@ -29,7 +29,7 @@
 <div class="space-y-8">
 	<!-- Welcome Hero Card -->
 	<div
-		class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 text-white shadow-xl"
+		class="relative overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 text-white shadow-xl"
 	>
 		<div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10"></div>
 		<div class="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-white/10"></div>
@@ -178,7 +178,7 @@
 			<h2 class="mb-4 text-lg font-semibold text-gray-900">Your Profile</h2>
 			<div class="flex items-center gap-4">
 				<div
-					class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-xl font-bold text-white"
+					class="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 text-xl font-bold text-white"
 				>
 					{data.studentProfile.name?.charAt(0).toUpperCase() || 'S'}
 				</div>
