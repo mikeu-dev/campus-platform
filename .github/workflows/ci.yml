@@ -1,0 +1,86 @@
+name: CI
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+jobs:
+    test-identity-service:
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgrespassword
+                    POSTGRES_DB: campus_identity_db
+                ports:
+                    - 5435:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        defaults:
+            run:
+                working-directory: apps/identity-service
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "npm"
+                  cache-dependency-path: apps/identity-service/package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Wait for PostgreSQL
+              run: |
+                  until pg_isready -h localhost -p 5435; do
+                    echo "Waiting for PostgreSQL..."
+                    sleep 2
+                  done
+
+            - name: Run database migrations
+              run: |
+                  PGPASSWORD=postgrespassword psql -h localhost -p 5435 -U postgres -d campus_identity_db -f ../../infra/db/init/01_identity_schema.sql
+              env:
+                  DATABASE_URL: postgres://postgres:postgrespassword@localhost:5435/campus_identity_db
+
+            - name: Run tests
+              run: npm test
+              env:
+                  DATABASE_URL: postgres://postgres:postgrespassword@localhost:5435/campus_identity_db
+                  JWT_SECRET: test-jwt-secret-for-ci
+                  NODE_ENV: test
+
+    lint-portal:
+        runs-on: ubuntu-latest
+
+        defaults:
+            run:
+                working-directory: apps/portal
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "npm"
+                  cache-dependency-path: apps/portal/package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run type check
+              run: npm run check
