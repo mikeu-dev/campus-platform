@@ -1,27 +1,43 @@
 import type { PageServerLoad } from './$types';
 import axios from 'axios';
-import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
+import { PUBLIC_ACADEMIC_API_URL, PUBLIC_LEARNING_API_URL } from '$env/static/public';
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
-	// wait for parent layout data
 	await parent();
-
 	const token = locals.token;
 	let studentProfile = null;
+	let enrollmentsCount = 0;
+	let pendingAssignments = 0;
+	let recentClasses: any[] = [];
 
 	if (token) {
 		try {
-			const res = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
+			// Fetch Student Profile
+			const profileRes = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
-			studentProfile = res.data.data;
+			studentProfile = profileRes.data.data;
+
+			// Fetch Enrollments
+			const enrollRes = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/enrollments/my`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+			const enrollments = enrollRes.data.data || [];
+			enrollmentsCount = enrollments.length;
+			recentClasses = enrollments.slice(0, 3);
+
+			// TODO: Fetch pending assignments count (requires new API or aggregation)
+			// For now, we'll show a placeholder
+
 		} catch (error: any) {
-			console.error('Failed to fetch student profile', error.response?.data || error.message);
-			// Don't fail the whole page, just show partial data
+			console.error('Dashboard data fetch error', error.response?.data || error.message);
 		}
 	}
 
 	return {
-		studentProfile
+		studentProfile,
+		enrollmentsCount,
+		pendingAssignments,
+		recentClasses
 	};
 };
