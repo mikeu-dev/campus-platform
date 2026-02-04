@@ -1,42 +1,43 @@
-# sv
+# Portal
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This is the main Frontend application for the Campus Platform, built with **SvelteKit 5** and **Tailwind CSS 4**.
 
-## Creating a project
+## Structure
 
-If you're seeing this, you've probably already done this step. Congrats!
+The application is structured into four main functional territories:
 
-```sh
-# create a new project
-npx sv create my-app
+1.  **Guest Territory** (`src/routes/(guest)`):
+    *   **Landing Page**: Professional university profile.
+    *   **Auth**: Login pages for different user roles.
+
+2.  **LMS Territory** (`src/routes/lms`):
+    *   Learning Management System features (Classes, Assignments, Chat).
+
+3.  **SIAKAD Territory** (`src/routes/siakad`):
+    *   Academic Information System (Enrollment, Grades, Schedule).
+
+4.  **Panel Territory** (`src/routes/panel`):
+    *   Administrative dashboard and User Management.
+
+## Development
+
+### Prerequisites
+Ensure you have installed dependencies from the root monorepo:
+```bash
+npm install
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" devtools-json paraglide="languageTags:en, id+demo:yes" --install npm portal
+And built the shared packages:
+```bash
+npm run build -w @campus-platform/shared-types
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+### Running Locally
+To start the Portal dev server:
+```bash
+npm run dev -w portal
 ```
 
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Shared Types
+This app uses `@campus-platform/shared-types` for type safety between frontend and backend.
+If you update types in `packages/shared-types`, remember to rebuild them before the changes are reflected here.
