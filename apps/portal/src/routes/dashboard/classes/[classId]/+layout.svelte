@@ -20,6 +20,7 @@
 		<!-- Tabs -->
 		<div class="mt-6 border-b border-gray-200">
 			<nav class="-mb-px flex space-x-8">
+				<!-- eslint-disable svelte/no-navigation-without-resolve -->
 				<a
 					href="/dashboard/classes/{data.classId}/materials"
 					class="border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors

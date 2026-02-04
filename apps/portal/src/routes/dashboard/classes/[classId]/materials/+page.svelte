@@ -111,7 +111,7 @@
 
 	<div class="overflow-hidden bg-white shadow sm:rounded-md">
 		<ul role="list" class="divide-y divide-gray-200">
-			{#each data.materials as item}
+			{#each data.materials as item (item.id)}
 				<li class="flex items-center px-4 py-4 sm:px-6">
 					<div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
 						<div class="flex items-center">

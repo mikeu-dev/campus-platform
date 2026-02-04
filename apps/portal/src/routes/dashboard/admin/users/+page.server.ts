@@ -5,7 +5,6 @@ import { PUBLIC_IDENTITY_API_URL } from '$env/static/public';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const token = locals.token;
-	const userRole = locals.user?.roles?.[0]; // Assume checking first role or includes check
 
 	if (!locals.user?.roles.includes('admin')) {
 		// Simple redirect or error handling needed in real app

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Plus, User, Shield } from 'lucide-svelte';
+	import { Plus } from 'lucide-svelte';
 	export let data;
 	export let form;
 
@@ -124,7 +124,7 @@
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.users as user}
+							{#each data.users as user (user.id)}
 								<tr>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center">

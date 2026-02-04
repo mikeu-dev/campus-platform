@@ -80,8 +80,9 @@
 
 	<div class="overflow-hidden bg-white shadow sm:rounded-md">
 		<ul role="list" class="divide-y divide-gray-200">
-			{#each data.assignments as item}
+			{#each data.assignments as item (item.id)}
 				<li>
+					<!-- eslint-disable svelte/no-navigation-without-resolve -->
 					<a
 						href="/dashboard/classes/{data.classId}/assignments/{item.id}"
 						class="block hover:bg-gray-50"

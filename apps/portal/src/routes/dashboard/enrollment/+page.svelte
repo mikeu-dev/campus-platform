@@ -16,7 +16,7 @@
 
 	<div class="overflow-hidden bg-white shadow sm:rounded-md">
 		<ul role="list" class="divide-y divide-gray-200">
-			{#each data.classes as item}
+			{#each data.classes as item (item.id)}
 				<li class="flex items-center justify-between px-4 py-4 sm:px-6">
 					<div class="min-w-0 flex-1">
 						<h3 class="truncate text-lg font-medium text-indigo-600">

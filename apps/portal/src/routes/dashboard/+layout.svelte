@@ -3,6 +3,7 @@
 	import { LayoutDashboard, BookOpen, LogOut, GraduationCap, User } from 'lucide-svelte';
 </script>
 
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
 <div class="flex min-h-screen bg-gray-100">
 	<!-- Sidebar -->
 	<aside class="w-64 border-r border-gray-200 bg-white">

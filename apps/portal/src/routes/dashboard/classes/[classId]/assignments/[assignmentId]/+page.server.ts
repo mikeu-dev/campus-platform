@@ -113,7 +113,7 @@ export const actions = {
 			return fail(500, { error: 'Submission failed' });
 		}
 	},
-	grade: async ({ request, locals, params }) => {
+	grade: async ({ request, locals }) => {
 		const data = await request.formData();
 		const score = parseFloat(data.get('score')?.toString() || '0');
 		const feedback = data.get('feedback');
@@ -132,7 +132,7 @@ export const actions = {
 				}
 			);
 			return { success: true };
-		} catch (error: any) {
+		} catch {
 			return fail(500, { error: 'Grading failed' });
 		}
 	}

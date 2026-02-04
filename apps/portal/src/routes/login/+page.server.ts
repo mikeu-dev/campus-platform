@@ -19,7 +19,7 @@ export const actions = {
 				password
 			});
 
-			const { token, user } = response.data.data;
+			const { token } = response.data.data;
 
 			// Store cookie
 			cookies.set('jwt', token, {

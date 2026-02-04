@@ -36,7 +36,7 @@ export const actions = {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 			student_id = profileRes.data.data.id;
-		} catch (e) {
+		} catch {
 			return fail(500, { error: 'Could not find student profile' });
 		}
 

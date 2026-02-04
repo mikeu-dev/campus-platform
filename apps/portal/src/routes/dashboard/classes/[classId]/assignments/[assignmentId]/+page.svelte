@@ -61,7 +61,7 @@
 			<div class="px-4 py-5 sm:p-6">
 				<h3 class="text-lg leading-6 font-medium text-gray-900">Student Submissions</h3>
 				<ul class="mt-4 divide-y divide-gray-200">
-					{#each data.submissions as sub}
+					{#each data.submissions as sub (sub.id)}
 						<li class="py-4">
 							<div class="flex items-center justify-between">
 								<div>

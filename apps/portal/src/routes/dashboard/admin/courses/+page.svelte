@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Plus, BookOpen } from 'lucide-svelte';
+	import { Plus } from 'lucide-svelte';
 	export let data;
 	export let form;
 
@@ -113,7 +113,7 @@
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.courses as course}
+							{#each data.courses as course (course.id)}
 								<tr>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="text-sm font-medium text-indigo-600">{course.code}</div>

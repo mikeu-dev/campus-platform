@@ -32,7 +32,7 @@
 							required
 							class="mt-1 block w-full rounded-md border border-gray-300 py-2 pr-10 pl-3 text-base focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
 						>
-							{#each data.courses as course}
+							{#each data.courses as course (course.id)}
 								<option value={course.id}>{course.code} - {course.name}</option>
 							{/each}
 						</select>
@@ -47,7 +47,7 @@
 							class="mt-1 block w-full rounded-md border border-gray-300 py-2 pr-10 pl-3 text-base focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
 						>
 							<option value="">-- No Lecturer --</option>
-							{#each data.lecturers as lecturer}
+							{#each data.lecturers as lecturer (lecturer.id)}
 								<option value={lecturer.id}>{lecturer.name}</option>
 							{/each}
 						</select>
@@ -129,7 +129,7 @@
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.classes as item}
+							{#each data.classes as item (item.id)}
 								<tr>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="text-sm font-medium text-indigo-600">{item.course_code}</div>

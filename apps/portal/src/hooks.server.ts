@@ -26,7 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			const user = JSON.parse(jsonPayload);
 			event.locals.user = user;
 			event.locals.token = token;
-		} catch (e) {
+		} catch {
 			console.error('Invalid token format in cookie');
 			event.cookies.delete('jwt', { path: '/' });
 		}

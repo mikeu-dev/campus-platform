@@ -26,7 +26,7 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 		// This is inefficient, but fits "Portal Integration" scope without touching Backend if possible.
 		// Wait, /classes returns all classes for the tenant.
 		classInfo = res.data.data.find((c: any) => c.id === classId);
-	} catch (error) {
+	} catch {
 		console.error('Fetch class info failed');
 	}
 
