@@ -2,8 +2,12 @@ const express = require('express');
 const router = express.Router();
 const learningController = require('../controllers/learning.controller');
 const { verifyToken } = require('../middlewares/auth.middleware');
+const { upload, uploadToMinio } = require('../middlewares/upload.middleware');
 
 router.use(verifyToken);
+
+// Files matches /files/upload
+router.post('/upload', upload.single('file'), uploadToMinio, learningController.uploadFile);
 
 // Class Resources
 router.post('/classes/:classId/materials', learningController.addMaterial);

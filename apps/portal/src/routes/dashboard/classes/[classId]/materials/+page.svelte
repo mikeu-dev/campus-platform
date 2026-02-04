@@ -36,7 +36,13 @@
 
 	{#if showForm}
 		<div class="rounded-md border border-gray-200 bg-gray-50 p-4">
-			<form method="POST" action="?/create" use:enhance on:submit={() => (showForm = false)}>
+			<form
+				method="POST"
+				action="?/create"
+				use:enhance
+				on:submit={() => (showForm = false)}
+				enctype="multipart/form-data"
+			>
 				<div class="grid grid-cols-1 gap-4">
 					<div>
 						<label for="title" class="block text-sm font-medium text-gray-700">Title</label>
@@ -71,6 +77,15 @@
 							rows="3"
 							class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 						></textarea>
+					</div>
+					<div>
+						<label for="file" class="block text-sm font-medium text-gray-700">Or Upload File</label>
+						<input
+							type="file"
+							name="file"
+							id="file"
+							class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
+						/>
 					</div>
 					<div class="flex justify-end">
 						<button

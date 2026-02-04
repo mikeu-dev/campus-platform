@@ -52,9 +52,35 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 export const actions = {
     submit: async ({ request, locals, params }) => {
         const data = await request.formData();
-        const content = data.get('content');
+        let content = data.get('content')?.toString() || '';
+        const file = data.get('file');
         const token = locals.token;
         const { assignmentId } = params;
+
+        if (file instanceof File && file.size > 0) {
+            try {
+                const uploadData = new FormData();
+                uploadData.append('file', file);
+                uploadData.append('bucket', 'submissions'); // Different bucket for submissions
+
+                const uploadRes = await fetch(`${PUBLIC_LEARNING_API_URL}/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: uploadData
+                });
+
+                if (!uploadRes.ok) throw new Error('File upload failed');
+                const uploadJson = await uploadRes.json();
+
+                // If content exists, append URL, otherwise just URL
+                const fileLink = `[Attached File](${uploadJson.data.url})`;
+                content = content ? `${content}\n\n${fileLink}` : fileLink;
+
+            } catch (e) {
+                console.error(e);
+                return fail(500, { error: 'File upload failed' });
+            }
+        }
 
         if (!content) return fail(400, { error: "Content is required" });
 

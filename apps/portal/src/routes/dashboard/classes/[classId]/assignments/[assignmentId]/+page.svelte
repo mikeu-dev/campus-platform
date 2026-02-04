@@ -123,7 +123,13 @@
 					<p>Type your answer below (Text only for now).</p>
 				</div>
 
-				<form method="POST" action="?/submit" use:enhance class="mt-5 sm:flex sm:items-center">
+				<form
+					method="POST"
+					action="?/submit"
+					use:enhance
+					class="mt-5"
+					enctype="multipart/form-data"
+				>
 					<div class="w-full sm:max-w-xs">
 						<label for="content" class="sr-only">Answer</label>
 						<textarea
@@ -133,6 +139,16 @@
 							class="block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 							placeholder="My answer is..."
 						></textarea>
+					</div>
+					<div class="mt-3">
+						<label for="sub-file" class="block text-sm font-medium text-gray-700">Attach File</label
+						>
+						<input
+							type="file"
+							name="file"
+							id="sub-file"
+							class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
+						/>
 					</div>
 					<button
 						type="submit"

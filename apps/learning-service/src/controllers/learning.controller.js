@@ -29,6 +29,16 @@ const gradeSchema = z.object({
 
 class LearningController {
 
+    // --- Files ---
+    async uploadFile(req, res, next) {
+        try {
+            if (!req.fileUrl) {
+                return res.status(400).json({ status: 'fail', message: 'No file uploaded' });
+            }
+            res.status(201).json({ status: 'success', data: { url: req.fileUrl } });
+        } catch (err) { next(err); }
+    }
+
     // --- Materials ---
     async addMaterial(req, res, next) {
         try {

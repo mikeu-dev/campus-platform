@@ -24,10 +24,34 @@ export const actions = {
     create: async ({ request, locals, params }) => {
         const data = await request.formData();
         const title = data.get('title');
-        const content = data.get('content');
-        const type = data.get('type') || 'text';
+        let content = data.get('content')?.toString() || '';
+        let type = data.get('type')?.toString() || 'text';
+        const file = data.get('file');
         const { classId } = params;
         const token = locals.token;
+
+        // Handle File Upload
+        if (file instanceof File && file.size > 0) {
+            try {
+                const uploadData = new FormData();
+                uploadData.append('file', file);
+                uploadData.append('bucket', 'materials');
+
+                const uploadRes = await fetch(`${PUBLIC_LEARNING_API_URL}/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }, // fetch handles Content-Type for FormData
+                    body: uploadData
+                });
+
+                if (!uploadRes.ok) throw new Error('File upload failed');
+                const uploadJson = await uploadRes.json();
+                content = uploadJson.data.url;
+                if (type === 'text') type = 'file'; // Default to file if not specified
+            } catch (e) {
+                console.error(e);
+                return fail(500, { error: 'File upload failed' });
+            }
+        }
 
         if (!title) return fail(400, { error: 'Title is required' });
 

@@ -12,5 +12,34 @@ services:
       - campus_db_data:/var/lib/postgresql/data
     restart: always
 
+  minio:
+    image: minio/minio
+    container_name: campus-platform-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - campus_minio_data:/data
+    restart: always
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/campus-materials;
+      /usr/bin/mc mb myminio/campus-submissions;
+      /usr/bin/mc anonymous set download myminio/campus-materials;
+      /usr/bin/mc anonymous set download myminio/campus-submissions;
+      exit 0;
+      "
+
 volumes:
   campus_db_data:
+  campus_minio_data:
