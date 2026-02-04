@@ -91,6 +91,7 @@
 	<div class="flex flex-col">
 		<DataTable
 			data={data.courses}
+			meta={data.meta}
 			columns={[
 				{ key: 'code', label: 'Code' },
 				{ key: 'name', label: 'Name' },

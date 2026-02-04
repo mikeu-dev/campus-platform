@@ -53,8 +53,44 @@ class AcademicController {
     async getCourses(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query('SELECT * FROM courses WHERE tenant_id = $1', [tenantId]);
-            res.json({ status: 'success', data: result.rows });
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const search = req.query.search || '';
+            const offset = (page - 1) * limit;
+
+            const params = [tenantId];
+            let whereClause = 'WHERE tenant_id = $1';
+
+            if (search) {
+                params.push(`%${search}%`);
+                whereClause += ` AND (code ILIKE $${params.length} OR name ILIKE $${params.length})`;
+            }
+
+            // Count
+            const countRes = await db.query(`SELECT COUNT(id) FROM courses ${whereClause}`, params);
+            const total = parseInt(countRes.rows[0].count);
+
+            // Data
+            params.push(limit);
+            params.push(offset);
+            const query = `
+                SELECT * FROM courses 
+                ${whereClause} 
+                ORDER BY created_at DESC 
+                LIMIT $${params.length - 1} OFFSET $${params.length}
+            `;
+            const result = await db.query(query, params);
+
+            res.json({
+                status: 'success',
+                data: result.rows,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
         } catch (err) { next(err); }
     }
 
@@ -141,21 +177,57 @@ class AcademicController {
         try {
             const tenantId = req.user.tenant_id;
             const { lecturer_id } = req.query;
-            let query = `
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const search = req.query.search || '';
+            const offset = (page - 1) * limit;
+
+            const params = [tenantId];
+            let whereClause = 'WHERE c.tenant_id = $1';
+
+            if (lecturer_id) {
+                params.push(lecturer_id);
+                whereClause += ` AND c.lecturer_id = $${params.length}`;
+            }
+
+            if (search) {
+                params.push(`%${search}%`);
+                whereClause += ` AND (co.name ILIKE $${params.length} OR co.code ILIKE $${params.length})`;
+            }
+
+            // Count
+            const countQuery = `
+                SELECT COUNT(c.id)
+                FROM classes c
+                JOIN courses co ON c.course_id = co.id
+                ${whereClause}
+            `;
+            const countRes = await db.query(countQuery, params);
+            const total = parseInt(countRes.rows[0].count);
+
+            // Data
+            params.push(limit);
+            params.push(offset);
+            const query = `
             SELECT c.id, c.semester, c.year, c.lecturer_id, co.name as course_name, co.code as course_code
             FROM classes c
             JOIN courses co ON c.course_id = co.id
-            WHERE c.tenant_id = $1
+            ${whereClause}
+            ORDER BY c.year DESC, c.semester DESC
+            LIMIT $${params.length - 1} OFFSET $${params.length}
             `;
-            const params = [tenantId];
-
-            if (lecturer_id) {
-                query += ` AND c.lecturer_id = $2`;
-                params.push(lecturer_id);
-            }
 
             const result = await db.query(query, params);
-            res.json({ status: 'success', data: result.rows });
+            res.json({
+                status: 'success',
+                data: result.rows,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
         } catch (err) { next(err); }
     }
 

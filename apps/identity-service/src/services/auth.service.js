@@ -138,16 +138,49 @@ class AuthService {
         }
     }
     // List Users (Admin)
-    async getUsers(tenantId) {
-        const result = await db.query(
-            `SELECT u.id, u.email, u.full_name, r.name as role
-             FROM users u
-             JOIN user_roles ur ON u.id = ur.user_id
-             JOIN roles r ON ur.role_id = r.id
-             WHERE u.tenant_id = $1`,
-            [tenantId]
+    async getUsers(tenantId, { page = 1, limit = 10, search = '' }) {
+        const offset = (page - 1) * limit;
+        const params = [tenantId];
+        let whereClause = 'WHERE u.tenant_id = $1';
+
+        if (search) {
+            params.push(`%${search}%`);
+            whereClause += ` AND (u.email ILIKE $${params.length} OR u.full_name ILIKE $${params.length})`;
+        }
+
+        // Count Total
+        const countRes = await db.query(
+            `SELECT COUNT(u.id) 
+             FROM users u 
+             ${whereClause}`,
+            params
         );
-        return result.rows;
+        const total = parseInt(countRes.rows[0].count);
+
+        // Get Data
+        params.push(limit);
+        params.push(offset);
+        const query = `
+            SELECT u.id, u.email, u.full_name, r.name as role
+            FROM users u
+            JOIN user_roles ur ON u.id = ur.user_id
+            JOIN roles r ON ur.role_id = r.id
+            ${whereClause}
+            ORDER BY u.created_at DESC
+            LIMIT $${params.length - 1} OFFSET $${params.length}
+        `;
+
+        const result = await db.query(query, params);
+
+        return {
+            data: result.rows,
+            meta: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     }
 
     // Admin Create User (Internal/Admin)
