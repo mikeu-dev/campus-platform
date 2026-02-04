@@ -32,5 +32,6 @@ router.patch('/notifications/:notificationId/read', learningController.markNotif
 // Student Analytics
 router.get('/students/:studentId/grades', learningController.getStudentGrades);
 router.get('/students/:studentId/stats', learningController.getStudentStats);
+router.get('/students/:studentId/deadlines', learningController.getStudentDeadlines);
 
 module.exports = router;

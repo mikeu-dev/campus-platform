@@ -271,6 +271,26 @@ class LearningController {
             });
         } catch (err) { next(err); }
     }
+
+    async getStudentDeadlines(req, res, next) {
+        try {
+            const { studentId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            // Get all assignments from classes the student has submissions in (as proxy for enrollment)
+            const result = await db.query(
+                `SELECT DISTINCT a.id, a.title, a.description, a.deadline, a.class_id,
+                        CASE WHEN s.id IS NOT NULL THEN true ELSE false END as is_submitted
+                 FROM assignments a
+                 LEFT JOIN submissions s ON a.id = s.assignment_id AND s.student_id = $1
+                 WHERE a.tenant_id = $2 AND a.deadline >= NOW()
+                 ORDER BY a.deadline ASC
+                 LIMIT 20`,
+                [studentId, tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new LearningController();

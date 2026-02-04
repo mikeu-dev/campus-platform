@@ -95,6 +95,19 @@
 				My Grades
 			</a>
 
+			<a
+				href="/dashboard/calendar"
+				onclick={() => (sidebarOpen = false)}
+				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
+					'/calendar'
+				)
+					? 'bg-indigo-50 text-indigo-600'
+					: ''}"
+			>
+				<BookOpen class="mr-3 h-5 w-5" />
+				Calendar
+			</a>
+
 			{#if page.data.user?.roles?.includes('lecturer')}
 				<div class="pt-4 pb-2">
 					<p class="px-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Lecturer</p>
