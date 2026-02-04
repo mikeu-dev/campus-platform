@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Award, TrendingUp, BarChart3, CheckCircle } from 'lucide-svelte';
+	import DataTable from '$lib/components/DataTable.svelte';
 	let { data } = $props();
 
 	function getScoreColor(score: number): string {
@@ -82,69 +83,49 @@
 	{/if}
 
 	<!-- Grades Table -->
-	<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-		<div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+	<!-- Grades Table -->
+	<DataTable
+		data={data.grades}
+		key="submission_id"
+		columns={[
+			{ key: 'assignment_title', label: 'Assignment' },
+			{ key: 'score', label: 'Score' },
+			{ key: 'grade_label', label: 'Grade' },
+			{ key: 'feedback', label: 'Feedback', class: 'max-w-xs' },
+			{ key: 'submitted_at', label: 'Date' }
+		]}
+	>
+		{#snippet header()}
 			<h3 class="text-lg font-semibold text-gray-900">Grade History</h3>
-		</div>
-		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Assignment</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Score</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Grade</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Feedback</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Date</th
-						>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white">
-					{#each data.grades as grade (grade.submission_id)}
-						<tr class="hover:bg-gray-50">
-							<td class="px-6 py-4 whitespace-nowrap">
-								<p class="text-sm font-medium text-gray-900">{grade.assignment_title}</p>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<span
-									class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold ${getScoreColor(grade.score)}`}
-								>
-									{grade.score}
-								</span>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<span class="text-lg font-bold text-gray-900">{getScoreLabel(grade.score)}</span>
-							</td>
-							<td class="max-w-xs truncate px-6 py-4">
-								<p class="text-sm text-gray-500">{grade.feedback || '-'}</p>
-							</td>
-							<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-								{new Date(grade.submitted_at).toLocaleDateString()}
-							</td>
-						</tr>
-					{:else}
-						<tr>
-							<td colspan="5" class="px-6 py-12 text-center">
-								<BarChart3 class="mx-auto h-12 w-12 text-gray-300" />
-								<p class="mt-2 text-gray-500">No graded assignments yet</p>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	</div>
+		{/snippet}
+
+		{#snippet cell(item: any, columnKey: string)}
+			{#if columnKey === 'assignment_title'}
+				<p class="text-sm font-medium text-gray-900">{item.assignment_title}</p>
+			{:else if columnKey === 'score'}
+				<span
+					class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold ${getScoreColor(item.score)}`}
+				>
+					{item.score}
+				</span>
+			{:else if columnKey === 'grade_label'}
+				<span class="text-lg font-bold text-gray-900">{getScoreLabel(item.score)}</span>
+			{:else if columnKey === 'feedback'}
+				<p class="truncate text-sm text-gray-500">{item.feedback || '-'}</p>
+			{:else if columnKey === 'submitted_at'}
+				<div class="text-sm text-gray-500">
+					{new Date(item.submitted_at).toLocaleDateString()}
+				</div>
+			{/if}
+		{/snippet}
+
+		{#snippet empty()}
+			<tr>
+				<td colspan="5" class="px-6 py-12 text-center">
+					<BarChart3 class="mx-auto h-12 w-12 text-gray-300" />
+					<p class="mt-2 text-gray-500">No graded assignments yet</p>
+				</td>
+			</tr>
+		{/snippet}
+	</DataTable>
 </div>

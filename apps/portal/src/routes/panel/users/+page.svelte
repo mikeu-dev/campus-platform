@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Plus } from 'lucide-svelte';
+	import DataTable from '$lib/components/DataTable.svelte';
 	let { data, form } = $props();
 
 	let showForm = $state(false);
@@ -96,78 +97,45 @@
 	{/if}
 
 	<div class="flex flex-col">
-		<div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-			<div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-				<div class="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-					<table class="min-w-full divide-y divide-gray-200">
-						<thead class="bg-gray-50">
-							<tr>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Name</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Email</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Role</th
-								>
-								<th scope="col" class="relative px-6 py-3">
-									<span class="sr-only">Edit</span>
-								</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.users as user (user.id)}
-								<tr>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="flex items-center">
-											<div class="h-10 w-10 shrink-0">
-												<div
-													class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100"
-												>
-													<span class="text-sm font-medium text-indigo-600"
-														>{user.full_name.charAt(0)}</span
-													>
-												</div>
-											</div>
-											<div class="ml-4">
-												<div class="text-sm font-medium text-gray-900">{user.full_name}</div>
-											</div>
-										</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-500">{user.email}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<span
-											class="inline-flex rounded-full bg-green-100 px-2 text-xs leading-5 font-semibold text-green-800 capitalize"
-										>
-											{user.role}
-										</span>
-									</td>
-									<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-										<button
-											type="button"
-											class="cursor-pointer border-none bg-transparent text-indigo-600 hover:text-indigo-900"
-											>Edit</button
-										>
-									</td>
-								</tr>
-							{:else}
-								<tr>
-									<td colspan="4" class="px-6 py-4 text-center text-gray-500">No users found.</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
+		<DataTable
+			data={data.users}
+			columns={[
+				{ key: 'name', label: 'Name' },
+				{ key: 'email', label: 'Email' },
+				{ key: 'role', label: 'Role' },
+				{ key: 'actions', label: '', class: 'relative px-6 py-3' }
+			]}
+		>
+			{#snippet cell(user: any, columnKey: string)}
+				{#if columnKey === 'name'}
+					<div class="flex items-center">
+						<div class="h-10 w-10 shrink-0">
+							<div class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">
+								<span class="text-sm font-medium text-indigo-600">{user.full_name.charAt(0)}</span>
+							</div>
+						</div>
+						<div class="ml-4">
+							<div class="text-sm font-medium text-gray-900">{user.full_name}</div>
+						</div>
+					</div>
+				{:else if columnKey === 'email'}
+					<div class="text-sm text-gray-500">{user.email}</div>
+				{:else if columnKey === 'role'}
+					<span
+						class="inline-flex rounded-full bg-green-100 px-2 text-xs leading-5 font-semibold text-green-800 capitalize"
+					>
+						{user.role}
+					</span>
+				{:else if columnKey === 'actions'}
+					<div class="text-right text-sm font-medium">
+						<button
+							type="button"
+							class="cursor-pointer border-none bg-transparent text-indigo-600 hover:text-indigo-900"
+							>Edit</button
+						>
+					</div>
+				{/if}
+			{/snippet}
+		</DataTable>
 	</div>
 </div>

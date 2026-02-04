@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Plus } from 'lucide-svelte';
+	import DataTable from '$lib/components/DataTable.svelte';
 	let { data, form } = $props();
 
 	let showForm = $state(false);
@@ -88,51 +89,23 @@
 	{/if}
 
 	<div class="flex flex-col">
-		<div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-			<div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-				<div class="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-					<table class="min-w-full divide-y divide-gray-200">
-						<thead class="bg-gray-50">
-							<tr>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Code</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Name</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Credits</th
-								>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.courses as course (course.id)}
-								<tr>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm font-medium text-indigo-600">{course.code}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-900">{course.name}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-500">{course.credits}</div>
-									</td>
-								</tr>
-							{:else}
-								<tr>
-									<td colspan="3" class="px-6 py-4 text-center text-gray-500">No courses found.</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
+		<DataTable
+			data={data.courses}
+			columns={[
+				{ key: 'code', label: 'Code' },
+				{ key: 'name', label: 'Name' },
+				{ key: 'credits', label: 'Credits' }
+			]}
+		>
+			{#snippet cell(item: any, columnKey: string)}
+				{#if columnKey === 'code'}
+					<div class="text-sm font-medium text-indigo-600">{item.code}</div>
+				{:else if columnKey === 'name'}
+					<div class="text-sm text-gray-900">{item.name}</div>
+				{:else if columnKey === 'credits'}
+					<div class="text-sm text-gray-500">{item.credits}</div>
+				{/if}
+			{/snippet}
+		</DataTable>
 	</div>
 </div>

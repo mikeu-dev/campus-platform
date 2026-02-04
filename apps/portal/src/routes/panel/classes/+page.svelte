@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Plus } from 'lucide-svelte';
+	import DataTable from '$lib/components/DataTable.svelte';
 	let { data, form } = $props();
 
 	let showForm = $state(false);
@@ -104,64 +105,35 @@
 	{/if}
 
 	<div class="flex flex-col">
-		<div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-			<div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-				<div class="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-					<table class="min-w-full divide-y divide-gray-200">
-						<thead class="bg-gray-50">
-							<tr>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Course</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Semester/Year</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Lecturer</th
-								>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.classes as item (item.id)}
-								<tr>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm font-medium text-indigo-600">{item.course_code}</div>
-										<div class="text-sm text-gray-500">{item.course_name}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-900">{item.semester}/{item.year}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										{#if item.lecturer_id}
-											<!-- Finding lecturer name from loaded data might change item structure or need lookup -->
-											<div class="text-sm text-gray-500">
-												{data.lecturers.find((l: any) => l.id === item.lecturer_id)?.name ||
-													'Unknown'}
-											</div>
-										{:else}
-											<span
-												class="inline-flex rounded-full bg-yellow-100 px-2 text-xs leading-5 font-semibold text-yellow-800"
-											>
-												Unassigned
-											</span>
-										{/if}
-									</td>
-								</tr>
-							{:else}
-								<tr>
-									<td colspan="3" class="px-6 py-4 text-center text-gray-500">No classes found.</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
+		<DataTable
+			data={data.classes}
+			columns={[
+				{ key: 'course', label: 'Course' },
+				{ key: 'period', label: 'Semester/Year' },
+				{ key: 'lecturer', label: 'Lecturer' }
+			]}
+		>
+			{#snippet cell(item: any, columnKey: string)}
+				{#if columnKey === 'course'}
+					<div class="text-sm font-medium text-indigo-600">{item.course_code}</div>
+					<div class="text-sm text-gray-500">{item.course_name}</div>
+				{:else if columnKey === 'period'}
+					<div class="text-sm text-gray-900">{item.semester}/{item.year}</div>
+				{:else if columnKey === 'lecturer'}
+					{#if item.lecturer_id}
+						<!-- Finding lecturer name from loaded data might change item structure or need lookup -->
+						<div class="text-sm text-gray-500">
+							{data.lecturers.find((l: any) => l.id === item.lecturer_id)?.name || 'Unknown'}
+						</div>
+					{:else}
+						<span
+							class="inline-flex rounded-full bg-yellow-100 px-2 text-xs leading-5 font-semibold text-yellow-800"
+						>
+							Unassigned
+						</span>
+					{/if}
+				{/if}
+			{/snippet}
+		</DataTable>
 	</div>
 </div>
