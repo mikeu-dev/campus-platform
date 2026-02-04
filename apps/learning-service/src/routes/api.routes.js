@@ -29,4 +29,8 @@ router.get('/notifications', learningController.getNotifications);
 router.get('/notifications/unread-count', learningController.getUnreadCount);
 router.patch('/notifications/:notificationId/read', learningController.markNotificationRead);
 
+// Student Analytics
+router.get('/students/:studentId/grades', learningController.getStudentGrades);
+router.get('/students/:studentId/stats', learningController.getStudentStats);
+
 module.exports = router;

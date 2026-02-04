@@ -220,6 +220,57 @@ class LearningController {
             res.json({ status: 'success', data: { count: parseInt(result.rows[0].count) } });
         } catch (err) { next(err); }
     }
+
+    // --- Student Analytics ---
+    async getStudentGrades(req, res, next) {
+        try {
+            const { studentId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `SELECT s.id as submission_id, s.score, s.feedback, s.submitted_at,
+                        a.title as assignment_title, a.class_id
+                 FROM submissions s
+                 JOIN assignments a ON s.assignment_id = a.id
+                 WHERE s.student_id = $1 AND s.tenant_id = $2 AND s.score IS NOT NULL
+                 ORDER BY s.submitted_at DESC`,
+                [studentId, tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getStudentStats(req, res, next) {
+        try {
+            const { studentId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            // Get submission stats
+            const statsResult = await db.query(
+                `SELECT 
+                    COUNT(*) as total_submissions,
+                    COUNT(CASE WHEN score IS NOT NULL THEN 1 END) as graded_count,
+                    AVG(score) as average_score,
+                    MAX(score) as highest_score,
+                    MIN(score) as lowest_score
+                 FROM submissions
+                 WHERE student_id = $1 AND tenant_id = $2`,
+                [studentId, tenantId]
+            );
+
+            const stats = statsResult.rows[0];
+            res.json({
+                status: 'success',
+                data: {
+                    totalSubmissions: parseInt(stats.total_submissions),
+                    gradedCount: parseInt(stats.graded_count),
+                    averageScore: stats.average_score ? parseFloat(stats.average_score).toFixed(2) : null,
+                    highestScore: stats.highest_score,
+                    lowestScore: stats.lowest_score
+                }
+            });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new LearningController();
