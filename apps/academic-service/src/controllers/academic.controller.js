@@ -114,6 +114,14 @@ class AcademicController {
         } catch (err) { next(err); }
     }
 
+    async getLecturers(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const result = await db.query('SELECT * FROM lecturers WHERE tenant_id = $1', [tenantId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
     // --- Classes ---
     async createClass(req, res, next) {
         try {

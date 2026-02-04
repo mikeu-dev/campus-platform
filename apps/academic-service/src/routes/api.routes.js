@@ -17,6 +17,7 @@ router.get('/students/me', academicController.getMyProfile);
 // Lecturers
 router.post('/lecturers', academicController.createLecturer);
 router.get('/lecturers/me', academicController.getMyLecturerProfile);
+router.get('/lecturers', academicController.getLecturers);
 
 // Classes
 router.post('/classes', academicController.createClass);

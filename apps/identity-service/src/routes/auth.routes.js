@@ -11,4 +11,8 @@ router.get('/me', verifyToken, (req, res) => {
     res.json({ status: 'success', user: req.user });
 });
 
+// User Management (Admin)
+router.get('/users', verifyToken, authController.getUsers);
+router.post('/users', verifyToken, authController.createUser);
+
 module.exports = router;

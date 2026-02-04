@@ -65,6 +65,45 @@
 					Teaching
 				</a>
 			{/if}
+
+			{#if $page.data.user?.roles?.includes('admin')}
+				<div class="pt-4 pb-2">
+					<p class="px-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Admin</p>
+				</div>
+				<a
+					href="/dashboard/admin/users"
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+						'/admin/users'
+					)
+						? 'bg-indigo-50 text-indigo-600'
+						: ''}"
+				>
+					<User class="mr-3 h-5 w-5" />
+					Users
+				</a>
+				<a
+					href="/dashboard/admin/courses"
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+						'/admin/courses'
+					)
+						? 'bg-indigo-50 text-indigo-600'
+						: ''}"
+				>
+					<BookOpen class="mr-3 h-5 w-5" />
+					Courses
+				</a>
+				<a
+					href="/dashboard/admin/classes"
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+						'/admin/classes'
+					)
+						? 'bg-indigo-50 text-indigo-600'
+						: ''}"
+				>
+					<GraduationCap class="mr-3 h-5 w-5" />
+					Classes
+				</a>
+			{/if}
 		</nav>
 
 		<div class="absolute bottom-0 w-64 border-t border-gray-200 p-4">

@@ -66,6 +66,32 @@ class AuthController {
             next(err);
         }
     }
+    async getUsers(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            // TODO: Enforce Admin Role Check here or in middleware
+            const users = await authService.getUsers(tenantId);
+            res.json({ status: 'success', data: users });
+        } catch (err) { next(err); }
+    }
+
+    async createUser(req, res, next) {
+        try {
+            // Admin only
+            const { email, password, fullName, roleName } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            // Re-use schema or simple validation
+            if (!email || !password || !fullName || !roleName) {
+                return res.status(400).json({ status: 'fail', message: 'Missing fields' });
+            }
+
+            const user = await authService.adminCreateUser({ email, password, fullName, tenantId, roleName });
+            res.status(201).json({ status: 'success', data: user });
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = new AuthController();

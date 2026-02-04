@@ -137,6 +137,73 @@ class AuthService {
             throw err;
         }
     }
+    // List Users (Admin)
+    async getUsers(tenantId) {
+        const result = await db.query(
+            `SELECT u.id, u.email, u.full_name, r.name as role
+             FROM users u
+             JOIN user_roles ur ON u.id = ur.user_id
+             JOIN roles r ON ur.role_id = r.id
+             WHERE u.tenant_id = $1`,
+            [tenantId]
+        );
+        return result.rows;
+    }
+
+    // Admin Create User (Internal/Admin)
+    async adminCreateUser({ email, password, fullName, tenantId, roleName }) {
+        // 1. Check if user exists
+        const existingUser = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+        if (existingUser.rows.length > 0) {
+            throw new Error('Email already registered');
+        }
+
+        // 2. Hash Password
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+        // 3. Create User & Assign Role
+        const client = await db.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const userRes = await client.query(
+                `INSERT INTO users (tenant_id, email, password_hash, full_name)
+                 VALUES ($1, $2, $3, $4) RETURNING id, email, full_name`,
+                [tenantId, email, hashedPassword, fullName]
+            );
+            const user = userRes.rows[0];
+
+            // Assign Role
+            const roleRes = await client.query(
+                'SELECT id FROM roles WHERE name = $1 AND tenant_id = $2',
+                [roleName, tenantId]
+            );
+
+            let roleId;
+            if (roleRes.rows.length === 0) {
+                const newRole = await client.query(
+                    'INSERT INTO roles (tenant_id, name) VALUES ($1, $2) RETURNING id',
+                    [tenantId, roleName]
+                );
+                roleId = newRole.rows[0].id;
+            } else {
+                roleId = roleRes.rows[0].id;
+            }
+
+            await client.query(
+                'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
+                [user.id, roleId]
+            );
+
+            await client.query('COMMIT');
+            return { ...user, role: roleName };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
 }
 
 module.exports = new AuthService();
