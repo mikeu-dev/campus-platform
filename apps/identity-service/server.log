@@ -2,12 +2,15 @@
 > identity-service@1.0.0 start
 > node src/index.js
 
-[dotenv@17.2.3] injecting env (4) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (4) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
 Database connected successfully
 Database verification successful.
 Identity Service running on port 3001
-Database connected successfully
-[0mPOST /auth/login [32m200[0m 144.179 ms - 519[0m
-Database connected successfully
-[0mPOST /auth/login [32m200[0m 77.709 ms - 519[0m
+Error: Email already registered
+    at AuthService.register (/var/www/html/campus-platform/apps/identity-service/src/services/auth.service.js:29:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async register (/var/www/html/campus-platform/apps/identity-service/src/controllers/auth.controller.js:28:26)
+[0mPOST /auth/register [31m500[0m 14.884 ms - 55[0m
+[0mPOST /auth/login [32m200[0m 78.680 ms - 524[0m
+[0mPOST /auth/login [32m200[0m 63.066 ms - 519[0m

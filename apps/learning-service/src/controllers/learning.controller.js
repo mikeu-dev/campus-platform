@@ -22,6 +22,11 @@ const submissionSchema = z.object({
     // For MVP, we'll accept student_id from body but verify tenant.
 });
 
+const gradeSchema = z.object({
+    score: z.number().min(0).max(100),
+    feedback: z.string().optional(),
+});
+
 class LearningController {
 
     // --- Materials ---
@@ -112,6 +117,40 @@ class LearningController {
             );
 
             if (result.rows.length === 0) return res.json({ status: 'success', data: null });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getSubmissions(req, res, next) {
+        try {
+            const { assignmentId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            // Should verify if user is lecturer of the class?
+            // For MVP, just verify tenant. Authorization is broad.
+
+            const result = await db.query(
+                'SELECT * FROM submissions WHERE tenant_id = $1 AND assignment_id = $2 ORDER BY submitted_at DESC',
+                [tenantId, assignmentId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async gradeSubmission(req, res, next) {
+        try {
+            const { submissionId } = req.params;
+            const { score, feedback } = gradeSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `UPDATE submissions SET score = $1, feedback = $2 
+                 WHERE id = $3 AND tenant_id = $4 RETURNING *`,
+                [score, feedback, submissionId, tenantId]
+            );
+
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Submission not found' });
+
             res.json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
     }

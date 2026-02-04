@@ -29,7 +29,7 @@
 	</div>
 
 	<!-- Submission Status -->
-	{#if data.submission}
+	{#if data.submission && !data.isLecturer}
 		<div class="rounded-md border border-green-200 bg-green-50 p-4">
 			<div class="flex">
 				<div class="flex-shrink-0">
@@ -44,6 +44,9 @@
 						</p>
 						{#if data.submission.score !== null}
 							<p class="mt-2 font-bold">Score: {data.submission.score}</p>
+							{#if data.submission.feedback}
+								<p class="text-xs italic">Feedback: {data.submission.feedback}</p>
+							{/if}
 						{/if}
 					</div>
 				</div>
@@ -51,39 +54,101 @@
 		</div>
 	{/if}
 
-	<!-- Submission Form -->
-	<div class="bg-white shadow sm:rounded-lg">
-		<div class="px-4 py-5 sm:p-6">
-			<h3 class="text-lg leading-6 font-medium text-gray-900">Submit Work</h3>
-			<div class="mt-2 max-w-xl text-sm text-gray-500">
-				<p>Type your answer below (Text only for now).</p>
+	<!-- Views -->
+	{#if data.isLecturer}
+		<!-- Lecturer View -->
+		<div class="overflow-hidden bg-white shadow sm:rounded-lg">
+			<div class="px-4 py-5 sm:p-6">
+				<h3 class="text-lg leading-6 font-medium text-gray-900">Student Submissions</h3>
+				<ul class="mt-4 divide-y divide-gray-200">
+					{#each data.submissions as sub}
+						<li class="py-4">
+							<div class="flex items-center justify-between">
+								<div>
+									<p class="text-xs text-gray-500">Stud ID: {sub.student_id}</p>
+									<p class="text-xs text-gray-400">
+										At: {new Date(sub.submitted_at).toLocaleString()}
+									</p>
+									<p class="mt-1 max-w-md rounded bg-gray-50 p-2 text-sm break-words text-gray-800">
+										{sub.content}
+									</p>
+								</div>
+								<div class="ml-4">
+									<form method="POST" action="?/grade" use:enhance class="flex items-end space-x-2">
+										<input type="hidden" name="submissionId" value={sub.id} />
+										<div>
+											<label for="score-{sub.id}" class="sr-only">Score</label>
+											<input
+												type="number"
+												name="score"
+												id="score-{sub.id}"
+												value={sub.score}
+												placeholder="Score"
+												class="w-20 rounded-md border border-gray-300 p-1 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+											/>
+										</div>
+										<div>
+											<label for="feedback-{sub.id}" class="sr-only">Feedback</label>
+											<input
+												type="text"
+												name="feedback"
+												id="feedback-{sub.id}"
+												value={sub.feedback || ''}
+												placeholder="Feedback"
+												class="w-32 rounded-md border border-gray-300 p-1 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+											/>
+										</div>
+										<button
+											type="submit"
+											class="inline-flex items-center rounded border border-transparent bg-indigo-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 focus:outline-none"
+										>
+											Grade
+										</button>
+									</form>
+								</div>
+							</div>
+						</li>
+					{:else}
+						<li class="py-4 text-center text-gray-500">No submissions yet.</li>
+					{/each}
+				</ul>
 			</div>
-
-			<form method="POST" use:enhance class="mt-5 sm:flex sm:items-center">
-				<div class="w-full sm:max-w-xs">
-					<label for="content" class="sr-only">Answer</label>
-					<textarea
-						id="content"
-						name="content"
-						rows="3"
-						class="block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-						placeholder="My answer is..."
-					></textarea>
-				</div>
-				<button
-					type="submit"
-					class="mt-3 inline-flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-				>
-					{data.submission ? 'Resubmit' : 'Submit'}
-				</button>
-			</form>
-
-			{#if form?.error}
-				<p class="mt-2 text-sm text-red-600">{form.error}</p>
-			{/if}
-			{#if form?.success}
-				<p class="mt-2 text-sm text-green-600">Submitted successfully!</p>
-			{/if}
 		</div>
-	</div>
+	{:else}
+		<!-- Student View -->
+		<div class="bg-white shadow sm:rounded-lg">
+			<div class="px-4 py-5 sm:p-6">
+				<h3 class="text-lg leading-6 font-medium text-gray-900">Submit Work</h3>
+				<div class="mt-2 max-w-xl text-sm text-gray-500">
+					<p>Type your answer below (Text only for now).</p>
+				</div>
+
+				<form method="POST" action="?/submit" use:enhance class="mt-5 sm:flex sm:items-center">
+					<div class="w-full sm:max-w-xs">
+						<label for="content" class="sr-only">Answer</label>
+						<textarea
+							id="content"
+							name="content"
+							rows="3"
+							class="block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+							placeholder="My answer is..."
+						></textarea>
+					</div>
+					<button
+						type="submit"
+						class="mt-3 inline-flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+					>
+						{data.submission ? 'Resubmit' : 'Submit'}
+					</button>
+				</form>
+
+				{#if form?.error}
+					<p class="mt-2 text-sm text-red-600">{form.error}</p>
+				{/if}
+				{#if form?.success}
+					<p class="mt-2 text-sm text-green-600">Submitted successfully!</p>
+				{/if}
+			</div>
+		</div>
+	{/if}
 </div>

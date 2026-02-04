@@ -25,6 +25,12 @@ const enrollmentSchema = z.object({
     student_id: z.string().uuid(),
 });
 
+const lecturerSchema = z.object({
+    user_id: z.string().uuid(),
+    name: z.string(),
+    lecturer_number: z.string().optional(),
+});
+
 class AcademicController {
 
     // --- Courses ---
@@ -80,15 +86,44 @@ class AcademicController {
         } catch (err) { next(err); }
     }
 
-    // --- Classes ---
-    async createClass(req, res, next) {
+    // --- Lecturers ---
+    async createLecturer(req, res, next) {
         try {
-            const { course_id, semester, year } = classSchema.parse(req.body);
+            const { user_id, name, lecturer_number } = lecturerSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
             const result = await db.query(
-                'INSERT INTO classes (tenant_id, course_id, semester, year) VALUES ($1, $2, $3, $4) RETURNING *',
-                [tenantId, course_id, semester, year]
+                'INSERT INTO lecturers (tenant_id, user_id, name, platform_lecturer_number) VALUES ($1, $2, $3, $4) RETURNING *',
+                [tenantId, user_id, name, lecturer_number]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getMyLecturerProfile(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const result = await db.query(
+                'SELECT * FROM lecturers WHERE tenant_id = $1 AND user_id = $2',
+                [tenantId, userId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Lecturer profile not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    // --- Classes ---
+    async createClass(req, res, next) {
+        try {
+            const schemaWithLecturer = classSchema.extend({ lecturer_id: z.string().uuid().optional() });
+            const { course_id, semester, year, lecturer_id } = schemaWithLecturer.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'INSERT INTO classes (tenant_id, course_id, semester, year, lecturer_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [tenantId, course_id, semester, year, lecturer_id]
             );
             res.status(201).json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
@@ -97,13 +132,21 @@ class AcademicController {
     async getClasses(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            // Join with course info
-            const result = await db.query(`
-            SELECT c.id, c.semester, c.year, co.name as course_name, co.code as course_code
+            const { lecturer_id } = req.query;
+            let query = `
+            SELECT c.id, c.semester, c.year, c.lecturer_id, co.name as course_name, co.code as course_code
             FROM classes c
             JOIN courses co ON c.course_id = co.id
             WHERE c.tenant_id = $1
-          `, [tenantId]);
+            `;
+            const params = [tenantId];
+
+            if (lecturer_id) {
+                query += ` AND c.lecturer_id = $2`;
+                params.push(lecturer_id);
+            }
+
+            const result = await db.query(query, params);
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
@@ -113,11 +156,6 @@ class AcademicController {
         try {
             const { class_id, student_id } = enrollmentSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
-
-            // In real world: Validate if student belongs to tenant, if class belongs to tenant.
-            // Postgres RLS or explicit checks needed.
-            // For MVP, if UUIDs don't match tenant, it won't be found or doesn't matter much if trusted internal API?
-            // Better to check.
 
             const result = await db.query(
                 'INSERT INTO enrollments (tenant_id, class_id, student_id) VALUES ($1, $2, $3) RETURNING *',

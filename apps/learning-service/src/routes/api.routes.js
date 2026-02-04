@@ -15,5 +15,8 @@ router.get('/classes/:classId/assignments', learningController.getAssignments);
 // Assignment Submissions
 router.post('/assignments/:assignmentId/submit', learningController.submitAssignment);
 router.get('/assignments/:assignmentId/my-submission', learningController.getMySubmission);
+router.get('/assignments/:assignmentId/submissions', learningController.getSubmissions); // Lecturer View
+
+router.post('/submissions/:submissionId/grade', learningController.gradeSubmission);
 
 module.exports = router;

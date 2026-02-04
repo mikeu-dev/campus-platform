@@ -9,21 +9,25 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     let assignment = null;
     let submission = null;
     let studentId = null;
+    let submissions = [];
+    const isLecturer = locals.user?.roles?.includes('lecturer');
 
     try {
-        // 1. Fetch Student Profile to get ID (needed for submission check)
-        const profileRes = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        studentId = profileRes.data.data.id;
+        if (isLecturer) {
+            // Fetch ALL submissions
+            const subsRes = await axios.get(`${PUBLIC_LEARNING_API_URL}/assignments/${assignmentId}/submissions`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            submissions = subsRes.data.data;
+        } else {
+            // Student Logic
+            const profileRes = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            studentId = profileRes.data.data.id;
+        }
 
-        // 2. Fetch Assignment Details (We reused getAssignments list endpoint in plan, but let's see if we need single)
-        // Learning Service only has getAssignments (list). 
-        // We can fetch list and filter? Or add single endpoint?
-        // Let's fetch list for now (MVP trade-off). 
-        // Note: Ideally Backend should have GET /assignments/:id
-        // Wait, I can't filter easily if I don't know classId here? 
-        // params has classId!
+        // 2. Fetch Assignment Details
         const { classId } = params;
         const listRes = await axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/assignments`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -42,11 +46,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         console.error("Fetch assignment details failed", error.message);
     }
 
-    return { assignment, submission };
+    return { assignment, submission, submissions, isLecturer };
 };
 
 export const actions = {
-    default: async ({ request, locals, params }) => {
+    submit: async ({ request, locals, params }) => {
         const data = await request.formData();
         const content = data.get('content');
         const token = locals.token;
@@ -74,6 +78,24 @@ export const actions = {
         } catch (error: any) {
             console.error("Submission failed", error.response?.data || error.message);
             return fail(500, { error: "Submission failed" });
+        }
+    },
+    grade: async ({ request, locals, params }) => {
+        const data = await request.formData();
+        const score = parseFloat(data.get('score')?.toString() || '0');
+        const feedback = data.get('feedback');
+        const submissionId = data.get('submissionId');
+        const token = locals.token;
+
+        try {
+            await axios.post(`${PUBLIC_LEARNING_API_URL}/submissions/${submissionId}/grade`, {
+                score, feedback
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return { success: true };
+        } catch (error: any) {
+            return fail(500, { error: "Grading failed" });
         }
     }
 } satisfies Actions;
