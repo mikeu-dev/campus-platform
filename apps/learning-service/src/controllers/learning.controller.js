@@ -164,6 +164,62 @@ class LearningController {
             res.json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
     }
+
+    // --- Notifications ---
+    async createNotification(req, res, next) {
+        try {
+            const { user_id, type, title, message, link } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'INSERT INTO notifications (tenant_id, user_id, type, title, message, link) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [tenantId, user_id, type, title, message, link]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getNotifications(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT * FROM notifications WHERE tenant_id = $1 AND user_id = $2 ORDER BY created_at DESC LIMIT 20',
+                [tenantId, userId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async markNotificationRead(req, res, next) {
+        try {
+            const { notificationId } = req.params;
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2 AND tenant_id = $3 RETURNING *',
+                [notificationId, userId, tenantId]
+            );
+
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Notification not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getUnreadCount(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT COUNT(*) as count FROM notifications WHERE tenant_id = $1 AND user_id = $2 AND is_read = FALSE',
+                [tenantId, userId]
+            );
+            res.json({ status: 'success', data: { count: parseInt(result.rows[0].count) } });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new LearningController();

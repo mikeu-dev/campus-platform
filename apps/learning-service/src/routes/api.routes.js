@@ -23,4 +23,10 @@ router.get('/assignments/:assignmentId/submissions', learningController.getSubmi
 
 router.post('/submissions/:submissionId/grade', learningController.gradeSubmission);
 
+// Notifications
+router.post('/notifications', learningController.createNotification);
+router.get('/notifications', learningController.getNotifications);
+router.get('/notifications/unread-count', learningController.getUnreadCount);
+router.patch('/notifications/:notificationId/read', learningController.markNotificationRead);
+
 module.exports = router;

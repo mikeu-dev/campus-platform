@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { LayoutDashboard, BookOpen, LogOut, GraduationCap, User } from 'lucide-svelte';
+	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	interface Props {
 		children?: import('svelte').Snippet;
+		data: { token?: string };
 	}
 
-	let { children }: Props = $props();
+	let { children, data }: Props = $props();
 </script>
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -->
@@ -133,7 +135,13 @@
 	</aside>
 
 	<!-- Main Content -->
-	<main class="flex-1 overflow-auto p-8">
-		{@render children?.()}
+	<main class="flex-1 overflow-auto">
+		<!-- Top Bar with Notification Bell -->
+		<div class="flex items-center justify-end border-b border-gray-200 bg-white px-8 py-3">
+			<NotificationBell token={data.token || ''} />
+		</div>
+		<div class="p-8">
+			{@render children?.()}
+		</div>
 	</main>
 </div>
