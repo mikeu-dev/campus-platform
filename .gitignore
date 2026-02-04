@@ -5,3 +5,9 @@ apps/identity-service/node_modules
 apps/learning-service/node_modules
 apps/portal/node_modules
 
+
+apps/*/server.log
+server.log
+apps/academic-service/server.log
+apps/identity-service/server.log
+apps/learning-service/server.log
