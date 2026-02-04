@@ -11,3 +11,5 @@ server.log
 apps/academic-service/server.log
 apps/identity-service/server.log
 apps/learning-service/server.log
+
+node_modules

@@ -1,0 +1,19 @@
+{
+    "name": "campus-platform",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev": "npm run dev --workspaces --if-present",
+        "build": "npm run build --workspaces --if-present",
+        "preview": "npm run preview --workspaces --if-present",
+        "check": "npm run check --workspaces --if-present",
+        "lint": "npm run lint --workspaces --if-present",
+        "format": "npm run format --workspaces --if-present",
+        "test": "npm run test --workspaces --if-present",
+        "test:unit": "npm run test:unit --workspaces --if-present",
+        "test:e2e": "npm run test:e2e --workspaces --if-present"
+    }
+}
