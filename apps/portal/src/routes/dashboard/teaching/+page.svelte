@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Plus } from 'lucide-svelte';
-	export let data;
+	let { data } = $props();
 </script>
 
 <div class="space-y-6">

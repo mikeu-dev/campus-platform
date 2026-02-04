@@ -1,6 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { LayoutDashboard, BookOpen, LogOut, GraduationCap, User } from 'lucide-svelte';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 </script>
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -->
@@ -11,13 +16,13 @@
 			<h1 class="text-2xl font-bold text-indigo-600">
 				Campus<span class="text-gray-900">App</span>
 			</h1>
-			<p class="mt-1 text-sm text-gray-500">{$page.data.user?.tenant_slug || 'SaaS Platform'}</p>
+			<p class="mt-1 text-sm text-gray-500">{page.data.user?.tenant_slug || 'SaaS Platform'}</p>
 		</div>
 
 		<nav class="mt-6 space-y-2 px-4">
 			<a
 				href="/dashboard"
-				class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page
+				class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page
 					.url.pathname === '/dashboard'
 					? 'bg-indigo-50 text-indigo-600'
 					: ''}"
@@ -28,7 +33,7 @@
 
 			<a
 				href="/dashboard/enrollment"
-				class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+				class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 					'/enrollment'
 				)
 					? 'bg-indigo-50 text-indigo-600'
@@ -40,7 +45,7 @@
 
 			<a
 				href="/dashboard/classes"
-				class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+				class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 					'/classes'
 				)
 					? 'bg-indigo-50 text-indigo-600'
@@ -50,13 +55,13 @@
 				My Classes
 			</a>
 
-			{#if $page.data.user?.roles?.includes('lecturer')}
+			{#if page.data.user?.roles?.includes('lecturer')}
 				<div class="pt-4 pb-2">
 					<p class="px-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Lecturer</p>
 				</div>
 				<a
 					href="/dashboard/teaching"
-					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 						'/teaching'
 					)
 						? 'bg-indigo-50 text-indigo-600'
@@ -67,13 +72,13 @@
 				</a>
 			{/if}
 
-			{#if $page.data.user?.roles?.includes('admin')}
+			{#if page.data.user?.roles?.includes('admin')}
 				<div class="pt-4 pb-2">
 					<p class="px-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Admin</p>
 				</div>
 				<a
 					href="/dashboard/admin/users"
-					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 						'/admin/users'
 					)
 						? 'bg-indigo-50 text-indigo-600'
@@ -84,7 +89,7 @@
 				</a>
 				<a
 					href="/dashboard/admin/courses"
-					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 						'/admin/courses'
 					)
 						? 'bg-indigo-50 text-indigo-600'
@@ -95,7 +100,7 @@
 				</a>
 				<a
 					href="/dashboard/admin/classes"
-					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {$page.url.pathname.includes(
+					class="group flex items-center rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
 						'/admin/classes'
 					)
 						? 'bg-indigo-50 text-indigo-600'
@@ -111,8 +116,8 @@
 			<div class="mb-4 flex items-center px-2">
 				<User class="mr-2 h-8 w-8 rounded-full bg-gray-200 p-1 text-gray-600" />
 				<div class="overflow-hidden">
-					<p class="truncate text-sm font-medium text-gray-900">{$page.data.user?.email}</p>
-					<p class="text-xs text-gray-500 capitalize">{$page.data.user?.roles?.[0]}</p>
+					<p class="truncate text-sm font-medium text-gray-900">{page.data.user?.email}</p>
+					<p class="text-xs text-gray-500 capitalize">{page.data.user?.roles?.[0]}</p>
 				</div>
 			</div>
 			<form action="/logout" method="POST">
@@ -129,6 +134,6 @@
 
 	<!-- Main Content -->
 	<main class="flex-1 overflow-auto p-8">
-		<slot />
+		{@render children?.()}
 	</main>
 </div>

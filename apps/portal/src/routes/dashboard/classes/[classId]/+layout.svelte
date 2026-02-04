@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	export let data;
+	import { page } from '$app/state';
+	let { data, children } = $props();
 </script>
 
 <div class="space-y-6">
@@ -24,7 +24,7 @@
 				<a
 					href="/dashboard/classes/{data.classId}/materials"
 					class="border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors
-                   {$page.url.pathname.includes('/materials')
+                   {page.url.pathname.includes('/materials')
 						? 'border-indigo-500 text-indigo-600'
 						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				>
@@ -34,7 +34,7 @@
 				<a
 					href="/dashboard/classes/{data.classId}/assignments"
 					class="border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap transition-colors
-                   {$page.url.pathname.includes('/assignments')
+                   {page.url.pathname.includes('/assignments')
 						? 'border-indigo-500 text-indigo-600'
 						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				>
@@ -44,5 +44,5 @@
 		</div>
 	</div>
 
-	<slot />
+	{@render children?.()}
 </div>

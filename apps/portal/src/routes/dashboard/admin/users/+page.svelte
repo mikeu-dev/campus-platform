@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Plus } from 'lucide-svelte';
-	export let data;
-	export let form;
+	let { data, form } = $props();
 
-	let showForm = false;
+	let showForm = $state(false);
 </script>
 
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
 		<h2 class="text-2xl font-bold text-gray-900">User Management</h2>
 		<button
-			on:click={() => (showForm = !showForm)}
+			onclick={() => (showForm = !showForm)}
 			class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none"
 		>
 			<Plus class="mr-2 h-5 w-5" />
@@ -22,7 +21,7 @@
 	{#if showForm}
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-6">
 			<h3 class="mb-4 text-lg font-medium text-gray-900">Create New User</h3>
-			<form method="POST" action="?/create" use:enhance on:submit={() => (showForm = false)}>
+			<form method="POST" action="?/create" use:enhance onsubmit={() => (showForm = false)}>
 				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 					<div>
 						<label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
@@ -70,7 +69,7 @@
 				<div class="mt-6 flex justify-end">
 					<button
 						type="button"
-						on:click={() => (showForm = false)}
+						onclick={() => (showForm = false)}
 						class="mr-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none"
 						>Cancel</button
 					>

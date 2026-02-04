@@ -2,10 +2,9 @@
 	import { Calendar, ChevronRight, Plus } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
-	export let data;
-	export let form;
+	let { data, form } = $props();
 
-	let showForm = false;
+	let showForm = $state(false);
 </script>
 
 <div class="space-y-6">
@@ -13,7 +12,7 @@
 		<h3 class="text-lg font-medium text-gray-900">Assignments</h3>
 		{#if $page.data.user?.roles?.includes('lecturer')}
 			<button
-				on:click={() => (showForm = !showForm)}
+				onclick={() => (showForm = !showForm)}
 				class="inline-flex items-center rounded border border-transparent bg-indigo-100 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none"
 			>
 				<Plus class="mr-1 h-4 w-4" /> Create Assignment
@@ -23,7 +22,7 @@
 
 	{#if showForm}
 		<div class="rounded-md border border-gray-200 bg-gray-50 p-4">
-			<form method="POST" action="?/create" use:enhance on:submit={() => (showForm = false)}>
+			<form method="POST" action="?/create" use:enhance onsubmit={() => (showForm = false)}>
 				<div class="grid grid-cols-1 gap-4">
 					<div>
 						<label for="title" class="block text-sm font-medium text-gray-700">Title</label>

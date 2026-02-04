@@ -2,10 +2,9 @@
 	import { FileText, Video, Link, File, Plus } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
-	export let data;
-	export let form;
+	let { data, form } = $props();
 
-	let showForm = false;
+	let showForm = $state(false);
 
 	function getIcon(type: string) {
 		switch (type) {
@@ -26,7 +25,7 @@
 		<h3 class="text-lg font-medium text-gray-900">Class Materials</h3>
 		{#if $page.data.user?.roles?.includes('lecturer')}
 			<button
-				on:click={() => (showForm = !showForm)}
+				onclick={() => (showForm = !showForm)}
 				class="inline-flex items-center rounded border border-transparent bg-indigo-100 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none"
 			>
 				<Plus class="mr-1 h-4 w-4" /> Add Material
@@ -40,7 +39,7 @@
 				method="POST"
 				action="?/create"
 				use:enhance
-				on:submit={() => (showForm = false)}
+				onsubmit={() => (showForm = false)}
 				enctype="multipart/form-data"
 			>
 				<div class="grid grid-cols-1 gap-4">
@@ -112,13 +111,14 @@
 	<div class="overflow-hidden bg-white shadow sm:rounded-md">
 		<ul role="list" class="divide-y divide-gray-200">
 			{#each data.materials as item (item.id)}
+				{@const SvelteComponent = getIcon(item.type)}
 				<li class="flex items-center px-4 py-4 sm:px-6">
 					<div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
 						<div class="flex items-center">
 							<div
 								class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100"
 							>
-								<svelte:component this={getIcon(item.type)} class="h-5 w-5 text-indigo-600" />
+								<SvelteComponent class="h-5 w-5 text-indigo-600" />
 							</div>
 							<div class="ml-4">
 								<p class="truncate text-sm font-medium text-indigo-600">{item.title}</p>

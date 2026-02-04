@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Clock, CheckCircle } from 'lucide-svelte';
-	export let data;
-	export let form;
+	let { data, form } = $props();
 </script>
 
 <div class="space-y-6">
