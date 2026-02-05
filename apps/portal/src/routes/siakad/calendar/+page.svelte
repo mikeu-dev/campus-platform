@@ -54,7 +54,7 @@
 		return grouped;
 	}
 
-	const groupedDeadlines = groupByDate(data.deadlines);
+	let groupedDeadlines = $derived(groupByDate(data.deadlines));
 </script>
 
 <div class="space-y-6">

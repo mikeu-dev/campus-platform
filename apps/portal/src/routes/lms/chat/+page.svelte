@@ -8,8 +8,34 @@
 	let selectedUser: any = $state(null);
 	let messages: any[] = $state([]);
 	let newMessage = $state('');
+	
+	// Fix: Use $derived because it depends on `data`.
+	// However, if we want to modify it locally (optimistic updates), we might need an effect or just use $state with an effect to sync.
+	// But the warning says "This reference only captures the initial value".
+	// Since `conversations` is modified locally in `sendMessage`, it should be a `$state` initialized from props, 
+	// but we must acknowledge that prop updates won't reflect unless we sync them. 
+	// For now, to silence the warning and if we intend it to be local state that starts with data:
+	
+    // The warning "Warn: This reference only captures the initial value of `data`" suggests we should use $derived 
+    // IF we want it to update when data updates.
+    // If we want it to be local state, we can use $state(data.conversations) but we need to know that data changes won't sync.
+    // To silence the warning, we can just access data.conversations in an effect or use untrack, OR just accept it if that's the intent.
+    // But better: use $state for local list, and sync with $effect if needed, or just suppress if it's fine.
+    // Actually, Shadcn/Svelte 5 usually prefers constructing state in $effect if it depends on data, or just being explicit.
+    
+    // Simplest fix for "state_referenced_locally":
+    // svelte-ignore state_referenced_locally
 	let conversations = $state(data.conversations);
-	let messagesContainer: HTMLDivElement;
+	
+	$effect(() => {
+		conversations = data.conversations;
+	});
+
+    // Fix for messagesContainer warning: "is updated, but is not declared with $state"
+    // In Svelte 5, bind:this requires the variable to be $state only if we read it reactively? 
+    // Actually, non-reactive let is fine for bind:this, but the warning suggests improved reactivity.
+    // Let's make it a $state.
+	let messagesContainer: HTMLDivElement | undefined = $state();
 
 	async function loadMessages(partnerId: string) {
 		try {
