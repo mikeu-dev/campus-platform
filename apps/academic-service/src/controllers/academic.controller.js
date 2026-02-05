@@ -31,6 +31,20 @@ const lecturerSchema = z.object({
     lecturer_number: z.string().optional(),
 });
 
+const researchProposalSchema = z.object({
+    title: z.string().min(10),
+    type: z.string(),
+    description: z.string().optional(),
+    supervisor_preferred: z.string().optional(),
+});
+
+const certificateRequestSchema = z.object({
+    type: z.string(),
+    purpose: z.string().optional(),
+    quantity: z.number().int().min(1).max(5).optional(),
+    notes: z.string().optional(),
+});
+
 class AcademicController {
 
     // --- Courses ---
@@ -263,6 +277,202 @@ class AcademicController {
       `, [tenantId, userId]);
 
             res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    // --- SIAKAD Features ---
+
+    async getMySchedules(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const query = `
+                SELECT cs.*, co.name as course_name, co.code as course_code, l.name as lecturer_name, c.semester, c.year
+                FROM class_schedules cs
+                JOIN classes c ON cs.class_id = c.id
+                JOIN courses co ON c.course_id = co.id
+                LEFT JOIN lecturers l ON c.lecturer_id = l.id
+                JOIN enrollments e ON e.class_id = c.id
+                JOIN students s ON e.student_id = s.id
+                WHERE cs.tenant_id = $1 AND s.user_id = $2
+                ORDER BY cs.day, cs.start_time
+            `;
+            const result = await db.query(query, [tenantId, userId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getMyExams(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const query = `
+                SELECT ex.*, co.name as course_name, co.code as course_code
+                FROM exams ex
+                JOIN classes c ON ex.class_id = c.id
+                JOIN courses co ON c.course_id = co.id
+                JOIN enrollments e ON e.class_id = c.id
+                JOIN students s ON e.student_id = s.id
+                WHERE ex.tenant_id = $1 AND s.user_id = $2
+                ORDER BY ex.date, ex.start_time
+            `;
+            const result = await db.query(query, [tenantId, userId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getMyResearchProposals(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const query = `
+                SELECT rp.* FROM research_proposals rp
+                JOIN students s ON rp.student_id = s.id
+                WHERE rp.tenant_id = $1 AND s.user_id = $2
+                ORDER BY rp.created_at DESC
+            `;
+            const result = await db.query(query, [tenantId, userId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async createResearchProposal(req, res, next) {
+        try {
+            const { title, type, description, supervisor_preferred } = researchProposalSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            // Get student ID
+            const studentRes = await db.query('SELECT id FROM students WHERE tenant_id = $1 AND user_id = $2', [tenantId, userId]);
+            if (studentRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Student not found' });
+            const studentId = studentRes.rows[0].id;
+
+            const result = await db.query(
+                `INSERT INTO research_proposals (tenant_id, student_id, title, type, description, supervisor_preferred)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [tenantId, studentId, title, type, description, supervisor_preferred]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getMyCertificateRequests(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const query = `
+                SELECT cr.* FROM certificate_requests cr
+                JOIN students s ON cr.student_id = s.id
+                WHERE cr.tenant_id = $1 AND s.user_id = $2
+                ORDER BY cr.created_at DESC
+            `;
+            const result = await db.query(query, [tenantId, userId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async createCertificateRequest(req, res, next) {
+        try {
+            const { type, purpose, quantity, notes } = certificateRequestSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const studentRes = await db.query('SELECT id FROM students WHERE tenant_id = $1 AND user_id = $2', [tenantId, userId]);
+            if (studentRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Student not found' });
+            const studentId = studentRes.rows[0].id;
+
+            const result = await db.query(
+                `INSERT INTO certificate_requests (tenant_id, student_id, type, purpose, quantity, notes)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [tenantId, studentId, type, purpose, quantity || 1, notes]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getAnnouncements(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                'SELECT * FROM announcements WHERE tenant_id = $1 AND is_active = TRUE ORDER BY created_at DESC LIMIT 5',
+                [tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getMyFinancialStatus(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const query = `
+                SELECT fb.* FROM financial_bills fb
+                JOIN students s ON fb.student_id = s.id
+                WHERE fb.tenant_id = $1 AND s.user_id = $2
+                ORDER BY fb.due_date ASC
+            `;
+            const result = await db.query(query, [tenantId, userId]);
+
+            // Summarize
+            const totalUnpaid = result.rows.reduce((sum, bill) => bill.is_paid ? sum : sum + parseFloat(bill.amount), 0);
+
+            res.json({
+                status: 'success',
+                data: {
+                    bills: result.rows,
+                    totalUnpaid
+                }
+            });
+        } catch (err) { next(err); }
+    }
+
+    async getMyGPA(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            // Simplified GPA calculation: assume score is available and maps to 4.0 scale
+            // In a real app, this would be more complex (joining enrollments, classes, courses)
+            const query = `
+                SELECT g.score, co.credits
+                FROM grades g
+                JOIN enrollments e ON g.enrollment_id = e.id
+                JOIN students s ON e.student_id = s.id
+                JOIN classes c ON e.class_id = c.id
+                JOIN courses co ON c.course_id = co.id
+                WHERE g.tenant_id = $1 AND s.user_id = $2
+            `;
+            const result = await db.query(query, [tenantId, userId]);
+
+            let totalCredits = 0;
+            let totalPoints = 0;
+
+            result.rows.forEach(row => {
+                // Mock mapping score to points
+                let points = 0;
+                if (row.score >= 80) points = 4;
+                else if (row.score >= 70) points = 3;
+                else if (row.score >= 60) points = 2;
+                else if (row.score >= 50) points = 1;
+
+                totalPoints += points * row.credits;
+                totalCredits += row.credits;
+            });
+
+            const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+
+            res.json({
+                status: 'success',
+                data: {
+                    gpa: parseFloat(gpa),
+                    totalCredits
+                }
+            });
         } catch (err) { next(err); }
     }
 }

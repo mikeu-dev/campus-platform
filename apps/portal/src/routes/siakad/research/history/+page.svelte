@@ -5,25 +5,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as m from '$lib/paraglide/messages.js';
 
-	// Mock research history
-	const researchHistory = [
-		{
-			id: 'R-001',
-			title: 'Implementasi Algoritma Minimax pada Permainan Catur Berbasis Web',
-			type: 'Skripsi',
-			status: 'Disetujui',
-			date: '2024-08-01',
-			supervisor: 'Dr. Ahmad Fauzi'
-		},
-		{
-			id: 'R-002',
-			title: 'Sistem Monitoring Kualitas Air Berbasis IoT',
-			type: 'PKM',
-			status: 'Pending',
-			date: '2024-07-15',
-			supervisor: '-'
-		}
-	];
+	let { data } = $props();
+	const researchHistory = $derived(data.researchHistory || []);
 
 	function getStatusInfo(status: string) {
 		switch (status) {

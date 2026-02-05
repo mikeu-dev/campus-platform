@@ -13,7 +13,14 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import * as m from '$lib/paraglide/messages.js';
 
-	// Mock data
+	import { enhance } from '$app/forms';
+
+	let { data, form } = $props();
+
+	// Derived history from data
+	const requestHistory = $derived(data.requestHistory || []);
+
+	// Mock data for types (could be moved to backend later)
 	const certificateTypes = [
 		{ value: 'aktif-kuliah', label: 'Surat Keterangan Aktif Kuliah' },
 		{ value: 'belum-menikah', label: 'Surat Keterangan Belum Menikah' },
@@ -25,57 +32,38 @@
 		{ value: 'lainnya', label: 'Lainnya' }
 	];
 
-	const requestHistory = [
-		{
-			id: 1,
-			type: 'Surat Keterangan Aktif Kuliah',
-			purpose: 'Keperluan beasiswa',
-			requestedDate: '2024-01-15',
-			status: 'Selesai',
-			downloadUrl: '#'
-		},
-		{
-			id: 2,
-			type: 'Transkrip Nilai Sementara',
-			purpose: 'Keperluan magang',
-			requestedDate: '2024-01-20',
-			status: 'Dalam Proses'
-		},
-		{
-			id: 3,
-			type: 'Surat Keterangan Belum Menikah',
-			purpose: 'Keperluan CPNS',
-			requestedDate: '2024-01-10',
-			status: 'Ditolak',
-			rejectionReason: 'Data tidak lengkap'
-		}
-	];
-
-	let formData = {
+	let formData = $state({
 		type: '',
 		purpose: '',
 		notes: '',
 		quantity: '1'
-	};
+	});
 
-	let activeTab = 'form';
-
-	function handleSubmit() {
-		console.log('Certificate request submitted:', formData);
-	}
+	let activeTab = $state('form');
+	let isSubmitting = $state(false);
 
 	function getStatusInfo(status: string) {
-		switch (status) {
-			case 'Selesai':
+		switch (status?.toLowerCase()) {
+			case 'finished':
+			case 'selesai':
 				return { class: 'bg-green-100 text-green-700 hover:bg-green-100', icon: Check };
-			case 'Dalam Proses':
+			case 'processing':
+			case 'dalam proses':
 				return { class: 'bg-blue-100 text-blue-700 hover:bg-blue-100', icon: Clock };
-			case 'Ditolak':
+			case 'rejected':
+			case 'ditolak':
 				return { class: 'bg-red-100 text-red-700 hover:bg-red-100', icon: X };
 			default:
 				return { class: 'bg-gray-100 text-gray-700 hover:bg-gray-100', icon: Clock };
 		}
 	}
+
+	$effect(() => {
+		if (form?.success) {
+			activeTab = 'history';
+			formData = { type: '', purpose: '', notes: '', quantity: '1' };
+		}
+	});
 </script>
 
 <div class="space-y-6">
@@ -116,11 +104,16 @@
 				</CardHeader>
 				<CardContent>
 					<form
-						class="space-y-6"
-						onsubmit={(e) => {
-							e.preventDefault();
-							handleSubmit();
+						method="POST"
+						action="?/request"
+						use:enhance={() => {
+							isSubmitting = true;
+							return async ({ update }) => {
+								await update();
+								isSubmitting = false;
+							};
 						}}
+						class="space-y-6"
 					>
 						<div class="space-y-2">
 							<Label for="type">{m.siakad_certificates_form_type_label()}</Label>
@@ -145,6 +138,7 @@
 							<Label for="purpose">{m.siakad_certificates_form_purpose_label()}</Label>
 							<Input
 								id="purpose"
+								name="purpose"
 								placeholder={m.siakad_certificates_form_purpose_placeholder()}
 								bind:value={formData.purpose}
 							/>
@@ -152,7 +146,14 @@
 
 						<div class="space-y-2">
 							<Label for="quantity">{m.siakad_certificates_form_qty_label()}</Label>
-							<Input id="quantity" type="number" min="1" max="5" bind:value={formData.quantity} />
+							<Input
+								id="quantity"
+								name="quantity"
+								type="number"
+								min="1"
+								max="5"
+								bind:value={formData.quantity}
+							/>
 							<p class="text-xs text-muted-foreground">{m.siakad_certificates_form_qty_note()}</p>
 						</div>
 
@@ -162,6 +163,7 @@
 							>
 							<textarea
 								id="notes"
+								name="notes"
 								placeholder={m.siakad_certificates_form_notes_placeholder()}
 								rows={3}
 								bind:value={formData.notes}
@@ -176,8 +178,12 @@
 								onclick={() => (formData = { type: '', purpose: '', notes: '', quantity: '1' })}
 								>{m.siakad_form_reset()}</Button
 							>
-							<Button type="submit">
-								<Send class="mr-2 h-4 w-4" />
+							<Button type="submit" disabled={isSubmitting}>
+								{#if isSubmitting}
+									<X class="mr-2 h-4 w-4 animate-spin" />
+								{:else}
+									<Send class="mr-2 h-4 w-4" />
+								{/if}
 								{m.siakad_certificates_form_submit()}
 							</Button>
 						</div>

@@ -18,44 +18,8 @@
 	} from '$lib/components/ui/table';
 	import * as m from '$lib/paraglide/messages.js';
 
-	// Mock data for exam card
-	const examCard = {
-		student: {
-			name: 'Budi Santoso',
-			nim: '10123456',
-			program: 'Teknik Informatika',
-			semester: 'Semester Ganjil 2024/2025'
-		},
-		exams: [
-			{
-				id: 1,
-				code: 'IF101',
-				name: 'Algoritma dan Pemrograman',
-				date: '2024-10-15',
-				time: '08:00 - 10:00',
-				room: 'Ruang 301',
-				status: 'Hadir'
-			},
-			{
-				id: 2,
-				code: 'IF102',
-				name: 'Matematika Diskrit',
-				date: '2024-10-16',
-				time: '10:30 - 12:30',
-				room: 'Ruang 302',
-				status: 'Hadir'
-			},
-			{
-				id: 3,
-				code: 'IF103',
-				name: 'Arsitektur Komputer',
-				date: '2024-10-17',
-				time: '13:00 - 15:00',
-				room: 'Ruang 401',
-				status: 'Hadir'
-			}
-		]
-	};
+	let { data } = $props();
+	const examCard = $derived(data.examCard || { student: null, exams: [] });
 
 	function handlePrint() {
 		window.print();
@@ -86,21 +50,21 @@
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-sm">
 						<span class="w-20 text-muted-foreground">{m.siakad_exam_card_nim()}</span>
-						<span class="font-medium">: {examCard.student.nim}</span>
+						<span class="font-medium">: {examCard.student?.nim || '-'}</span>
 					</div>
 					<div class="flex items-center gap-2 text-sm">
 						<span class="w-20 text-muted-foreground">{m.siakad_exam_card_name()}</span>
-						<span class="font-medium">: {examCard.student.name}</span>
+						<span class="font-medium">: {examCard.student?.name || '-'}</span>
 					</div>
 				</div>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-sm">
 						<span class="w-20 text-muted-foreground">{m.siakad_user_program()}</span>
-						<span class="font-medium">: {examCard.student.program}</span>
+						<span class="font-medium">: {examCard.student?.program || '-'}</span>
 					</div>
 					<div class="flex items-center gap-2 text-sm">
 						<span class="w-20 text-muted-foreground">{m.siakad_user_semester()}</span>
-						<span class="font-medium">: {examCard.student.semester}</span>
+						<span class="font-medium">: {examCard.student?.semester || '-'}</span>
 					</div>
 				</div>
 			</div>

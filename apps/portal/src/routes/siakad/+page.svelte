@@ -1,100 +1,94 @@
 <script lang="ts">
-	import { User, Megaphone, Wallet, TrendingUp, AlertTriangle, Calendar } from 'lucide-svelte';
+	import {
+		User,
+		Megaphone,
+		Wallet,
+		TrendingUp,
+		AlertTriangle,
+		Calendar,
+		GraduationCap,
+		Bell
+	} from 'lucide-svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import * as m from '$lib/paraglide/messages.js';
 
-	// Mock data for initial implementation
-	const userInfo = {
-		name: 'Budi Santoso',
-		nim: '10123456',
-		program: 'Teknik Informatika',
-		semester: 5,
-		status: 'Aktif'
-	};
+	let { data } = $props();
 
-	const announcements = [
-		{
-			id: 1,
-			title: 'Jadwal Pengisian KRS',
-			date: '2024-08-20',
-			content: 'Pengisian KRS dimulai tanggal 25 Agustus 2024'
-		},
-		{
-			id: 2,
-			title: 'Libur Nasional',
-			date: '2024-08-17',
-			content: 'Kampus libur memperingati HUT RI'
+	// Use data from load function or fallback to empty/default
+	const userInfo = $derived(
+		data.userInfo || {
+			name: 'Mahasiswa',
+			nim: '-',
+			program: '-',
+			semester: '-',
+			status: '-'
 		}
-	];
+	);
 
-	const finance = {
-		status: 'Lunas',
-		bill: 0,
-		virtualAccount: '888899990000'
-	};
+	const finance = $derived(data.finance || { bill: 0, status: '-' });
+	const gpaData = $derived(data.gpaData || { gpa: 0.0, totalCredits: 0 });
+	const announcements = $derived(data.announcements || []);
 
-	const gpa = {
-		current: 3.55,
-		target: 3.75,
-		history: [3.2, 3.4, 3.5, 3.55]
-	};
-
-	const alerts: { type: string; title: string; message: string }[] = [
-		// Example alert, uncomment to test
-		// { type: "destructive", title: "Suspend Keuangan", message: "Mahasiswa terkena Suspend Keuangan, silahkan hubungi PUSLIA untuk informasi lebih lanjut" },
+	// Mock data for display that isn't yet in backend
+	const recentClasses = [
+		{ id: 1, name: 'Algoritma dan Pemrograman', time: '08:00 - 10:30', room: 'Lab 1' },
+		{ id: 2, name: 'Matematika Diskrit', time: '13:00 - 15:30', room: 'R. 302' },
+		{ id: 3, name: 'Arsitektur Komputer', time: '10:00 - 12:30', room: 'R. 401' }
 	];
 </script>
 
-<div class="flex flex-col gap-6">
-	<!-- Alerts Section -->
-	{#if alerts.length > 0}
-		<div class="space-y-4">
-			{#each alerts as alert}
-				<div
-					class="relative w-full rounded-lg border p-4 [&>svg]:absolute [&>svg]:top-4 [&>svg]:left-4 [&>svg+div]:translate-y-[-3px] [&>svg~*]:pl-7 {alert.type ===
-					'destructive'
-						? 'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive'
-						: 'bg-background text-foreground'}"
-				>
-					<AlertTriangle class="h-4 w-4" />
-					<h5 class="mb-1 leading-none font-medium tracking-tight">{alert.title}</h5>
-					<div class="text-sm opacity-90">{alert.message}</div>
-				</div>
-			{/each}
+<div class="space-y-8">
+	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+		<div>
+			<h2 class="text-3xl font-bold tracking-tight">{m.siakad_dashboard_title()}</h2>
+			<p class="text-muted-foreground">{m.dashboard_welcome_student()}</p>
 		</div>
-	{/if}
+		<div class="flex items-center gap-2">
+			<Badge variant="outline" class="px-3 py-1">
+				<div class="mr-2 h-2 w-2 rounded-full bg-green-500"></div>
+				{m.dashboard_stats_active()}
+			</Badge>
+			<span class="text-sm text-muted-foreground"
+				>{m.dashboard_stats_time()}: {new Date().toLocaleTimeString('id-ID', {
+					hour: '2-digit',
+					minute: '2-digit'
+				})}</span
+			>
+		</div>
+	</div>
 
-	<!-- User Info & Quick Stats -->
 	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-		<!-- User Profile Card -->
-		<Card class="col-span-2">
+		<!-- User Info Card -->
+		<Card class="lg:col-span-2">
 			<CardHeader class="flex flex-row items-center gap-4 space-y-0 pb-2">
 				<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
 					<User class="h-6 w-6 text-primary" />
 				</div>
 				<div class="flex flex-col">
 					<CardTitle class="text-lg">{userInfo.name}</CardTitle>
-					<span class="text-sm text-muted-foreground">{userInfo.nim}</span>
+					<span class="text-sm text-muted-foreground"
+						>{userInfo.platform_student_number || userInfo.nim}</span
+					>
 				</div>
 			</CardHeader>
 			<CardContent>
 				<div class="grid gap-2 text-sm">
-					<div class="flex justify-between">
+					<div class="flex justify-between border-b py-1">
 						<span class="text-muted-foreground">{m.siakad_user_program()}</span>
-						<span class="font-medium">{userInfo.program}</span>
+						<span class="text-right font-medium">{userInfo.program}</span>
 					</div>
-					<div class="flex justify-between">
+					<div class="flex justify-between border-b py-1">
 						<span class="text-muted-foreground">{m.siakad_user_semester()}</span>
-						<span class="font-medium">{userInfo.semester}</span>
+						<span class="text-right text-sm font-medium">Semester {userInfo.semester || '-'}</span>
 					</div>
-					<div class="flex justify-between">
+					<div class="flex justify-between py-1">
 						<span class="text-muted-foreground">{m.siakad_user_status()}</span>
 						<Badge
 							variant="outline"
 							class="bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700"
-							>{userInfo.status}</Badge
+							>{userInfo.status || m.dashboard_stats_active()}</Badge
 						>
 					</div>
 				</div>
@@ -122,45 +116,55 @@
 			</CardContent>
 		</Card>
 
-		<!-- IPK Monitoring -->
+		<!-- GPA Card -->
 		<Card>
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium">{m.siakad_gpa_title()}</CardTitle>
-				<TrendingUp class="h-4 w-4 text-muted-foreground" />
+				<GraduationCap class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
-				<div class="text-2xl font-bold">{gpa.current}</div>
+				<div class="text-2xl font-bold">{gpaData.gpa.toFixed(2)}</div>
 				<p class="text-xs text-muted-foreground">{m.siakad_gpa_desc()}</p>
-				<!-- Simple progress bar visual -->
-				<div class="mt-4 h-2 w-full rounded-full bg-secondary">
-					<div
-						class="h-full rounded-full bg-primary"
-						style="width: {(gpa.current / 4) * 100}%"
-					></div>
+				<div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
+					<div class="h-full bg-primary" style="width: {(gpaData.gpa / 4) * 100}%"></div>
 				</div>
+				<p class="mt-2 text-[10px] text-muted-foreground">
+					Total SKS: {gpaData.totalCredits}
+				</p>
 			</CardContent>
 		</Card>
 	</div>
 
-	<div class="grid gap-6 md:grid-cols-2">
+	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
 		<!-- Announcements -->
-		<Card class="h-full">
+		<Card class="lg:col-span-4">
 			<CardHeader>
-				<CardTitle class="flex items-center gap-2">
-					<Megaphone class="h-5 w-5" />
-					{m.siakad_announcements_title()}
-				</CardTitle>
+				<CardTitle>{m.siakad_announcements_title()}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
 					{#each announcements as announcement}
-						<div class="flex flex-col gap-1 border-b pb-3 last:border-0 last:pb-0">
-							<span class="font-medium">{announcement.title}</span>
-							<span class="text-sm text-muted-foreground">{announcement.content}</span>
-							<div class="flex items-center gap-1 text-xs text-muted-foreground">
-								<Calendar class="h-3 w-3" />
-								{announcement.date}
+						<div class="flex items-start gap-4 border-b pb-4 last:border-0 last:pb-0">
+							<div
+								class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded bg-blue-50 text-blue-600"
+							>
+								<Bell class="h-4 w-4" />
 							</div>
+							<div class="space-y-1">
+								<h4 class="text-sm font-semibold">{announcement.title}</h4>
+								<p class="line-clamp-2 text-xs text-muted-foreground">
+									{announcement.content}
+								</p>
+								<span class="text-[10px] text-muted-foreground"
+									>{new Date(announcement.created_at).toLocaleDateString('id-ID')}</span
+								>
+							</div>
+						</div>
+					{:else}
+						<div
+							class="flex flex-col items-center justify-center py-6 text-center text-muted-foreground"
+						>
+							<p class="text-sm">{m.chat_no_conversations()}</p>
 						</div>
 					{/each}
 				</div>

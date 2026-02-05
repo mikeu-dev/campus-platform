@@ -4,73 +4,8 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import * as m from '$lib/paraglide/messages.js';
 
-	// Mock data for class schedule
-	const schedule = [
-		{
-			day: 'Senin',
-			classes: [
-				{
-					time: '08:00 - 10:30',
-					course: 'Algoritma dan Pemrograman',
-					code: 'IF101',
-					room: 'Lab Komputer 1',
-					lecturer: 'Dr. Ahmad Fauzi',
-					type: 'Praktikum'
-				},
-				{
-					time: '13:00 - 15:30',
-					course: 'Matematika Diskrit',
-					code: 'IF102',
-					room: 'Ruang 302',
-					lecturer: 'Dra. Siti Aminah',
-					type: 'Teori'
-				}
-			]
-		},
-		{
-			day: 'Selasa',
-			classes: [
-				{
-					time: '10:00 - 12:30',
-					course: 'Basis Data',
-					code: 'IF201',
-					room: 'Ruang 405',
-					lecturer: 'Budi Santoso, M.Kom',
-					type: 'Teori'
-				}
-			]
-		},
-		{
-			day: 'Rabu',
-			classes: []
-		},
-		{
-			day: 'Kamis',
-			classes: [
-				{
-					time: '08:00 - 10:30',
-					course: 'Jaringan Komputer',
-					code: 'IF202',
-					room: 'Lab Jaringan',
-					lecturer: 'Irwan Yusuf, M.T.',
-					type: 'Praktikum'
-				}
-			]
-		},
-		{
-			day: 'Jumat',
-			classes: [
-				{
-					time: '14:00 - 16:30',
-					course: 'Etika Profesi',
-					code: 'IF301',
-					room: 'Ruang 201',
-					lecturer: 'Prof. Dr. Supardi',
-					type: 'Teori'
-				}
-			]
-		}
-	];
+	let { data } = $props();
+	const schedule = $derived(data.schedule || []);
 </script>
 
 <div class="space-y-6">
@@ -127,8 +62,7 @@
 			</div>
 		{/each}
 
-		<!-- Empty State if no classes (optional logic) -->
-		{#if schedule.every((d) => d.classes.length === 0)}
+		{#if schedule.length > 0 && schedule.every((d) => d.classes.length === 0)}
 			<div
 				class="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"
 			>

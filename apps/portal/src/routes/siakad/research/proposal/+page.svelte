@@ -10,21 +10,29 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
+	import { Loader2 } from 'lucide-svelte';
+	import { enhance } from '$app/forms';
 	import * as m from '$lib/paraglide/messages.js';
 
-	// Mock student eligibility
-	const eligibility = {
-		totalSks: 110,
-		requiredSks: 100,
-		isEligible: true
-	};
+	let { data, form } = $props();
 
-	let formData = {
+	// Derived from data
+	const eligibility = $derived(
+		data.eligibility || {
+			totalSks: 0,
+			requiredSks: 100,
+			isEligible: false
+		}
+	);
+
+	let formData = $state({
 		title: '',
 		type: '',
 		description: '',
 		supervisor: ''
-	};
+	});
+
+	let isSubmitting = $state(false);
 
 	const researchTypes = [
 		{ value: 'skripsi', label: 'Skripsi / Tugas Akhir' },
@@ -32,10 +40,13 @@
 		{ value: 'internship', label: 'Laporan Magang' }
 	];
 
-	function handleSubmit() {
-		// handle submission
-		console.log('Form submitted:', formData);
-	}
+	$effect(() => {
+		if (form?.success) {
+			// Redirect or show success
+			// For now just reset
+			formData = { title: '', type: '', description: '', supervisor: '' };
+		}
+	});
 </script>
 
 <div class="space-y-6">
@@ -80,9 +91,14 @@
 			</CardHeader>
 			<CardContent>
 				<form
-					onsubmit={(e) => {
-						e.preventDefault();
-						handleSubmit();
+					method="POST"
+					action="?/submit"
+					use:enhance={() => {
+						isSubmitting = true;
+						return async ({ update }) => {
+							await update();
+							isSubmitting = false;
+						};
 					}}
 					class="space-y-6"
 				>
@@ -90,6 +106,7 @@
 						<Label for="title">{m.siakad_research_form_title_label()}</Label>
 						<Input
 							id="title"
+							name="title"
 							placeholder={m.siakad_research_form_title_placeholder()}
 							bind:value={formData.title}
 						/>
@@ -115,6 +132,7 @@
 						<Label for="description">{m.siakad_research_form_desc_label()}</Label>
 						<textarea
 							id="description"
+							name="description"
 							placeholder={m.siakad_research_form_desc_placeholder()}
 							rows={5}
 							bind:value={formData.description}
@@ -128,6 +146,7 @@
 						>
 						<Input
 							id="supervisor"
+							name="supervisor"
 							placeholder={m.siakad_research_form_supervisor_placeholder()}
 							bind:value={formData.supervisor}
 						/>
@@ -137,8 +156,12 @@
 						</p>
 					</div>
 
-					<Button type="submit" class="w-full md:w-auto">
-						<Send class="mr-2 h-4 w-4" />
+					<Button type="submit" class="w-full md:w-auto" disabled={isSubmitting}>
+						{#if isSubmitting}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+						{:else}
+							<Send class="mr-2 h-4 w-4" />
+						{/if}
 						{m.siakad_form_submit()}
 					</Button>
 				</form>

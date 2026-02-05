@@ -70,3 +70,79 @@ CREATE TABLE IF NOT EXISTS grades (
   score FLOAT,      -- 0-100
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Class Schedules Table
+CREATE TABLE IF NOT EXISTS class_schedules (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  day VARCHAR(20) NOT NULL, -- Monday, Tuesday, etc.
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  room VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Exams Table
+CREATE TABLE IF NOT EXISTS exams (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  type VARCHAR(20) NOT NULL, -- UTS, UAS
+  date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  room VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Research Proposals Table
+CREATE TABLE IF NOT EXISTS research_proposals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  type VARCHAR(50) NOT NULL, -- Skripsi, PKM, Magang
+  description TEXT,
+  supervisor_preferred VARCHAR(255),
+  status VARCHAR(20) DEFAULT 'pending', -- pending, approved, rejected
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Certificate Requests Table
+CREATE TABLE IF NOT EXISTS certificate_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  type VARCHAR(100) NOT NULL,
+  purpose TEXT,
+  quantity INT DEFAULT 1,
+  notes TEXT,
+  status VARCHAR(20) DEFAULT 'pending', -- pending, processing, finished, rejected
+  rejection_reason TEXT,
+  download_url TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Announcements Table
+CREATE TABLE IF NOT EXISTS announcements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  type VARCHAR(50) DEFAULT 'general', -- general, academic, financial
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Financial Bills Table
+CREATE TABLE IF NOT EXISTS financial_bills (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  amount DECIMAL(15, 2) NOT NULL,
+  is_paid BOOLEAN DEFAULT FALSE,
+  due_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
