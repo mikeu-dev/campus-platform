@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Award, TrendingUp, BarChart3, CheckCircle } from 'lucide-svelte';
+	import { Award, TrendingUp, BarChart3, CheckCircle, Lock, Calendar } from 'lucide-svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -14,10 +14,15 @@
 
 	let { data } = $props();
 
+	// Mock period status - this would come from the server in a real scenario
+	const gradePeriod = $derived({
+		isOpen: data.grades && data.grades.length > 0, // If we have grades, period is open. Otherwise, period might be closed.
+		message:
+			'Periode Lihat Nilai belum dibuka. Silahkan cek kembali setelah periode pengumuman nilai.'
+	});
+
 	function getScoreVariant(score: number): 'default' | 'secondary' | 'destructive' | 'outline' {
-		if (score >= 80) return 'default'; // Greenish in theme usually, or we use custom class.
-		// For standard shadcn badges, we might just use 'secondary' or 'outline' with custom classes if we want specific colors.
-		// Let's stick to standard variants or use custom classes if strict colors needed.
+		if (score >= 80) return 'default';
 		if (score >= 60) return 'secondary';
 		return 'destructive';
 	}
@@ -44,95 +49,116 @@
 		<p class="text-muted-foreground">{m.grades_desc()}</p>
 	</div>
 
-	<!-- Stats Cards -->
-	{#if data.stats}
-		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-			<Card>
-				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle class="text-sm font-medium">{m.grades_avg_score()}</CardTitle>
-					<TrendingUp class="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div class="text-2xl font-bold">{data.stats.averageScore || '--'}</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle class="text-sm font-medium">{m.grades_highest_score()}</CardTitle>
-					<Award class="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div class="text-2xl font-bold">{data.stats.highestScore || '--'}</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle class="text-sm font-medium">{m.grades_graded()}</CardTitle>
-					<CheckCircle class="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div class="text-2xl font-bold">{data.stats.gradedCount}</div>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle class="text-sm font-medium">{m.grades_submissions()}</CardTitle>
-					<BarChart3 class="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div class="text-2xl font-bold">{data.stats.totalSubmissions}</div>
-				</CardContent>
-			</Card>
+	<!-- Period Check -->
+	{#if !gradePeriod.isOpen}
+		<div
+			class="relative w-full rounded-lg border bg-background p-4 text-foreground [&>svg]:absolute [&>svg]:top-4 [&>svg]:left-4 [&>svg+div]:translate-y-[-3px] [&>svg~*]:pl-7"
+		>
+			<Lock class="h-4 w-4" />
+			<h5 class="mb-1 leading-none font-medium tracking-tight">Periode Nilai Belum Dibuka</h5>
+			<div class="text-sm opacity-90">{gradePeriod.message}</div>
 		</div>
-	{/if}
 
-	<!-- Grades Table -->
-	<Card>
-		<CardHeader>
-			<CardTitle>{m.grades_history_title()}</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>{m.grades_assignment()}</TableHead>
-						<TableHead>{m.grades_score()}</TableHead>
-						<TableHead>{m.grades_grade()}</TableHead>
-						<TableHead>{m.grades_feedback()}</TableHead>
-						<TableHead>{m.grades_date()}</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{#each data.grades as item}
+		<Card>
+			<CardContent class="flex flex-col items-center justify-center py-12 text-center">
+				<Calendar class="h-12 w-12 text-muted-foreground/50" />
+				<h3 class="mt-4 text-lg font-semibold">Periode Lihat Nilai Belum Dibuka</h3>
+				<p class="max-w-md text-muted-foreground">
+					Nilai akan tersedia setelah periode pengumuman nilai dibuka oleh akademik.
+				</p>
+			</CardContent>
+		</Card>
+	{:else}
+		<!-- Stats Cards -->
+		{#if data.stats}
+			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+				<Card>
+					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle class="text-sm font-medium">{m.grades_avg_score()}</CardTitle>
+						<TrendingUp class="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div class="text-2xl font-bold">{data.stats.averageScore || '--'}</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle class="text-sm font-medium">{m.grades_highest_score()}</CardTitle>
+						<Award class="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div class="text-2xl font-bold">{data.stats.highestScore || '--'}</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle class="text-sm font-medium">{m.grades_graded()}</CardTitle>
+						<CheckCircle class="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div class="text-2xl font-bold">{data.stats.gradedCount}</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle class="text-sm font-medium">{m.grades_submissions()}</CardTitle>
+						<BarChart3 class="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div class="text-2xl font-bold">{data.stats.totalSubmissions}</div>
+					</CardContent>
+				</Card>
+			</div>
+		{/if}
+
+		<!-- Grades Table -->
+		<Card>
+			<CardHeader>
+				<CardTitle>{m.grades_history_title()}</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<Table>
+					<TableHeader>
 						<TableRow>
-							<TableCell class="font-medium">{item.assignment_title}</TableCell>
-							<TableCell>
-								<div
-									class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none ${getScoreColorClass(item.score)}`}
+							<TableHead>{m.grades_assignment()}</TableHead>
+							<TableHead>{m.grades_score()}</TableHead>
+							<TableHead>{m.grades_grade()}</TableHead>
+							<TableHead>{m.grades_feedback()}</TableHead>
+							<TableHead>{m.grades_date()}</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{#each data.grades as item}
+							<TableRow>
+								<TableCell class="font-medium">{item.assignment_title}</TableCell>
+								<TableCell>
+									<div
+										class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none ${getScoreColorClass(item.score)}`}
+									>
+										{item.score}
+									</div>
+								</TableCell>
+								<TableCell class="font-bold">{getScoreLabel(item.score)}</TableCell>
+								<TableCell class="max-w-xs truncate text-muted-foreground"
+									>{item.feedback || '-'}</TableCell
 								>
-									{item.score}
-								</div>
-							</TableCell>
-							<TableCell class="font-bold">{getScoreLabel(item.score)}</TableCell>
-							<TableCell class="max-w-xs truncate text-muted-foreground"
-								>{item.feedback || '-'}</TableCell
-							>
-							<TableCell class="text-muted-foreground">
-								{new Date(item.submitted_at).toLocaleDateString()}
-							</TableCell>
-						</TableRow>
-					{:else}
-						<TableRow>
-							<TableCell colspan={5} class="h-24 text-center">
-								{m.grades_no_data()}
-							</TableCell>
-						</TableRow>
-					{/each}
-				</TableBody>
-			</Table>
-		</CardContent>
-	</Card>
+								<TableCell class="text-muted-foreground">
+									{new Date(item.submitted_at).toLocaleDateString()}
+								</TableCell>
+							</TableRow>
+						{:else}
+							<TableRow>
+								<TableCell colspan={5} class="h-24 text-center">
+									{m.grades_no_data()}
+								</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
+			</CardContent>
+		</Card>
+	{/if}
 </div>

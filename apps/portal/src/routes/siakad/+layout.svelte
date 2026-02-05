@@ -26,10 +26,30 @@
 	let { children, data }: Props = $props();
 
 	/* Navigation Config */
-	const coreNavItems = [
-		{ href: '/siakad/enrollment', label: m.nav_enrollment(), icon: BookOpen },
-		{ href: '/siakad/grades', label: m.nav_grades(), icon: GraduationCap },
-		{ href: '/siakad/calendar', label: m.nav_calendar(), icon: Calendar }
+	const navGroups = [
+		{
+			items: [
+				{ href: '/siakad', label: 'Dashboard', icon: LayoutDashboard },
+				{ href: '/siakad/schedule', label: 'Jadwal Kuliah', icon: Calendar },
+				{ href: '/siakad/grades', label: 'Nilai Kuliah', icon: GraduationCap },
+				{ href: '/siakad/certificates', label: 'Pengajuan Surat', icon: MessageSquare }
+			]
+		},
+		{
+			label: 'Akademik',
+			items: [
+				{ href: '/siakad/enrollment', label: 'Pengisian KRS', icon: BookOpen },
+				{ href: '/siakad/krs/history', label: 'Riwayat KRS', icon: BookOpen },
+				{ href: '/siakad/exam-card', label: 'Kartu Ujian', icon: BookOpen }
+			]
+		},
+		{
+			label: 'Penelitian Saya',
+			items: [
+				{ href: '/siakad/research/proposal', label: 'Pengajuan Penelitian', icon: BookOpen },
+				{ href: '/siakad/research/history', label: 'Riwayat Penelitian', icon: BookOpen }
+			]
+		}
 	];
 </script>
 
@@ -42,21 +62,31 @@
 		</div>
 		<div class="flex-1 overflow-auto py-2">
 			<nav class="grid items-start px-4 text-sm font-medium">
-				{#each coreNavItems as item}
-					<a
-						href={item.href}
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes(item.href) && 'bg-muted text-primary'
-						)}
-					>
-						<item.icon class="h-4 w-4" />
-						{item.label}
-					</a>
+				{#each navGroups as group}
+					{#if group.label}
+						<div class="mt-4 mb-2 px-3">
+							<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+								{group.label}
+							</p>
+						</div>
+					{/if}
+
+					{#each group.items as item}
+						<a
+							href={item.href}
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname === item.href && 'bg-muted text-primary'
+							)}
+						>
+							<item.icon class="h-4 w-4" />
+							{item.label}
+						</a>
+					{/each}
 				{/each}
 
 				{#if page.data.user?.roles?.includes('lecturer')}
-					<div class="my-2 px-3">
+					<div class="mt-4 mb-2 px-3">
 						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
 							{m.nav_section_lecturer()}
 						</p>
