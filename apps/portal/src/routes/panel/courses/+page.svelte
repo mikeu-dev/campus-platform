@@ -2,6 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { Plus } from 'lucide-svelte';
 	import DataTable from '$lib/components/DataTable.svelte';
+	import * as m from '$lib/paraglide/messages.js';
+
 	let { data, form } = $props();
 
 	let showForm = $state(false);
@@ -9,23 +11,25 @@
 
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
-		<h2 class="text-2xl font-bold text-gray-900">Course Management</h2>
+		<h2 class="text-2xl font-bold text-gray-900">{m.courses_title()}</h2>
 		<button
 			onclick={() => (showForm = !showForm)}
 			class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none"
 		>
 			<Plus class="mr-2 h-5 w-5" />
-			Add Course
+			{m.courses_add_button()}
 		</button>
 	</div>
 
 	{#if showForm}
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-6">
-			<h3 class="mb-4 text-lg font-medium text-gray-900">Create New Course</h3>
+			<h3 class="mb-4 text-lg font-medium text-gray-900">{m.courses_create_title()}</h3>
 			<form method="POST" action="?/create" use:enhance onsubmit={() => (showForm = false)}>
 				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 					<div>
-						<label for="code" class="block text-sm font-medium text-gray-700">Course Code</label>
+						<label for="code" class="block text-sm font-medium text-gray-700"
+							>{m.courses_form_code()}</label
+						>
 						<input
 							type="text"
 							name="code"
@@ -36,7 +40,9 @@
 						/>
 					</div>
 					<div>
-						<label for="name" class="block text-sm font-medium text-gray-700">Course Name</label>
+						<label for="name" class="block text-sm font-medium text-gray-700"
+							>{m.courses_form_name()}</label
+						>
 						<input
 							type="text"
 							name="name"
@@ -47,7 +53,9 @@
 						/>
 					</div>
 					<div>
-						<label for="credits" class="block text-sm font-medium text-gray-700">Credits</label>
+						<label for="credits" class="block text-sm font-medium text-gray-700"
+							>{m.courses_form_credits()}</label
+						>
 						<input
 							type="number"
 							name="credits"
@@ -64,12 +72,12 @@
 						type="button"
 						onclick={() => (showForm = false)}
 						class="mr-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none"
-						>Cancel</button
+						>{m.courses_cancel()}</button
 					>
 					<button
 						type="submit"
 						class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none"
-						>Create Course</button
+						>{m.courses_create_submit()}</button
 					>
 				</div>
 			</form>
@@ -82,7 +90,7 @@
 				<div
 					class="relative mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-700"
 				>
-					<span class="block sm:inline">Course created successfully!</span>
+					<span class="block sm:inline">{m.courses_success()}</span>
 				</div>
 			{/if}
 		</div>
@@ -93,9 +101,9 @@
 			data={data.courses}
 			meta={data.meta}
 			columns={[
-				{ key: 'code', label: 'Code' },
-				{ key: 'name', label: 'Name' },
-				{ key: 'credits', label: 'Credits' }
+				{ key: 'code', label: m.courses_table_code() },
+				{ key: 'name', label: m.courses_table_name() },
+				{ key: 'credits', label: m.courses_table_credits() }
 			]}
 		>
 			{#snippet cell(item: any, columnKey: string)}
