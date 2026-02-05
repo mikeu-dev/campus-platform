@@ -60,6 +60,25 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
   finished_at TIMESTAMP
 );
 
+-- Quiz Questions Table
+CREATE TABLE IF NOT EXISTS quiz_questions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  quiz_id UUID NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  question_type VARCHAR(50) DEFAULT 'multiple_choice', -- multiple_choice, essay
+  order_number INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Quiz Options Table
+CREATE TABLE IF NOT EXISTS quiz_options (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  question_id UUID NOT NULL REFERENCES quiz_questions(id) ON DELETE CASCADE,
+  option_text TEXT NOT NULL,
+  is_correct BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Discussions Table
 CREATE TABLE IF NOT EXISTS discussions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

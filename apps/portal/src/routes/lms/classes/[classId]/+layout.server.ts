@@ -7,7 +7,16 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 	const { classId } = params;
 
 	try {
-		const [classRes, profileRes, attendancesRes, materialsRes, assignmentsRes, attendanceSummaryRes] = await Promise.all([
+		const [
+			classRes,
+			profileRes,
+			attendancesRes,
+			materialsRes,
+			assignmentsRes,
+			attendanceSummaryRes,
+			quizzesRes,
+			discussionsRes
+		] = await Promise.all([
 			axios.get(`${PUBLIC_ACADEMIC_API_URL}/classes`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),
@@ -25,6 +34,12 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 			}),
 			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/summary`, {
 				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/quizzes`, {
+				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/discussions`, {
+				headers: { Authorization: `Bearer ${token}` }
 			})
 		]);
 
@@ -35,10 +50,13 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 			classInfo,
 			classId,
 			studentId,
+			user: locals.user,
 			attendances: attendancesRes.data.data,
 			materials: materialsRes.data.data,
 			assignments: assignmentsRes.data.data,
-			attendanceSummary: attendanceSummaryRes.data.data
+			attendanceSummary: attendanceSummaryRes.data.data,
+			quizzes: quizzesRes.data.data,
+			discussions: discussionsRes.data.data
 		};
 	} catch (error) {
 		console.error('Fetch class details failed', error);

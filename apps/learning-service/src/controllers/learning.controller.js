@@ -29,6 +29,22 @@ const gradeSchema = z.object({
     feedback: z.string().optional(),
 });
 
+const quizSchema = z.object({
+    title: z.string().min(3),
+    meeting_number: z.number().int().min(1).max(16).optional(),
+});
+
+const quizQuestionSchema = z.object({
+    questions: z.array(z.object({
+        question_text: z.string().min(3),
+        question_type: z.enum(['multiple_choice', 'essay']).default('multiple_choice'),
+        options: z.array(z.object({
+            option_text: z.string().min(1),
+            is_correct: z.boolean().default(false)
+        })).optional()
+    }))
+});
+
 class LearningController {
 
     // --- Files ---
@@ -414,6 +430,115 @@ class LearningController {
                 [tenantId, myId, partnerId]
             );
             res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    // --- Quizzes ---
+    async createQuiz(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const { title, meeting_number } = quizSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'INSERT INTO quizzes (tenant_id, class_id, title, meeting_number) VALUES ($1, $2, $3, $4) RETURNING *',
+                [tenantId, classId, title, meeting_number]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async addQuizQuestions(req, res, next) {
+        try {
+            const { quizId } = req.params;
+            const { questions } = quizQuestionSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            // Simple batch insert for MVP (using a transaction)
+            await db.query('BEGIN');
+            try {
+                for (let i = 0; i < questions.length; i++) {
+                    const q = questions[i];
+                    const qResult = await db.query(
+                        'INSERT INTO quiz_questions (quiz_id, question_text, question_type, order_number) VALUES ($1, $2, $3, $4) RETURNING id',
+                        [quizId, q.question_text, q.question_type, i + 1]
+                    );
+                    const questionId = qResult.rows[0].id;
+
+                    if (q.options && q.options.length > 0) {
+                        for (const opt of q.options) {
+                            await db.query(
+                                'INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)',
+                                [questionId, opt.option_text, opt.is_correct]
+                            );
+                        }
+                    }
+                }
+                await db.query('COMMIT');
+                res.status(201).json({ status: 'success', message: 'Questions added' });
+            } catch (err) {
+                await db.query('ROLLBACK');
+                throw err;
+            }
+        } catch (err) { next(err); }
+    }
+
+    async getQuizzes(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const { meetingNumber } = req.query;
+            const tenantId = req.user.tenant_id;
+
+            let query = 'SELECT * FROM quizzes WHERE tenant_id = $1 AND class_id = $2';
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                query += ' AND meeting_number = $3';
+                params.push(meetingNumber);
+            }
+
+            const result = await db.query(query, params);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getQuizDetail(req, res, next) {
+        try {
+            const { quizId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            // Verify quiz exists and tenant matches
+            const quizRes = await db.query('SELECT * FROM quizzes WHERE id = $1 AND tenant_id = $2', [quizId, tenantId]);
+            if (quizRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Quiz not found' });
+
+            const questionsRes = await db.query(
+                'SELECT * FROM quiz_questions WHERE quiz_id = $1 ORDER BY order_number ASC',
+                [quizId]
+            );
+
+            const questions = questionsRes.rows;
+            for (const q of questions) {
+                const optionsRes = await db.query('SELECT id, option_text, is_correct FROM quiz_options WHERE question_id = $1', [q.id]);
+                // For students, we'd normally hide is_correct. But for now, returning all.
+                q.options = optionsRes.rows;
+            }
+
+            res.json({ status: 'success', data: { ...quizRes.rows[0], questions } });
+        } catch (err) { next(err); }
+    }
+
+    async submitQuizAttempt(req, res, next) {
+        try {
+            const { quizId } = req.params;
+            const { studentId, score, finished_at } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `INSERT INTO quiz_attempts (tenant_id, quiz_id, student_id, score, finished_at)
+                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                [tenantId, quizId, studentId, score, finished_at || new Date()]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
     }
 }
