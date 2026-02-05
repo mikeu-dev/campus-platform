@@ -6,7 +6,7 @@
 		class: className,
 		children,
 		...rest
-	}: HTMLAttributes<HTMLTableCellElement> = $props();
+	}: HTMLAttributes<HTMLTableCellElement> & { colspan?: number; rowspan?: number } = $props();
 </script>
 
 <th

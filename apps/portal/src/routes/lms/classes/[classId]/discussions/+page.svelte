@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { MessageCircle, Send, User, ArrowLeft } from 'lucide-svelte';
+	import { MessageCircle, Send, ArrowLeft } from 'lucide-svelte';
 	import type { ActionData, PageData } from './$types';
-
+	import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	
 	interface Props {
 		data: PageData;
 		form: ActionData;
@@ -28,96 +31,96 @@
 	function getInitials(email: string) {
 		return email?.split('@')[0]?.charAt(0).toUpperCase() || 'U';
 	}
+	
+	const textareaClass = "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y";
 </script>
 
 <div class="space-y-6">
 	<!-- Header -->
 	<div class="flex items-center gap-4">
-		<a href="/lms/classes/{data.classId}" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100">
+		<Button variant="ghost" size="icon" href="/lms/classes/{data.classId}" class="rounded-full">
 			<ArrowLeft class="h-5 w-5" />
-		</a>
+		</Button>
 		<div>
-			<h2 class="text-2xl font-bold text-gray-900">Class Discussion</h2>
-			<p class="text-gray-500">Share questions and ideas with your classmates</p>
+			<h2 class="text-2xl font-bold tracking-tight">Class Discussion</h2>
+			<p class="text-muted-foreground">Share questions and ideas with your classmates</p>
 		</div>
 	</div>
 
 	<!-- Post Form -->
-	<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-		<form
-			method="POST"
-			action="?/post"
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ update }) => {
-					await update();
-					isSubmitting = false;
-					content = '';
-				};
-			}}
-		>
-			{#if form?.error}
-				<div class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{form.error}</div>
-			{/if}
-			<div class="flex gap-3">
-				<div class="shrink-0">
-					<div
-						class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-medium text-indigo-600"
-					>
-						U
+	<Card>
+		<CardContent class="p-6">
+			<form
+				method="POST"
+				action="?/post"
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ update }) => {
+						await update();
+						isSubmitting = false;
+						content = '';
+					};
+				}}
+			>
+				{#if form?.error}
+					<div class="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive font-medium">{form.error}</div>
+				{/if}
+				<div class="flex gap-4">
+					<Avatar>
+						<AvatarFallback>Me</AvatarFallback>
+					</Avatar>
+					
+					<div class="flex-1 space-y-4">
+						<textarea
+							name="content"
+							bind:value={content}
+							rows="3"
+							placeholder="What's on your mind? Ask a question or share an idea..."
+							class={textareaClass}
+						></textarea>
+						<div class="flex justify-end">
+							<Button type="submit" disabled={isSubmitting || content.trim().length === 0}>
+								<Send class="mr-2 h-4 w-4" /> Post
+							</Button>
+						</div>
 					</div>
 				</div>
-				<div class="min-w-0 flex-1">
-					<textarea
-						name="content"
-						bind:value={content}
-						rows="3"
-						placeholder="What's on your mind? Ask a question or share an idea..."
-						class="w-full resize-none rounded-lg border border-gray-200 p-3 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-					></textarea>
-					<div class="mt-2 flex justify-end">
-						<button
-							type="submit"
-							disabled={isSubmitting || content.trim().length === 0}
-							class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<Send class="h-4 w-4" />
-							Post
-						</button>
-					</div>
-				</div>
-			</div>
-		</form>
-	</div>
+			</form>
+		</CardContent>
+	</Card>
 
 	<!-- Discussion Feed -->
 	<div class="space-y-4">
 		{#if data.discussions.length === 0}
-			<div class="rounded-xl border border-gray-200 bg-white p-12 text-center">
-				<MessageCircle class="mx-auto h-12 w-12 text-gray-300" />
-				<p class="mt-4 text-lg font-medium text-gray-900">No discussions yet</p>
-				<p class="mt-1 text-gray-500">Be the first to start a conversation!</p>
-			</div>
+			<Card class="border-dashed">
+				<CardContent class="flex flex-col items-center justify-center p-12 text-center">
+					<div class="rounded-full bg-muted p-4 mb-4">
+						<MessageCircle class="h-8 w-8 text-muted-foreground" />
+					</div>
+					<h3 class="text-lg font-semibold">No discussions yet</h3>
+					<p class="text-muted-foreground">Be the first to start a conversation!</p>
+				</CardContent>
+			</Card>
 		{:else}
 			{#each data.discussions as post (post.id)}
-				<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<div class="flex gap-3">
-						<div class="shrink-0">
-							<div
-								class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600"
-							>
-								{getInitials(post.user_email)}
+				<Card>
+					<CardContent class="p-6">
+						<div class="flex gap-4">
+							<Avatar>
+								<AvatarFallback class="bg-primary/10 text-primary">
+									{getInitials(post.user_email)}
+								</AvatarFallback>
+							</Avatar>
+							<div class="flex-1 space-y-1">
+								<div class="flex items-center justify-between">
+									<p class="font-medium leading-none">{post.user_email?.split('@')[0]}</p>
+									<span class="text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+								</div>
+								<p class="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{post.content}</p>
 							</div>
 						</div>
-						<div class="min-w-0 flex-1">
-							<div class="flex items-center gap-2">
-								<p class="font-medium text-gray-900">{post.user_email?.split('@')[0]}</p>
-								<span class="text-xs text-gray-400">{timeAgo(post.created_at)}</span>
-							</div>
-							<p class="mt-2 whitespace-pre-wrap text-gray-700">{post.content}</p>
-						</div>
-					</div>
-				</div>
+					</CardContent>
+				</Card>
 			{/each}
 		{/if}
 	</div>
