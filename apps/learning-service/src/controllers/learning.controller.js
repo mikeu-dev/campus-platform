@@ -429,7 +429,28 @@ class LearningController {
                  LIMIT 100`,
                 [tenantId, myId, partnerId]
             );
+
+            // Mark incoming messages as read
+            await db.query(
+                'UPDATE messages SET is_read = TRUE WHERE tenant_id = $1 AND sender_id = $2 AND receiver_id = $3 AND is_read = FALSE',
+                [tenantId, partnerId, myId]
+            );
+
             res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async markMessagesRead(req, res, next) {
+        try {
+            const { partnerId } = req.body;
+            const myId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            await db.query(
+                'UPDATE messages SET is_read = TRUE WHERE tenant_id = $1 AND sender_id = $2 AND receiver_id = $3 AND is_read = FALSE',
+                [tenantId, partnerId, myId]
+            );
+            res.json({ status: 'success', message: 'Messages marked as read' });
         } catch (err) { next(err); }
     }
 
@@ -539,6 +560,88 @@ class LearningController {
                 [tenantId, quizId, studentId, score, finished_at || new Date()]
             );
             res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    // --- Notifications ---
+    async createNotification(req, res, next) {
+        try {
+            const { user_id, type, title, message, link } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `INSERT INTO notifications (tenant_id, user_id, type, title, message, link)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [tenantId, user_id, type || 'general', title, message, link]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getNotifications(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT * FROM notifications WHERE tenant_id = $1 AND user_id = $2 ORDER BY created_at DESC LIMIT 50',
+                [tenantId, userId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getUnreadCount(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT COUNT(id) FROM notifications WHERE tenant_id = $1 AND user_id = $2 AND is_read = FALSE',
+                [tenantId, userId]
+            );
+            res.json({ status: 'success', data: { count: parseInt(result.rows[0].count) } });
+        } catch (err) { next(err); }
+    }
+
+    async markNotificationRead(req, res, next) {
+        try {
+            const { notificationId } = req.params;
+            const userId = req.user.sub;
+
+            await db.query(
+                'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2',
+                [notificationId, userId]
+            );
+            res.json({ status: 'success', message: 'Notification marked as read' });
+        } catch (err) { next(err); }
+    }
+
+    // --- Student Deadlines ---
+    async getStudentDeadlines(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            // Fetch assignments that are not yet submitted and deadline is in the future
+            // First get student ID from user ID (in a real scenario we'd have this in the token or a table)
+            // For now, assume assignments table has student_id or we join via classes
+            const query = `
+                SELECT a.*, c.semester, c.year, co.name as course_name
+                FROM assignments a
+                JOIN classes c ON a.class_id = c.id
+                JOIN courses co ON c.course_id = co.id
+                JOIN enrollments e ON e.class_id = c.id
+                JOIN students s ON e.student_id = s.id
+                LEFT JOIN assignment_submissions sub ON sub.assignment_id = a.id AND sub.student_id = s.id
+                WHERE s.user_id = $1 AND a.tenant_id = $2 
+                AND sub.id IS NULL
+                AND a.deadline > CURRENT_TIMESTAMP
+                ORDER BY a.deadline ASC
+                LIMIT 5
+            `;
+            const result = await db.query(query, [userId, tenantId]);
+            res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
 }

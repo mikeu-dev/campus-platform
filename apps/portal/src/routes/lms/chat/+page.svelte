@@ -1,42 +1,35 @@
 <script lang="ts">
-	import { MessageSquare, User, Search, Send, Plus } from 'lucide-svelte';
-	import { onMount } from 'svelte';
+	import {
+		MessageSquare,
+		User,
+		Search,
+		Send,
+		Plus,
+		Check,
+		CheckCheck,
+		MoreVertical,
+		Phone,
+		Video,
+		Info
+	} from 'lucide-svelte';
+	import { onMount, tick } from 'svelte';
 	import axios from 'axios';
 	import { PUBLIC_LEARNING_API_URL } from '$env/static/public';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import { Separator } from '$lib/components/ui/separator';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 	let selectedUser: any = $state(null);
 	let messages: any[] = $state([]);
 	let newMessage = $state('');
-
-	// Fix: Use $derived because it depends on `data`.
-	// However, if we want to modify it locally (optimistic updates), we might need an effect or just use $state with an effect to sync.
-	// But the warning says "This reference only captures the initial value".
-	// Since `conversations` is modified locally in `sendMessage`, it should be a `$state` initialized from props,
-	// but we must acknowledge that prop updates won't reflect unless we sync them.
-	// For now, to silence the warning and if we intend it to be local state that starts with data:
-
-	// The warning "Warn: This reference only captures the initial value of `data`" suggests we should use $derived
-	// IF we want it to update when data updates.
-	// If we want it to be local state, we can use $state(data.conversations) but we need to know that data changes won't sync.
-	// To silence the warning, we can just access data.conversations in an effect or use untrack, OR just accept it if that's the intent.
-	// But better: use $state for local list, and sync with $effect if needed, or just suppress if it's fine.
-	// Actually, Shadcn/Svelte 5 usually prefers constructing state in $effect if it depends on data, or just being explicit.
-
-	// Simplest fix for "state_referenced_locally":
-	// svelte-ignore state_referenced_locally
 	let conversations = $state(data.conversations);
+	let messagesContainer: HTMLDivElement | undefined = $state();
 
 	$effect(() => {
 		conversations = data.conversations;
 	});
-
-	// Fix for messagesContainer warning: "is updated, but is not declared with $state"
-	// In Svelte 5, bind:this requires the variable to be $state only if we read it reactively?
-	// Actually, non-reactive let is fine for bind:this, but the warning suggests improved reactivity.
-	// Let's make it a $state.
-	let messagesContainer: HTMLDivElement | undefined = $state();
 
 	async function loadMessages(partnerId: string) {
 		try {
@@ -44,6 +37,7 @@
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			messages = res.data.data;
+			await tick();
 			scrollToBottom();
 		} catch (error) {
 			console.error('Failed to load messages');
@@ -55,8 +49,7 @@
 
 		const content = newMessage;
 		try {
-			newMessage = ''; // Optimistic update
-
+			newMessage = '';
 			const res = await axios.post(
 				`${PUBLIC_LEARNING_API_URL}/messages`,
 				{ receiver_id: selectedUser.partner_id, content },
@@ -64,12 +57,23 @@
 			);
 
 			messages = [...messages, res.data.data];
+			await tick();
 			scrollToBottom();
 
-			// Update conversation list logic would be here (move to top)
+			// Update local conversation list
+			const convIndex = conversations.findIndex(
+				(c: any) => c.partner_id === selectedUser.partner_id
+			);
+			if (convIndex !== -1) {
+				conversations[convIndex].last_message = content;
+				conversations[convIndex].created_at = new Date().toISOString();
+				// Move to top
+				const item = conversations.splice(convIndex, 1)[0];
+				conversations.unshift(item);
+			}
 		} catch (error) {
 			console.error('Failed to send message');
-			newMessage = content; // Revert on failure
+			newMessage = content;
 		}
 	}
 
@@ -79,69 +83,85 @@
 	}
 
 	function scrollToBottom() {
-		setTimeout(() => {
-			if (messagesContainer) {
-				messagesContainer.scrollTop = messagesContainer.scrollHeight;
-			}
-		}, 0);
+		if (messagesContainer) {
+			messagesContainer.scrollTo({
+				top: messagesContainer.scrollHeight,
+				behavior: 'smooth'
+			});
+		}
 	}
 
 	function getInitials(email: string) {
 		return email?.split('@')[0]?.charAt(0).toUpperCase() || 'U';
 	}
+
+	function formatTime(date: string) {
+		return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+	}
+
+	function isNewDay(current: string, previous?: string) {
+		if (!previous) return true;
+		return new Date(current).toDateString() !== new Date(previous).toDateString();
+	}
+
+	function formatDateLabel(date: string) {
+		const d = new Date(date);
+		const today = new Date();
+		if (d.toDateString() === today.toDateString()) return 'Hari Ini';
+		return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+	}
 </script>
 
 <div
-	class="flex h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+	class="flex h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-border bg-background shadow-lg"
 >
 	<!-- Sidebar: Conversations -->
-	<div class="flex w-80 flex-col border-r border-gray-200 bg-gray-50">
-		<div class="border-b border-gray-200 p-4">
-			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-bold text-gray-900">{m.chat_title()}</h2>
-				<button class="rounded-full bg-indigo-100 p-2 text-indigo-600 hover:bg-indigo-200">
-					<Plus class="h-4 w-4" />
-				</button>
+	<div class="flex w-80 flex-col border-r border-border bg-muted/30">
+		<div class="space-y-4 p-4">
+			<div class="flex items-center justify-between">
+				<h2 class="text-xl font-bold">{m.chat_title()}</h2>
+				<Button variant="ghost" size="icon" class="rounded-full">
+					<Plus class="h-5 w-5" />
+				</Button>
 			</div>
 			<div class="relative">
-				<Search class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
-				<input
-					type="text"
-					placeholder={m.chat_search_placeholder()}
-					class="w-full rounded-lg border border-gray-200 bg-white py-2 pr-4 pl-9 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-				/>
+				<Search class="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
+				<Input placeholder={m.chat_search_placeholder()} class="bg-background pl-9" />
 			</div>
 		</div>
 
 		<div class="flex-1 overflow-y-auto">
 			{#if conversations.length === 0}
-				<div class="p-8 text-center text-gray-500">
-					<MessageSquare class="mx-auto mb-2 h-8 w-8 text-gray-300" />
+				<div class="p-8 text-center text-muted-foreground">
+					<MessageSquare class="mx-auto mb-2 h-8 w-8 opacity-20" />
 					<p class="text-sm">{m.chat_no_conversations()}</p>
 				</div>
 			{/if}
 			{#each conversations as conv}
 				<button
 					onclick={() => selectConversation(conv)}
-					class="flex w-full items-center gap-3 border-b border-gray-100 p-4 text-left hover:bg-gray-100 {selectedUser?.partner_id ===
-					conv.partner_id
-						? 'bg-white shadow-sm'
-						: ''}"
+					class={`flex w-full items-center gap-3 border-b border-border/50 p-4 text-left transition-colors hover:bg-muted/50 ${selectedUser?.partner_id === conv.partner_id ? 'bg-background shadow-sm ring-1 ring-primary/10 ring-inset' : ''}`}
 				>
 					<div class="relative">
 						<div
-							class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-medium text-indigo-600"
+							class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 font-bold text-primary"
 						>
 							{getInitials(conv.sender_email)}
 						</div>
-						<!-- Online status dot could go here -->
+						{#if !conv.is_read && conv.sender_id !== (data.user as any).sub}
+							<div
+								class="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background bg-primary"
+							></div>
+						{/if}
 					</div>
 					<div class="min-w-0 flex-1">
 						<div class="flex items-center justify-between">
-							<p class="truncate text-sm font-medium text-gray-900">{conv.sender_email}</p>
-							<span class="text-xs text-gray-400">12:30</span>
+							<p class="truncate text-sm font-semibold">{conv.sender_email?.split('@')[0]}</p>
+							<span class="text-[10px] text-muted-foreground italic"
+								>{formatTime(conv.created_at)}</span
+							>
 						</div>
-						<p class="truncate text-xs text-gray-500">{conv.last_message}</p>
+						<p class="mt-0.5 truncate text-xs text-muted-foreground">{conv.last_message}</p>
 					</div>
 				</button>
 			{/each}
@@ -149,44 +169,90 @@
 	</div>
 
 	<!-- Main Chat Area -->
-	<div class="flex flex-1 flex-col bg-white">
+	<div class="relative flex flex-1 flex-col bg-background">
 		{#if selectedUser}
 			<!-- Chat Header -->
-			<div class="border-b border-gray-200 px-6 py-4">
+			<div
+				class="z-10 flex items-center justify-between border-b border-border bg-background/95 px-6 py-3 backdrop-blur-sm"
+			>
 				<div class="flex items-center gap-3">
 					<div
-						class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600"
+						class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 font-bold text-primary"
 					>
 						{getInitials(selectedUser.sender_email)}
 					</div>
 					<div>
-						<h3 class="font-medium text-gray-900">{selectedUser.sender_email}</h3>
-						<p class="text-xs text-green-600">Online</p>
+						<h3 class="text-sm font-semibold">{selectedUser.sender_email}</h3>
+						<div class="flex items-center gap-1">
+							<div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+							<span class="text-[10px] font-medium text-muted-foreground">Aktif Sekarang</span>
+						</div>
 					</div>
+				</div>
+				<div class="flex items-center gap-1">
+					<Button variant="ghost" size="icon" class="rounded-full text-muted-foreground"
+						><Phone class="h-4 w-4" /></Button
+					>
+					<Button variant="ghost" size="icon" class="rounded-full text-muted-foreground"
+						><Video class="h-4 w-4" /></Button
+					>
+					<Button variant="ghost" size="icon" class="rounded-full text-muted-foreground"
+						><Info class="h-4 w-4" /></Button
+					>
 				</div>
 			</div>
 
 			<!-- Messages -->
-			<div bind:this={messagesContainer} class="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-6">
-				{#each messages as msg}
+			<div
+				bind:this={messagesContainer}
+				class="flex-1 space-y-6 overflow-y-auto bg-gradient-to-b from-muted/50 to-background p-6"
+			>
+				{#each messages as msg, i}
+					{#if isNewDay(msg.created_at, messages[i - 1]?.created_at)}
+						<div class="my-4 flex justify-center">
+							<span
+								class="rounded bg-muted px-2 py-1 text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+							>
+								{formatDateLabel(msg.created_at)}
+							</span>
+						</div>
+					{/if}
+
 					{#if msg.sender_id === (data.user as any)?.sub}
 						<!-- Outgoing -->
-						<div class="flex justify-end">
-							<div
-								class="max-w-[70%] rounded-2xl rounded-tr-none bg-indigo-600 px-4 py-2 text-white shadow-sm"
-							>
-								<p class="text-sm">{msg.content}</p>
-								<p class="mt-1 text-right text-[10px] text-indigo-200 opacity-70">10:30 AM</p>
+						<div class="animate-in slide-in-from-right-2 flex justify-end duration-300">
+							<div class="max-w-[70%] space-y-1">
+								<div
+									class="rounded-2xl rounded-tr-none bg-primary px-4 py-2.5 text-primary-foreground shadow-sm"
+								>
+									<p class="text-sm leading-relaxed">{msg.content}</p>
+								</div>
+								<div class="flex items-center justify-end gap-1.5 pr-1">
+									<span class="text-[9px] font-medium text-muted-foreground"
+										>{formatTime(msg.created_at)}</span
+									>
+									{#if msg.is_read}
+										<CheckCheck class="h-3 w-3 text-blue-500" />
+									{:else}
+										<Check class="h-3 w-3 text-muted-foreground" />
+									{/if}
+								</div>
 							</div>
 						</div>
 					{:else}
 						<!-- Incoming -->
-						<div class="flex justify-start">
-							<div
-								class="max-w-[70%] rounded-2xl rounded-tl-none bg-white px-4 py-2 text-gray-900 shadow-sm"
-							>
-								<p class="text-sm">{msg.content}</p>
-								<p class="mt-1 text-right text-[10px] text-gray-400">10:32 AM</p>
+						<div class="animate-in slide-in-from-left-2 flex justify-start duration-300">
+							<div class="max-w-[70%] space-y-1">
+								<div
+									class="rounded-2xl rounded-tl-none border border-border bg-background px-4 py-2.5 text-foreground shadow-sm"
+								>
+									<p class="text-sm leading-relaxed">{msg.content}</p>
+								</div>
+								<div class="flex items-center gap-1.5 pl-1">
+									<span class="text-[9px] font-medium text-muted-foreground"
+										>{formatTime(msg.created_at)}</span
+									>
+								</div>
 							</div>
 						</div>
 					{/if}
@@ -194,42 +260,49 @@
 			</div>
 
 			<!-- Input Area -->
-			<div class="border-t border-gray-200 p-4">
+			<div class="border-t border-border bg-background p-4">
 				<form
-					class="flex items-center gap-2"
+					class="flex items-center gap-3 rounded-2xl bg-muted/50 p-1.5 pr-2 transition-all focus-within:ring-2 focus-within:ring-primary/20"
 					onsubmit={(e) => {
 						e.preventDefault();
 						sendMessage();
 					}}
 				>
-					<button
-						type="button"
-						class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+					<Button
+						variant="ghost"
+						size="icon"
+						class="h-9 w-9 shrink-0 rounded-full text-muted-foreground"
+						><Plus class="h-5 w-5" /></Button
 					>
-						<Plus class="h-5 w-5" />
-					</button>
 					<input
-						type="text"
 						bind:value={newMessage}
 						placeholder={m.chat_type_message()}
-						class="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+						class="flex-1 border-none bg-transparent py-2 text-sm placeholder:text-muted-foreground focus:ring-0"
+						autofocus
 					/>
-					<button
+					<Button
 						type="submit"
 						disabled={!newMessage.trim()}
-						class="rounded-full bg-indigo-600 p-2 text-white transition-colors hover:bg-indigo-700 disabled:bg-gray-300"
+						size="icon"
+						class="h-9 w-9 shrink-0 rounded-xl shadow-lg"
 					>
 						<Send class="h-4 w-4" />
-					</button>
+					</Button>
 				</form>
 			</div>
 		{:else}
-			<div class="flex flex-1 flex-col items-center justify-center text-gray-400">
-				<div class="mb-4 rounded-full bg-gray-50 p-6">
-					<MessageSquare class="h-12 w-12 text-gray-300" />
+			<div class="flex flex-1 flex-col items-center justify-center bg-muted/5 p-12 text-center">
+				<div class="relative mb-6 rounded-full bg-primary/5 p-10">
+					<MessageSquare class="h-20 w-20 text-primary opacity-20" />
+					<div class="absolute inset-0 animate-ping rounded-full bg-primary/5 opacity-20"></div>
 				</div>
-				<p class="text-lg font-medium text-gray-900">{m.chat_select_conversation()}</p>
-				<p class="text-sm">{m.chat_select_conversation_desc()}</p>
+				<h3 class="text-2xl font-bold tracking-tight">{m.chat_select_conversation()}</h3>
+				<p class="mx-auto mt-2 max-w-sm text-muted-foreground">
+					{m.chat_select_conversation_desc()}
+				</p>
+				<div class="mt-8">
+					<Button class="rounded-full px-8">Mulai Pesan Baru</Button>
+				</div>
 			</div>
 		{/if}
 	</div>

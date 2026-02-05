@@ -18,7 +18,7 @@
 	import { cn } from '$lib/utils';
 
 	let { data } = $props();
-	const { schedules } = data;
+	const schedules = $derived(data.schedules);
 
 	const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 

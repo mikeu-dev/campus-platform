@@ -49,5 +49,6 @@ router.post('/quizzes/:quizId/submit', learningController.submitQuizAttempt);
 router.post('/messages', learningController.sendMessage);
 router.get('/messages/conversations', learningController.getConversations);
 router.get('/messages/:userId', learningController.getMessages);
+router.patch('/messages/mark-read', learningController.markMessagesRead);
 
 module.exports = router;
