@@ -7,7 +7,12 @@
 		GraduationCap,
 		User,
 		Menu,
-		MessageSquare
+		MessageSquare,
+		Home,
+		Calendar,
+		FileText,
+		ClipboardCheck,
+		ChevronDown
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -26,9 +31,18 @@
 
 	// Navigation Items
 	const navItems = [
+		{ href: '/lms', label: m.nav_lms_home(), icon: Home },
+		{ href: '/lms/schedule', label: m.nav_lms_schedule(), icon: Calendar },
 		{ href: '/lms/classes', label: m.nav_classes(), icon: GraduationCap },
 		{ href: '/lms/chat', label: m.nav_messages(), icon: MessageSquare }
 	];
+
+	const examGroup = [
+		{ href: '/lms/exams', label: m.nav_lms_exams(), icon: FileText },
+		{ href: '/lms/exams/permission', label: m.nav_lms_exam_permission(), icon: ClipboardCheck }
+	];
+
+	let isExamsOpen = $state(false);
 </script>
 
 {#snippet SidebarContent()}
@@ -39,19 +53,49 @@
 			</a>
 		</div>
 		<div class="flex-1 overflow-auto py-2">
-			<nav class="grid items-start px-4 text-sm font-medium">
+			<nav class="grid items-start gap-1 px-4 text-sm font-medium">
 				{#each navItems as item}
 					<a
 						href={item.href}
 						class={cn(
 							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes(item.href) && 'bg-muted text-primary'
+							(item.href === '/lms'
+								? page.url.pathname === '/lms'
+								: page.url.pathname.startsWith(item.href)) && 'bg-muted text-primary'
 						)}
 					>
 						<item.icon class="h-4 w-4" />
 						{item.label}
 					</a>
 				{/each}
+
+				<div class="space-y-1">
+					<button
+						onclick={() => (isExamsOpen = !isExamsOpen)}
+						class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+					>
+						<div class="flex items-center gap-3">
+							<FileText class="h-4 w-4" />
+							{m.nav_lms_exams_group()}
+						</div>
+						<ChevronDown class={cn('h-4 w-4 transition-transform', isExamsOpen && 'rotate-180')} />
+					</button>
+					{#if isExamsOpen}
+						<div class="ml-4 flex flex-col gap-1 border-l pl-4">
+							{#each examGroup as item}
+								<a
+									href={item.href}
+									class={cn(
+										'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+										page.url.pathname.startsWith(item.href) && 'text-primary'
+									)}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
 			</nav>
 		</div>
 		<div class="mt-auto p-4">

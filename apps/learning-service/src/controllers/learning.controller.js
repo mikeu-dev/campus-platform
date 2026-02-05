@@ -6,12 +6,14 @@ const materialSchema = z.object({
     title: z.string().min(3),
     content: z.string().optional(),
     type: z.enum(['text', 'video', 'link', 'file']).default('text'),
+    meeting_number: z.number().int().min(1).max(16).optional(),
 });
 
 const assignmentSchema = z.object({
     title: z.string().min(3),
     description: z.string().optional(),
     deadline: z.string().datetime(), // ISO 8601
+    meeting_number: z.number().int().min(1).max(16).optional(),
 });
 
 const submissionSchema = z.object({
@@ -43,12 +45,12 @@ class LearningController {
     async addMaterial(req, res, next) {
         try {
             const { classId } = req.params;
-            const { title, content, type } = materialSchema.parse(req.body);
+            const { title, content, type, meeting_number } = materialSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
             const result = await db.query(
-                'INSERT INTO materials (tenant_id, class_id, title, content, type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, classId, title, content, type]
+                'INSERT INTO materials (tenant_id, class_id, title, content, type, meeting_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [tenantId, classId, title, content, type, meeting_number]
             );
             res.status(201).json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
@@ -57,11 +59,20 @@ class LearningController {
     async getMaterials(req, res, next) {
         try {
             const { classId } = req.params;
+            const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM materials WHERE tenant_id = $1 AND class_id = $2 ORDER BY created_at DESC',
-                [tenantId, classId]
-            );
+
+            let query = 'SELECT * FROM materials WHERE tenant_id = $1 AND class_id = $2';
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                query += ' AND meeting_number = $3';
+                params.push(meetingNumber);
+            }
+
+            query += ' ORDER BY created_at DESC';
+
+            const result = await db.query(query, params);
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
@@ -70,12 +81,12 @@ class LearningController {
     async createAssignment(req, res, next) {
         try {
             const { classId } = req.params;
-            const { title, description, deadline } = assignmentSchema.parse(req.body);
+            const { title, description, deadline, meeting_number } = assignmentSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
             const result = await db.query(
-                'INSERT INTO assignments (tenant_id, class_id, title, description, deadline) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, classId, title, description, deadline]
+                'INSERT INTO assignments (tenant_id, class_id, title, description, deadline, meeting_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [tenantId, classId, title, description, deadline, meeting_number]
             );
             res.status(201).json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
@@ -84,11 +95,20 @@ class LearningController {
     async getAssignments(req, res, next) {
         try {
             const { classId } = req.params;
+            const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM assignments WHERE tenant_id = $1 AND class_id = $2 ORDER BY deadline ASC',
-                [tenantId, classId]
-            );
+
+            let query = 'SELECT * FROM assignments WHERE tenant_id = $1 AND class_id = $2';
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                query += ' AND meeting_number = $3';
+                params.push(meetingNumber);
+            }
+
+            query += ' ORDER BY deadline ASC';
+
+            const result = await db.query(query, params);
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }

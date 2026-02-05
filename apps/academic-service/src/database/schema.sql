@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS class_schedules (
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   room VARCHAR(100),
+  type VARCHAR(50) DEFAULT 'offline', -- offline, online, hybrid
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -146,3 +147,16 @@ CREATE TABLE IF NOT EXISTS financial_bills (
   due_date DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Attendances Table
+CREATE TABLE IF NOT EXISTS attendances (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  meeting_number INT NOT NULL, -- 1-16
+  status VARCHAR(20) DEFAULT 'alfa', -- hadir, alfa, izin, sakit
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(class_id, student_id, meeting_number)
+);
+

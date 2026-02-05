@@ -38,4 +38,10 @@ router.get('/announcements', academicController.getAnnouncements);
 router.get('/finance/my-bill', academicController.getMyFinancialStatus);
 router.get('/gpa/my', academicController.getMyGPA);
 
+// Attendance
+router.post('/attendance', academicController.recordAttendance);
+router.get('/attendance/:classId/my', academicController.getMyAttendance);
+router.get('/attendance/:classId/summary', academicController.getClassAttendanceSummary);
+
+
 module.exports = router;

@@ -45,6 +45,13 @@ const certificateRequestSchema = z.object({
     notes: z.string().optional(),
 });
 
+const attendanceSchema = z.object({
+    class_id: z.string().uuid(),
+    student_id: z.string().uuid(),
+    meeting_number: z.number().int().min(1).max(16),
+    status: z.enum(['hadir', 'alfa', 'izin', 'sakit']).default('hadir'),
+});
+
 class AcademicController {
 
     // --- Courses ---
@@ -268,13 +275,20 @@ class AcademicController {
             const userId = req.user.sub; // Identity User ID
 
             const result = await db.query(`
-        SELECT e.id, e.status, c.id as class_id, c.semester, c.year, co.name as course_name, co.code as course_code
+        SELECT 
+            e.id, e.status, c.id as class_id, c.semester, c.year, 
+            co.name as course_name, co.code as course_code, co.credits,
+            l.name as lecturer_name,
+            cs.day, cs.start_time, cs.end_time, cs.room, cs.type
         FROM enrollments e
         JOIN students s ON e.student_id = s.id
         JOIN classes c ON e.class_id = c.id
         JOIN courses co ON c.course_id = co.id
+        LEFT JOIN lecturers l ON c.lecturer_id = l.id
+        LEFT JOIN class_schedules cs ON cs.class_id = c.id
         WHERE e.tenant_id = $1 AND s.user_id = $2
       `, [tenantId, userId]);
+
 
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
@@ -473,6 +487,68 @@ class AcademicController {
                     totalCredits
                 }
             });
+        } catch (err) { next(err); }
+    }
+
+    // --- Attendance ---
+    async recordAttendance(req, res, next) {
+        try {
+            const { class_id, student_id, meeting_number, status } = attendanceSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `INSERT INTO attendances (tenant_id, class_id, student_id, meeting_number, status)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (class_id, student_id, meeting_number)
+                 DO UPDATE SET status = EXCLUDED.status, created_at = CURRENT_TIMESTAMP
+                 RETURNING *`,
+                [tenantId, class_id, student_id, meeting_number, status]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getMyAttendance(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            const query = `
+                SELECT a.* FROM attendances a
+                JOIN students s ON a.student_id = s.id
+                WHERE a.tenant_id = $1 AND a.class_id = $2 AND s.user_id = $3
+                ORDER BY a.meeting_number ASC
+            `;
+            const result = await db.query(query, [tenantId, classId, userId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getClassAttendanceSummary(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+            const userId = req.user.sub;
+
+            // Simplified: count status for current student in class
+            const query = `
+                SELECT 
+                    status,
+                    COUNT(*) as count
+                FROM attendances a
+                JOIN students s ON a.student_id = s.id
+                WHERE a.tenant_id = $1 AND a.class_id = $2 AND s.user_id = $3
+                GROUP BY status
+            `;
+            const result = await db.query(query, [tenantId, classId, userId]);
+
+            const summary = { hadir: 0, alfa: 0, izin: 0, sakit: 0 };
+            result.rows.forEach(row => {
+                summary[row.status] = parseInt(row.count);
+            });
+
+            res.json({ status: 'success', data: summary });
         } catch (err) { next(err); }
     }
 }

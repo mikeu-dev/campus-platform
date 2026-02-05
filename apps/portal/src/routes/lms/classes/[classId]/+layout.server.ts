@@ -1,37 +1,55 @@
 import type { LayoutServerLoad } from './$types';
 import axios from 'axios';
-import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
+import { PUBLIC_ACADEMIC_API_URL, PUBLIC_LEARNING_API_URL } from '$env/static/public';
 
-// We fetch basic class info here so it's available for all tabs (Materials, Assignments, People)
 export const load: LayoutServerLoad = async ({ locals, params }) => {
 	const token = locals.token;
 	const { classId } = params;
-	let classInfo = null;
 
 	try {
-		// We need an endpoint to get single class details from Academic Service
-		// Currently we only have /classes (list) and /enrollments/my
-		// Ideally Academic Service should have GET /classes/:id
-		// For MVP, if we don't have it, we might filter from list or just display ID?
-		// Let's assume we might need to add GET /classes/:id to Academic Service or rely on what we have.
-		// Checking Academic Service routes... it has GET /classes (list).
-		// Let's add GET /classes/:id to Academic Service quickly or use list filtering (inefficient but works for MVP).
-		// Actually best to add the endpoint. But sticking to "Portal Integration Tasks".
-		// Let's try to filter from the full list for now to avoid switching context unless necessary.
+		const [classRes, profileRes, attendancesRes, materialsRes, assignmentsRes, attendanceSummaryRes] = await Promise.all([
+			axios.get(`${PUBLIC_ACADEMIC_API_URL}/classes`, {
+				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
+				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/my`, {
+				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/materials`, {
+				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/assignments`, {
+				headers: { Authorization: `Bearer ${token}` }
+			}),
+			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/summary`, {
+				headers: { Authorization: `Bearer ${token}` }
+			})
+		]);
 
-		const res = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/classes`, {
-			headers: { Authorization: `Bearer ${token}` }
-		});
+		const classInfo = classRes.data.data.find((c: any) => c.id === classId);
+		const studentId = profileRes.data.data.id;
 
-		// This is inefficient, but fits "Portal Integration" scope without touching Backend if possible.
-		// Wait, /classes returns all classes for the tenant.
-		classInfo = res.data.data.find((c: any) => c.id === classId);
-	} catch {
-		console.error('Fetch class info failed');
+		return {
+			classInfo,
+			classId,
+			studentId,
+			attendances: attendancesRes.data.data,
+			materials: materialsRes.data.data,
+			assignments: assignmentsRes.data.data,
+			attendanceSummary: attendanceSummaryRes.data.data
+		};
+	} catch (error) {
+		console.error('Fetch class details failed', error);
+		return {
+			classInfo: null,
+			classId,
+			studentId: null,
+			attendances: [],
+			materials: [],
+			assignments: [],
+			attendanceSummary: { hadir: 0, alfa: 0, izin: 0, sakit: 0 }
+		};
 	}
-
-	return {
-		classInfo,
-		classId
-	};
 };

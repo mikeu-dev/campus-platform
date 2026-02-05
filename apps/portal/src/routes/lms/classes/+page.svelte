@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BookOpen, Search } from 'lucide-svelte';
+	import { BookOpen, Search, User, Clock, MapPin, ChevronRight, FileText } from 'lucide-svelte';
 	import {
 		Card,
 		CardContent,
@@ -12,25 +12,33 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Input } from '$lib/components/ui/input';
 	import * as m from '$lib/paraglide/messages.js';
+	import { cn } from '$lib/utils';
 
 	let { data } = $props();
 	let searchQuery = $state('');
 
 	let filteredEnrollments = $derived(
-		data.enrollments.filter(
+		(data.enrollments || []).filter(
 			(e: any) =>
 				e.course_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				e.course_code.toLowerCase().includes(searchQuery.toLowerCase())
 		)
 	);
+
+	function formatTime(time: string) {
+		if (!time) return '';
+		return time.split(':').slice(0, 2).join(':');
+	}
 </script>
 
-<div class="space-y-6">
-	<div class="flex items-center justify-between">
-		<div>
-			<h2 class="text-3xl font-bold tracking-tight">{m.classes_title()}</h2>
-			<p class="text-muted-foreground">{m.classes_desc()}</p>
-		</div>
+<svelte:head>
+	<title>{m.classes_title()} | CampusApp</title>
+</svelte:head>
+
+<div class="space-y-8">
+	<div class="flex flex-col gap-2">
+		<h1 class="text-3xl font-bold tracking-tight">{m.classes_title()}</h1>
+		<p class="text-muted-foreground">{m.classes_desc()}</p>
 	</div>
 
 	<div class="flex items-center space-x-2">
@@ -46,42 +54,104 @@
 	</div>
 
 	{#if filteredEnrollments.length === 0}
-		<Card>
-			<CardContent class="flex flex-col items-center justify-center p-12 text-center">
-				<BookOpen class="h-12 w-12 text-muted-foreground/50" />
-				<h3 class="mt-4 text-lg font-semibold">{m.classes_no_data_title()}</h3>
-				<p class="text-muted-foreground">
+		<Card class="border-dashed">
+			<CardContent class="flex flex-col items-center justify-center p-20 text-center">
+				<div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+					<BookOpen class="h-10 w-10 text-muted-foreground/50" />
+				</div>
+				<h3 class="text-xl font-bold">{m.classes_no_data_title()}</h3>
+				<p class="mx-auto mt-2 max-w-xs text-muted-foreground">
 					{searchQuery ? m.classes_no_data_desc_search() : m.classes_no_data_desc_empty()}
 				</p>
 			</CardContent>
 		</Card>
 	{:else}
-		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+		<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 			{#each filteredEnrollments as item (item.class_id)}
-				<Card class="flex flex-col transition-all hover:shadow-lg">
-					<CardHeader>
-						<div class="flex items-start justify-between">
-							<div>
-								<CardTitle class="line-clamp-1 text-lg">{item.course_code}</CardTitle>
-								<CardDescription class="mt-1 line-clamp-2 min-h-10"
-									>{item.course_name}</CardDescription
-								>
+				<Card
+					class="group flex h-full flex-col overflow-hidden border-none shadow-md transition-all hover:shadow-xl"
+				>
+					<CardHeader class="pb-4">
+						<div class="flex items-start justify-between gap-4">
+							<div class="space-y-1">
+								<Badge variant="outline" class="text-[10px] font-bold tracking-wider uppercase">
+									{item.course_code}
+								</Badge>
+								<CardTitle class="line-clamp-2 text-xl transition-colors group-hover:text-primary">
+									{item.course_name}
+								</CardTitle>
 							</div>
-							<Badge variant={item.status === 'active' ? 'default' : 'secondary'}>
+							<Badge class={cn(item.status === 'active' ? 'bg-green-500' : 'bg-secondary')}>
 								{item.status}
 							</Badge>
 						</div>
 					</CardHeader>
-					<CardContent class="grow">
-						<!-- Future content like progress bar could go here -->
-						<div class="text-sm text-muted-foreground">
-							<p>{m.class_id_label({ id: item.class_id })}</p>
+
+					<CardContent class="grow space-y-6">
+						<!-- Metadata Grid -->
+						<div class="grid grid-cols-2 gap-4 text-sm">
+							<div class="flex items-center gap-2 text-muted-foreground">
+								<User class="h-4 w-4 shrink-0 text-primary/60" />
+								<span class="truncate font-medium text-foreground"
+									>{item.lecturer_name || 'TBA'}</span
+								>
+							</div>
+							<div class="flex items-center gap-2 text-muted-foreground">
+								<Clock class="h-4 w-4 shrink-0 text-primary/60" />
+								<span class="font-medium text-foreground"
+									>{item.day || 'N/A'}, {formatTime(item.start_time)}</span
+								>
+							</div>
+							<div class="flex items-center gap-2 text-muted-foreground">
+								<MapPin class="h-4 w-4 shrink-0 text-primary/60" />
+								<span class="truncate font-medium text-foreground">{item.room || 'TBA'}</span>
+							</div>
+							<div class="flex items-center gap-2 text-muted-foreground">
+								<FileText class="h-4 w-4 shrink-0 text-primary/60" />
+								<span class="font-medium text-foreground">{item.credits} SKS</span>
+							</div>
+						</div>
+
+						<!-- Progress Section -->
+						<div class="space-y-3">
+							<div class="flex items-center justify-between text-xs">
+								<span class="font-bold tracking-tight text-muted-foreground uppercase"
+									>Progres Tugas</span
+								>
+								<span class="font-bold text-primary">
+									{#if item.stats}
+										{Math.round((item.stats.gradedCount / item.stats.totalSubmissions) * 100) || 0}%
+									{:else}
+										0%
+									{/if}
+								</span>
+							</div>
+
+							{#if item.stats && item.stats.totalSubmissions > 0}
+								<div class="h-2 w-full overflow-hidden rounded-full bg-muted">
+									<div
+										class="h-full rounded-full bg-primary transition-all duration-500"
+										style="width: {(item.stats.gradedCount / item.stats.totalSubmissions) * 100 ||
+											0}%"
+									></div>
+								</div>
+								<p class="text-[10px] text-muted-foreground italic">
+									{item.stats.gradedCount} dari {item.stats.totalSubmissions} tugas selesai
+								</p>
+							{:else}
+								<div
+									class="flex items-center justify-center rounded-lg bg-muted/50 py-2 text-[10px] text-muted-foreground italic"
+								>
+									belum ada tugas yang diberikan
+								</div>
+							{/if}
 						</div>
 					</CardContent>
-					<CardFooter>
-						<Button class="w-full" href="/lms/classes/{item.class_id}">
-							<BookOpen class="mr-2 h-4 w-4" />
+
+					<CardFooter class="pt-0 pb-6">
+						<Button class="h-11 w-full gap-2 rounded-xl" href="/lms/classes/{item.class_id}">
 							{m.classes_go_to_class()}
+							<ChevronRight class="h-4 w-4" />
 						</Button>
 					</CardFooter>
 				</Card>

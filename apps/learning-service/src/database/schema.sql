@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS materials (
   title VARCHAR(255) NOT NULL,
   content TEXT, -- Description, or HTML content
   type VARCHAR(50) DEFAULT 'text', -- text, video, link, file
+  meeting_number INT, -- 1-16
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS assignments (
   title VARCHAR(255) NOT NULL,
   description TEXT,
   deadline TIMESTAMP,
+  meeting_number INT, -- 1-16
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -57,3 +59,39 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
   started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   finished_at TIMESTAMP
 );
+
+-- Discussions Table
+CREATE TABLE IF NOT EXISTS discussions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  class_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  user_email VARCHAR(255),
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Notifications Table
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  type VARCHAR(50) DEFAULT 'general',
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  link VARCHAR(255),
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Messages Table
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  sender_id UUID NOT NULL,
+  sender_email VARCHAR(255),
+  receiver_id UUID NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
