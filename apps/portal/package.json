@@ -37,6 +37,7 @@
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
+		"shadcn-svelte": "^1.0.0-next.19",
 		"svelte": "^5.48.2",
 		"svelte-check": "^4.3.5",
 		"tailwindcss": "^4.1.18",
@@ -50,8 +51,12 @@
 	"dependencies": {
 		"@campus-platform/shared-types": "^0.0.1",
 		"axios": "^1.13.4",
+		"bits-ui": "^1.0.0-next.98",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
 		"form-data": "^4.0.5",
 		"lucide-svelte": "^0.563.0",
+		"tailwind-merge": "^3.4.0",
 		"zod": "^4.3.6"
 	}
 }
