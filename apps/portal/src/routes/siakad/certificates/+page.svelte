@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FileText, Send, Check, Clock, X, Eye, Download } from 'lucide-svelte';
+	import { FileText, Send, Check, Clock, X, Download } from 'lucide-svelte';
 	import {
 		Card,
 		CardContent,
@@ -11,7 +11,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
+	import * as m from '$lib/paraglide/messages.js';
 
 	// Mock data
 	const certificateTypes = [
@@ -51,14 +51,14 @@
 		}
 	];
 
-	let formData = $state({
+	let formData = {
 		type: '',
 		purpose: '',
 		notes: '',
 		quantity: '1'
-	});
+	};
 
-	let activeTab = $state('form');
+	let activeTab = 'form';
 
 	function handleSubmit() {
 		console.log('Certificate request submitted:', formData);
@@ -80,8 +80,8 @@
 
 <div class="space-y-6">
 	<div>
-		<h2 class="text-3xl font-bold tracking-tight">Pengajuan Surat Keterangan</h2>
-		<p class="text-muted-foreground">Ajukan berbagai jenis surat keterangan dari kampus.</p>
+		<h2 class="text-3xl font-bold tracking-tight">{m.siakad_certificates_title()}</h2>
+		<p class="text-muted-foreground">{m.siakad_certificates_desc()}</p>
 	</div>
 
 	<div class="w-full">
@@ -95,7 +95,7 @@
 					: ''}"
 				onclick={() => (activeTab = 'form')}
 			>
-				Ajukan Baru
+				{m.siakad_certificates_tab_form()}
 			</button>
 			<button
 				class="inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium whitespace-nowrap ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 {activeTab ===
@@ -104,15 +104,15 @@
 					: ''}"
 				onclick={() => (activeTab = 'history')}
 			>
-				Riwayat Pengajuan
+				{m.siakad_certificates_tab_history()}
 			</button>
 		</div>
 
 		{#if activeTab === 'form'}
 			<Card>
 				<CardHeader>
-					<CardTitle>Form Pengajuan Surat</CardTitle>
-					<CardDescription>Isi form berikut untuk mengajukan surat keterangan.</CardDescription>
+					<CardTitle>{m.siakad_certificates_form_title()}</CardTitle>
+					<CardDescription>{m.siakad_certificates_form_desc()}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form
@@ -123,7 +123,7 @@
 						}}
 					>
 						<div class="space-y-2">
-							<Label for="type">Jenis Surat</Label>
+							<Label for="type">{m.siakad_certificates_form_type_label()}</Label>
 							<div class="relative">
 								<select
 									id="type"
@@ -131,7 +131,9 @@
 									bind:value={formData.type}
 									class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 								>
-									<option value="" disabled selected>Pilih jenis surat</option>
+									<option value="" disabled selected
+										>{m.siakad_certificates_form_type_placeholder()}</option
+									>
 									{#each certificateTypes as type}
 										<option value={type.value}>{type.label}</option>
 									{/each}
@@ -140,25 +142,27 @@
 						</div>
 
 						<div class="space-y-2">
-							<Label for="purpose">Keperluan / Tujuan</Label>
+							<Label for="purpose">{m.siakad_certificates_form_purpose_label()}</Label>
 							<Input
 								id="purpose"
-								placeholder="Contoh: Keperluan beasiswa, magang, dll."
+								placeholder={m.siakad_certificates_form_purpose_placeholder()}
 								bind:value={formData.purpose}
 							/>
 						</div>
 
 						<div class="space-y-2">
-							<Label for="quantity">Jumlah Rangkap</Label>
+							<Label for="quantity">{m.siakad_certificates_form_qty_label()}</Label>
 							<Input id="quantity" type="number" min="1" max="5" bind:value={formData.quantity} />
-							<p class="text-xs text-muted-foreground">Maksimal 5 rangkap per pengajuan.</p>
+							<p class="text-xs text-muted-foreground">{m.siakad_certificates_form_qty_note()}</p>
 						</div>
 
 						<div class="space-y-2">
-							<Label for="notes">Catatan Tambahan (Opsional)</Label>
+							<Label for="notes"
+								>{m.siakad_certificates_form_notes_label()} ({m.siakad_form_optional()})</Label
+							>
 							<textarea
 								id="notes"
-								placeholder="Tambahkan catatan jika diperlukan..."
+								placeholder={m.siakad_certificates_form_notes_placeholder()}
 								rows={3}
 								bind:value={formData.notes}
 								class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -166,10 +170,15 @@
 						</div>
 
 						<div class="flex justify-end gap-4">
-							<Button type="button" variant="outline">Reset</Button>
+							<Button
+								type="button"
+								variant="outline"
+								onclick={() => (formData = { type: '', purpose: '', notes: '', quantity: '1' })}
+								>{m.siakad_form_reset()}</Button
+							>
 							<Button type="submit">
 								<Send class="mr-2 h-4 w-4" />
-								Ajukan Surat
+								{m.siakad_certificates_form_submit()}
 							</Button>
 						</div>
 					</form>
@@ -180,8 +189,8 @@
 				<Card>
 					<CardContent class="flex flex-col items-center justify-center py-12 text-center">
 						<FileText class="h-12 w-12 text-muted-foreground/50" />
-						<h3 class="mt-4 text-lg font-semibold">Belum ada riwayat pengajuan</h3>
-						<p class="text-muted-foreground">Anda belum pernah mengajukan surat keterangan.</p>
+						<h3 class="mt-4 text-lg font-semibold">{m.siakad_certificates_history_empty()}</h3>
+						<p class="text-muted-foreground">{m.siakad_certificates_history_empty_desc()}</p>
 					</CardContent>
 				</Card>
 			{:else}
@@ -199,14 +208,18 @@
 										</div>
 										<p class="text-sm text-muted-foreground">{request.purpose}</p>
 										<p class="text-xs text-muted-foreground">
-											Diajukan: {new Date(request.requestedDate).toLocaleDateString('id-ID', {
+											{m.siakad_certificates_history_date()}: {new Date(
+												request.requestedDate
+											).toLocaleDateString('id-ID', {
 												day: 'numeric',
 												month: 'long',
 												year: 'numeric'
 											})}
 										</p>
 										{#if request.rejectionReason}
-											<p class="text-xs text-destructive">Alasan: {request.rejectionReason}</p>
+											<p class="text-xs text-destructive">
+												{m.siakad_certificates_history_reason()}: {request.rejectionReason}
+											</p>
 										{/if}
 									</div>
 									<div class="flex items-center gap-3">
@@ -217,7 +230,7 @@
 										{#if request.status === 'Selesai' && request.downloadUrl}
 											<Button size="sm" variant="outline">
 												<Download class="mr-2 h-4 w-4" />
-												Download
+												{m.siakad_certificates_history_download()}
 											</Button>
 										{/if}
 									</div>

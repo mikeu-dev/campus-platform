@@ -3,6 +3,7 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import * as m from '$lib/paraglide/messages.js';
 
 	// Mock data for initial implementation
 	const userInfo = {
@@ -81,15 +82,15 @@
 			<CardContent>
 				<div class="grid gap-2 text-sm">
 					<div class="flex justify-between">
-						<span class="text-muted-foreground">Program Studi</span>
+						<span class="text-muted-foreground">{m.siakad_user_program()}</span>
 						<span class="font-medium">{userInfo.program}</span>
 					</div>
 					<div class="flex justify-between">
-						<span class="text-muted-foreground">Semester</span>
+						<span class="text-muted-foreground">{m.siakad_user_semester()}</span>
 						<span class="font-medium">{userInfo.semester}</span>
 					</div>
 					<div class="flex justify-between">
-						<span class="text-muted-foreground">Status</span>
+						<span class="text-muted-foreground">{m.siakad_user_status()}</span>
 						<Badge
 							variant="outline"
 							class="bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700"
@@ -103,18 +104,20 @@
 		<!-- Finance Card -->
 		<Card>
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">Keuangan</CardTitle>
+				<CardTitle class="text-sm font-medium">{m.siakad_finance_title()}</CardTitle>
 				<Wallet class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
-					{finance.bill === 0 ? 'Lunas' : `Rp ${finance.bill.toLocaleString('id-ID')}`}
+					{finance.bill === 0
+						? m.siakad_finance_paid()
+						: `Rp ${finance.bill.toLocaleString('id-ID')}`}
 				</div>
 				<p class="text-xs text-muted-foreground">
-					Status: {finance.status}
+					{m.siakad_finance_status()}: {finance.status}
 				</p>
 				{#if finance.bill > 0}
-					<Button size="sm" class="mt-4 w-full">Bayar Sekarang</Button>
+					<Button size="sm" class="mt-4 w-full">{m.siakad_finance_pay()}</Button>
 				{/if}
 			</CardContent>
 		</Card>
@@ -122,12 +125,12 @@
 		<!-- IPK Monitoring -->
 		<Card>
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">Indeks Prestasi</CardTitle>
+				<CardTitle class="text-sm font-medium">{m.siakad_gpa_title()}</CardTitle>
 				<TrendingUp class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">{gpa.current}</div>
-				<p class="text-xs text-muted-foreground">Capaian IPK Semester ini</p>
+				<p class="text-xs text-muted-foreground">{m.siakad_gpa_desc()}</p>
 				<!-- Simple progress bar visual -->
 				<div class="mt-4 h-2 w-full rounded-full bg-secondary">
 					<div
@@ -145,7 +148,7 @@
 			<CardHeader>
 				<CardTitle class="flex items-center gap-2">
 					<Megaphone class="h-5 w-5" />
-					Pengumuman
+					{m.siakad_announcements_title()}
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
@@ -168,7 +171,7 @@
 		<Card
 			class="flex h-full flex-col items-center justify-center border-dashed p-6 text-center text-muted-foreground"
 		>
-			<p>Area Informasi Tambahan</p>
+			<p>{m.siakad_widget_placeholder()}</p>
 			<span class="text-xs">Widget lainnya dapat ditambahkan di sini</span>
 		</Card>
 	</div>

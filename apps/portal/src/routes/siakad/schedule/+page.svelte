@@ -1,14 +1,8 @@
 <script lang="ts">
 	import { Calendar as CalendarIcon, Clock, MapPin, User, BookOpen } from 'lucide-svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
+	import * as m from '$lib/paraglide/messages.js';
 
 	// Mock data for class schedule
 	const schedule = [
@@ -16,19 +10,19 @@
 			day: 'Senin',
 			classes: [
 				{
-					time: '08:00 - 09:40',
-					course: 'Pemrograman Web Lanjut',
-					code: 'IF3101',
-					room: 'Lab Komputer 3',
-					lecturer: 'Dr. Budi Santoso, M.Kom',
-					type: 'Praktek'
+					time: '08:00 - 10:30',
+					course: 'Algoritma dan Pemrograman',
+					code: 'IF101',
+					room: 'Lab Komputer 1',
+					lecturer: 'Dr. Ahmad Fauzi',
+					type: 'Praktikum'
 				},
 				{
-					time: '10:00 - 11:40',
-					course: 'Sistem Basis Data',
-					code: 'IF3102',
-					room: 'Ruang Teori 2.1',
-					lecturer: 'Siti Aminah, S.T., M.T.',
+					time: '13:00 - 15:30',
+					course: 'Matematika Diskrit',
+					code: 'IF102',
+					room: 'Ruang 302',
+					lecturer: 'Dra. Siti Aminah',
 					type: 'Teori'
 				}
 			]
@@ -37,41 +31,41 @@
 			day: 'Selasa',
 			classes: [
 				{
-					time: '13:00 - 14:40',
-					course: 'Kecerdasan Buatan',
-					code: 'IF3105',
-					room: 'Ruang Teori 2.3',
-					lecturer: 'Prof. Dr. Ir. Eko Purnomo',
+					time: '10:00 - 12:30',
+					course: 'Basis Data',
+					code: 'IF201',
+					room: 'Ruang 405',
+					lecturer: 'Budi Santoso, M.Kom',
 					type: 'Teori'
 				}
 			]
 		},
 		{
 			day: 'Rabu',
-			classes: [
-				{
-					time: '08:00 - 09:40',
-					course: 'Jaringan Komputer',
-					code: 'IF3103',
-					room: 'Lab Jaringan',
-					lecturer: 'Dedi Kurniawan, S.Kom., M.Kom',
-					type: 'Praktek'
-				}
-			]
+			classes: []
 		},
 		{
 			day: 'Kamis',
-			classes: []
+			classes: [
+				{
+					time: '08:00 - 10:30',
+					course: 'Jaringan Komputer',
+					code: 'IF202',
+					room: 'Lab Jaringan',
+					lecturer: 'Irwan Yusuf, M.T.',
+					type: 'Praktikum'
+				}
+			]
 		},
 		{
 			day: 'Jumat',
 			classes: [
 				{
-					time: '09:00 - 10:40',
+					time: '14:00 - 16:30',
 					course: 'Etika Profesi',
-					code: 'IF3104',
-					room: 'Aula Utama',
-					lecturer: 'Dr. Rina Wati, S.H., M.H.',
+					code: 'IF301',
+					room: 'Ruang 201',
+					lecturer: 'Prof. Dr. Supardi',
 					type: 'Teori'
 				}
 			]
@@ -81,65 +75,56 @@
 
 <div class="space-y-6">
 	<div>
-		<h2 class="text-3xl font-bold tracking-tight">Jadwal Kuliah</h2>
-		<p class="text-muted-foreground">Jadwal belajar mahasiswa semester terbaru.</p>
+		<h2 class="text-3xl font-bold tracking-tight">{m.siakad_schedule_title()}</h2>
+		<p class="text-muted-foreground">{m.siakad_schedule_desc()}</p>
 	</div>
 
-	<div class="space-y-6">
-		{#each schedule as day}
-			{#if day.classes.length > 0}
-				<div class="space-y-3">
-					<h3 class="flex items-center gap-2 text-lg font-semibold text-primary">
-						<CalendarIcon class="h-5 w-5" />
-						{day.day}
-					</h3>
+	<div class="grid gap-6">
+		{#each schedule as daySchedule}
+			<div class="space-y-4">
+				<h3 class="flex items-center gap-2 border-b pb-2 text-xl font-semibold">
+					{daySchedule.day}
+				</h3>
+
+				{#if daySchedule.classes.length === 0}
+					<Card class="bg-muted/30">
+						<CardContent class="flex items-center justify-center p-6 text-muted-foreground">
+							{m.siakad_schedule_no_classes()}
+						</CardContent>
+					</Card>
+				{:else}
 					<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{#each day.classes as item}
-							<Card
-								class="overflow-hidden border-l-4 border-l-primary transition-all hover:shadow-md"
-							>
-								<CardContent class="p-4">
-									<div class="flex flex-col gap-3">
-										<!-- Header: Time & Type -->
-										<div class="flex items-center justify-between">
-											<Badge variant="outline" class="flex items-center gap-1 font-mono text-xs">
-												<Clock class="h-3 w-3" />
-												{item.time}
-											</Badge>
-											<Badge
-												variant={item.type === 'Praktek' ? 'secondary' : 'default'}
-												class="text-xs"
-											>
-												{item.type}
-											</Badge>
-										</div>
-
-										<!-- Course Info -->
-										<div>
-											<h4 class="line-clamp-1 font-bold" title={item.course}>{item.course}</h4>
-											<p class="text-xs text-muted-foreground">{item.code}</p>
-										</div>
-
-										<Separator />
-
-										<!-- Details: Loc & Lecturer -->
-										<div class="space-y-1 text-sm text-muted-foreground">
-											<div class="flex items-start gap-2">
-												<MapPin class="h-4 w-4 shrink-0 text-primary/70" />
-												<span class="line-clamp-1">{item.room}</span>
-											</div>
-											<div class="flex items-start gap-2">
-												<User class="h-4 w-4 shrink-0 text-primary/70" />
-												<span class="line-clamp-1">{item.lecturer}</span>
-											</div>
-										</div>
+						{#each daySchedule.classes as classInfo}
+							<Card class="overflow-hidden">
+								<div class="h-1.5 w-full bg-primary"></div>
+								<CardHeader class="p-4 pb-2">
+									<div class="flex items-start justify-between">
+										<Badge variant="outline" class="text-[10px] font-bold uppercase"
+											>{classInfo.type}</Badge
+										>
+										<span class="font-mono text-xs text-muted-foreground">{classInfo.code}</span>
+									</div>
+									<CardTitle class="mt-2 text-base leading-tight">{classInfo.course}</CardTitle>
+								</CardHeader>
+								<CardContent class="space-y-3 p-4 pt-0">
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										<Clock class="h-4 w-4" />
+										{classInfo.time}
+									</div>
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										<MapPin class="h-4 w-4" />
+										{classInfo.room}
+									</div>
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										<User class="h-4 w-4" />
+										{classInfo.lecturer}
 									</div>
 								</CardContent>
 							</Card>
 						{/each}
 					</div>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		{/each}
 
 		<!-- Empty State if no classes (optional logic) -->

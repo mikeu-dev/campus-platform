@@ -17,8 +17,7 @@
 	// Mock period status - this would come from the server in a real scenario
 	const gradePeriod = $derived({
 		isOpen: data.grades && data.grades.length > 0, // If we have grades, period is open. Otherwise, period might be closed.
-		message:
-			'Periode Lihat Nilai belum dibuka. Silahkan cek kembali setelah periode pengumuman nilai.'
+		message: m.siakad_grades_period_closed_desc()
 	});
 
 	function getScoreVariant(score: number): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -55,16 +54,18 @@
 			class="relative w-full rounded-lg border bg-background p-4 text-foreground [&>svg]:absolute [&>svg]:top-4 [&>svg]:left-4 [&>svg+div]:translate-y-[-3px] [&>svg~*]:pl-7"
 		>
 			<Lock class="h-4 w-4" />
-			<h5 class="mb-1 leading-none font-medium tracking-tight">Periode Nilai Belum Dibuka</h5>
+			<h5 class="mb-1 leading-none font-medium tracking-tight">
+				{m.siakad_grades_period_closed_title()}
+			</h5>
 			<div class="text-sm opacity-90">{gradePeriod.message}</div>
 		</div>
 
 		<Card>
 			<CardContent class="flex flex-col items-center justify-center py-12 text-center">
 				<Calendar class="h-12 w-12 text-muted-foreground/50" />
-				<h3 class="mt-4 text-lg font-semibold">Periode Lihat Nilai Belum Dibuka</h3>
+				<h3 class="mt-4 text-lg font-semibold">{m.siakad_grades_period_closed_title()}</h3>
 				<p class="max-w-md text-muted-foreground">
-					Nilai akan tersedia setelah periode pengumuman nilai dibuka oleh akademik.
+					{m.siakad_grades_period_closed_note()}
 				</p>
 			</CardContent>
 		</Card>

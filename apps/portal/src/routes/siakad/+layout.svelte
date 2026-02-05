@@ -29,25 +29,33 @@
 	const navGroups = [
 		{
 			items: [
-				{ href: '/siakad', label: 'Dashboard', icon: LayoutDashboard },
-				{ href: '/siakad/schedule', label: 'Jadwal Kuliah', icon: Calendar },
-				{ href: '/siakad/grades', label: 'Nilai Kuliah', icon: GraduationCap },
-				{ href: '/siakad/certificates', label: 'Pengajuan Surat', icon: MessageSquare }
+				{ href: '/siakad', label: m.siakad_dashboard_title(), icon: LayoutDashboard },
+				{ href: '/siakad/schedule', label: m.siakad_schedule_title(), icon: Calendar },
+				{ href: '/siakad/grades', label: m.siakad_grades_title(), icon: GraduationCap },
+				{ href: '/siakad/certificates', label: m.siakad_certificates_title(), icon: MessageSquare }
 			]
 		},
 		{
-			label: 'Akademik',
+			label: m.siakad_academic_group(),
 			items: [
-				{ href: '/siakad/enrollment', label: 'Pengisian KRS', icon: BookOpen },
-				{ href: '/siakad/krs/history', label: 'Riwayat KRS', icon: BookOpen },
-				{ href: '/siakad/exam-card', label: 'Kartu Ujian', icon: BookOpen }
+				{ href: '/siakad/enrollment', label: m.siakad_enrollment_title(), icon: BookOpen },
+				{ href: '/siakad/krs/history', label: m.siakad_krs_history_title(), icon: BookOpen },
+				{ href: '/siakad/exam-card', label: m.siakad_exam_card_title(), icon: BookOpen }
 			]
 		},
 		{
-			label: 'Penelitian Saya',
+			label: m.siakad_research_group(),
 			items: [
-				{ href: '/siakad/research/proposal', label: 'Pengajuan Penelitian', icon: BookOpen },
-				{ href: '/siakad/research/history', label: 'Riwayat Penelitian', icon: BookOpen }
+				{
+					href: '/siakad/research/proposal',
+					label: m.siakad_research_proposal_title(),
+					icon: BookOpen
+				},
+				{
+					href: '/siakad/research/history',
+					label: m.siakad_research_history_title(),
+					icon: BookOpen
+				}
 			]
 		}
 	];
