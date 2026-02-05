@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Search, ChevronLeft, ChevronRight } from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	type Column = {
 		key: string;
@@ -14,7 +15,7 @@
 		data,
 		columns,
 		key = 'id',
-		emptyMessage = 'No data found.',
+		emptyMessage = m.table_no_data(),
 		cell = defaultCell,
 		header,
 		empty,
@@ -74,7 +75,7 @@
 			<input
 				type="text"
 				class="block w-full rounded-md border border-gray-300 bg-white py-2 pr-3 pl-10 leading-5 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-				placeholder="Search..."
+				placeholder={m.table_search_placeholder()}
 				value={searchText}
 				oninput={handleSearch}
 			/>
@@ -139,13 +140,13 @@
 			<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
 				<div>
 					<p class="text-sm text-gray-700">
-						Showing
+						{m.table_showing()}
 						<span class="font-medium">{(meta.page - 1) * meta.limit + 1}</span>
-						to
+						{m.table_to()}
 						<span class="font-medium">{Math.min(meta.page * meta.limit, meta.total)}</span>
-						of
+						{m.table_of()}
 						<span class="font-medium">{meta.total}</span>
-						results
+						{m.table_results()}
 					</p>
 				</div>
 				<div>

@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { GraduationCap, Mail, Lock, LogIn } from 'lucide-svelte';
 	import type { ActionData } from './$types';
+	import * as m from '$lib/paraglide/messages.js';
 
 	interface Props {
 		form: ActionData;
@@ -35,12 +36,12 @@
 				<GraduationCap class="h-8 w-8 text-white" />
 			</div>
 			<h1 class="text-2xl font-bold text-gray-900">
-				Campus<span
+				{m.auth_welcome_title()}<span
 					class="bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
 					>App</span
 				>
 			</h1>
-			<p class="mt-2 text-sm text-gray-500">Welcome back! Please sign in to continue.</p>
+			<p class="mt-2 text-sm text-gray-500">{m.auth_welcome_subtitle()}</p>
 		</div>
 
 		<!-- Error Message -->
@@ -74,7 +75,7 @@
 			<!-- Email Input -->
 			<div class="relative">
 				<label for="email" class="mb-1.5 block text-sm font-medium text-gray-700"
-					>Email Address</label
+					>{m.auth_email_label()}</label
 				>
 				<div class="relative">
 					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -94,7 +95,8 @@
 
 			<!-- Password Input -->
 			<div class="relative">
-				<label for="password" class="mb-1.5 block text-sm font-medium text-gray-700">Password</label
+				<label for="password" class="mb-1.5 block text-sm font-medium text-gray-700"
+					>{m.auth_password_label()}</label
 				>
 				<div class="relative">
 					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -128,10 +130,10 @@
 							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 						></path>
 					</svg>
-					Signing in...
+					{m.auth_signing_in()}
 				{:else}
 					<LogIn class="mr-2 h-5 w-5" />
-					Sign In
+					{m.auth_signin_button()}
 				{/if}
 			</button>
 		</form>
@@ -139,7 +141,7 @@
 		<!-- Footer -->
 		<div class="mt-8 text-center">
 			<p class="text-xs text-gray-500">
-				Powered by <span class="font-medium text-indigo-600">CampusApp</span> • Multi-Tenant LMS
+				{m.auth_footer()}
 			</p>
 		</div>
 	</div>

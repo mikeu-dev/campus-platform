@@ -11,32 +11,33 @@
 		ChevronRight
 	} from 'lucide-svelte';
 	import { fade, fly } from 'svelte/transition';
+	import * as m from '$lib/paraglide/messages.js';
 
 	// Stats Data
 	const stats = [
 		{
-			label: 'Mahasiswa Aktif',
+			label: m.stats_active_students(),
 			value: '15.000+',
 			icon: Users,
 			color: 'text-blue-600',
 			bg: 'bg-blue-100'
 		},
 		{
-			label: 'Dosen & Staf',
+			label: m.stats_lecturers(),
 			value: '750+',
 			icon: GraduationCap,
 			color: 'text-indigo-600',
 			bg: 'bg-indigo-100'
 		},
 		{
-			label: 'Program Studi',
+			label: m.stats_study_programs(),
 			value: '45+',
 			icon: BookOpen,
 			color: 'text-purple-600',
 			bg: 'bg-purple-100'
 		},
 		{
-			label: 'Akreditasi A',
+			label: m.stats_accreditation(),
 			value: '90%',
 			icon: Award,
 			color: 'text-green-600',
@@ -47,33 +48,33 @@
 	// Faculties Data
 	const faculties = [
 		{
-			name: 'Fakultas Teknik',
-			desc: 'Mencetak insinyur handal dengan teknologi terkini.',
+			name: m.faculty_engineering(),
+			desc: m.faculty_engineering_desc(),
 			color: 'from-blue-500 to-cyan-500'
 		},
 		{
-			name: 'Fakultas Ekonomi & Bisnis',
-			desc: 'Pusat pengembangan pemimpin bisnis masa depan.',
+			name: m.faculty_economics(),
+			desc: m.faculty_economics_desc(),
 			color: 'from-emerald-500 to-teal-500'
 		},
 		{
-			name: 'Fakultas Ilmu Komputer',
-			desc: 'Inovasi digital dan pengembangan perangkat lunak.',
+			name: m.faculty_cs(),
+			desc: m.faculty_cs_desc(),
 			color: 'from-indigo-500 to-purple-500'
 		},
 		{
-			name: 'Fakultas Kedokteran',
-			desc: 'Dedikasi untuk kesehatan dan kemanusiaan.',
+			name: m.faculty_medicine(),
+			desc: m.faculty_medicine_desc(),
 			color: 'from-rose-500 to-pink-500'
 		},
 		{
-			name: 'Fakultas Hukum',
-			desc: 'Menegakkan keadilan dengan integritas tinggi.',
+			name: m.faculty_law(),
+			desc: m.faculty_law_desc(),
 			color: 'from-amber-500 to-orange-500'
 		},
 		{
-			name: 'Fakultas Sastra & Budaya',
-			desc: 'Melestarikan budaya dan mengembangkan bahasa.',
+			name: m.faculty_letters(),
+			desc: m.faculty_letters_desc(),
 			color: 'from-fuchsia-500 to-pink-500'
 		}
 	];
@@ -126,28 +127,27 @@
 					<span
 						class="mb-4 inline-block rounded-full bg-indigo-600/90 px-4 py-1 text-sm font-semibold tracking-wide text-white backdrop-blur-sm"
 					>
-						Pendaftaran Mahasiswa Baru 2026/2027 Telah Dibuka
+						{m.hero_badge()}
 					</span>
 					<h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl">
-						Membangun Masa Depan Gemilang Bersama Kami
+						{m.hero_title()}
 					</h1>
 					<p class="mt-6 text-lg text-gray-200 sm:text-xl lg:max-w-2xl">
-						Bergabunglah dengan komunitas akademik terbaik yang berdedikasi menciptakan pemimpin
-						masa depan melalui inovasi, integritas, dan keunggulan.
+						{m.hero_description()}
 					</p>
 					<div class="mt-8 flex flex-col gap-4 sm:flex-row">
 						<a
 							href="/auth/siakad/login"
 							class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-3 text-base font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
 						>
-							Daftar Sekarang
+							{m.hero_cta_register()}
 							<ArrowRight class="ml-2 h-5 w-5" />
 						</a>
 						<a
 							href="#academic"
 							class="inline-flex items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-8 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
 						>
-							Jelajahi Program Studi
+							{m.hero_cta_explore()}
 						</a>
 					</div>
 				</div>
@@ -193,22 +193,19 @@
 						</div>
 						<!-- Badge -->
 						<div class="absolute -bottom-6 -left-6 rounded-xl bg-white p-6 shadow-xl">
-							<p class="text-sm font-semibold text-gray-500">Berdiri Sejak</p>
+							<p class="text-sm font-semibold text-gray-500">{m.about_founded()}</p>
 							<p class="text-3xl font-bold text-indigo-600">1985</p>
 						</div>
 					</div>
 					<div>
 						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
-							>Tentang Kampus</span
+							>{m.nav_about()}</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							Menjadi Pusat Keunggulan Pendidikan & Riset
+							{m.about_title()}
 						</h2>
 						<p class="mt-6 text-lg leading-relaxed text-gray-600">
-							CampusApp University berkomitmen untuk menyelenggarakan pendidikan berkualitas tinggi
-							yang relevan dengan tantangan global. Kami memadukan kurikulum berbasis industri
-							dengan nilai-nilai etika untuk mencetak lulusan yang tidak hanya cerdas secara
-							intelektual, tetapi juga matang secara emosional dan spiritual.
+							{m.about_description()}
 						</p>
 						<div class="mt-8 space-y-4">
 							<div class="flex gap-4">
@@ -218,9 +215,9 @@
 									<Award class="h-6 w-6" />
 								</div>
 								<div>
-									<h4 class="text-lg font-bold text-gray-900">Terakreditasi Unggul</h4>
+									<h4 class="text-lg font-bold text-gray-900">{m.about_accreditation_title()}</h4>
 									<p class="text-gray-600">
-										Diakui secara nasional dengan standar pendidikan tertinggi.
+										{m.about_accreditation_desc()}
 									</p>
 								</div>
 							</div>
@@ -231,9 +228,9 @@
 									<Users class="h-6 w-6" />
 								</div>
 								<div>
-									<h4 class="text-lg font-bold text-gray-900">Jaringan Alumni Luas</h4>
+									<h4 class="text-lg font-bold text-gray-900">{m.about_alumni_title()}</h4>
 									<p class="text-gray-600">
-										Terhubung dengan ribuan alumni sukses di berbagai industri global.
+										{m.about_alumni_desc()}
 									</p>
 								</div>
 							</div>
@@ -247,13 +244,14 @@
 		<section id="academic" class="bg-gray-900 py-20 text-white lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="mb-16 text-center">
-					<span class="font-semibold tracking-wider text-indigo-400 uppercase">Akademik</span>
+					<span class="font-semibold tracking-wider text-indigo-400 uppercase"
+						>{m.academic_subtitle()}</span
+					>
 					<h2 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-						Fakultas & Program Studi
+						{m.academic_title()}
 					</h2>
 					<p class="mx-auto mt-4 max-w-2xl text-xl text-gray-400">
-						Pilih jalur pendidikan yang sesuai dengan minat dan bakat Anda di berbagai fakultas
-						unggulan kami.
+						{m.academic_desc()}
 					</p>
 				</div>
 
@@ -276,7 +274,8 @@
 								href="/"
 								class="mt-6 inline-flex items-center text-sm font-semibold text-indigo-400 transition-colors group-hover:text-indigo-300"
 							>
-								Selengkapnya <ChevronRight class="ml-1 h-4 w-4" />
+								{m.news_read_more()}
+								<ChevronRight class="ml-1 h-4 w-4" />
 							</a>
 						</div>
 					{/each}
@@ -290,17 +289,17 @@
 				<div class="mb-12 flex items-end justify-between">
 					<div>
 						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
-							>Berita Terbaru</span
+							>{m.news_subtitle()}</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							Kabar Kampus
+							{m.news_title()}
 						</h2>
 					</div>
 					<a
 						href="/"
 						class="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block"
 					>
-						Lihat Semua Berita &rarr;
+						{m.news_view_all()} &rarr;
 					</a>
 				</div>
 
@@ -331,7 +330,7 @@
 								</h3>
 								<div class="mt-auto pt-6">
 									<a href="/" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-										Baca Selengkapnya
+										{m.news_read_more()}
 									</a>
 								</div>
 							</div>
@@ -341,7 +340,7 @@
 
 				<div class="mt-8 text-center sm:hidden">
 					<a href="/" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-						Lihat Semua Berita &rarr;
+						{m.news_view_all()} &rarr;
 					</a>
 				</div>
 			</div>
@@ -351,24 +350,23 @@
 		<section class="bg-indigo-600 py-16">
 			<div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
 				<h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-					Siap Memulai Perjalanan Anda?
+					{m.cta_title()}
 				</h2>
 				<p class="mx-auto mt-4 max-w-2xl text-lg text-indigo-100">
-					Jangan ragu untuk menghubungi kami jika Anda memiliki pertanyaan mengenai pendaftaran atau
-					program studi.
+					{m.cta_desc()}
 				</p>
 				<div class="mt-8 flex justify-center gap-4">
 					<a
 						href="/auth/siakad/login"
 						class="rounded-full bg-white px-8 py-3 text-base font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50"
 					>
-						Daftar Sekarang
+						{m.cta_register()}
 					</a>
 					<a
 						href="/contact"
 						class="rounded-full border border-white px-8 py-3 text-base font-semibold text-white hover:bg-white/10"
 					>
-						Hubungi Kami
+						{m.cta_contact()}
 					</a>
 				</div>
 			</div>

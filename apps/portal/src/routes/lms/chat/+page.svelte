@@ -3,38 +3,39 @@
 	import { onMount } from 'svelte';
 	import axios from 'axios';
 	import { PUBLIC_LEARNING_API_URL } from '$env/static/public';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 	let selectedUser: any = $state(null);
 	let messages: any[] = $state([]);
 	let newMessage = $state('');
-	
+
 	// Fix: Use $derived because it depends on `data`.
 	// However, if we want to modify it locally (optimistic updates), we might need an effect or just use $state with an effect to sync.
 	// But the warning says "This reference only captures the initial value".
-	// Since `conversations` is modified locally in `sendMessage`, it should be a `$state` initialized from props, 
-	// but we must acknowledge that prop updates won't reflect unless we sync them. 
+	// Since `conversations` is modified locally in `sendMessage`, it should be a `$state` initialized from props,
+	// but we must acknowledge that prop updates won't reflect unless we sync them.
 	// For now, to silence the warning and if we intend it to be local state that starts with data:
-	
-    // The warning "Warn: This reference only captures the initial value of `data`" suggests we should use $derived 
-    // IF we want it to update when data updates.
-    // If we want it to be local state, we can use $state(data.conversations) but we need to know that data changes won't sync.
-    // To silence the warning, we can just access data.conversations in an effect or use untrack, OR just accept it if that's the intent.
-    // But better: use $state for local list, and sync with $effect if needed, or just suppress if it's fine.
-    // Actually, Shadcn/Svelte 5 usually prefers constructing state in $effect if it depends on data, or just being explicit.
-    
-    // Simplest fix for "state_referenced_locally":
-    // svelte-ignore state_referenced_locally
+
+	// The warning "Warn: This reference only captures the initial value of `data`" suggests we should use $derived
+	// IF we want it to update when data updates.
+	// If we want it to be local state, we can use $state(data.conversations) but we need to know that data changes won't sync.
+	// To silence the warning, we can just access data.conversations in an effect or use untrack, OR just accept it if that's the intent.
+	// But better: use $state for local list, and sync with $effect if needed, or just suppress if it's fine.
+	// Actually, Shadcn/Svelte 5 usually prefers constructing state in $effect if it depends on data, or just being explicit.
+
+	// Simplest fix for "state_referenced_locally":
+	// svelte-ignore state_referenced_locally
 	let conversations = $state(data.conversations);
-	
+
 	$effect(() => {
 		conversations = data.conversations;
 	});
 
-    // Fix for messagesContainer warning: "is updated, but is not declared with $state"
-    // In Svelte 5, bind:this requires the variable to be $state only if we read it reactively? 
-    // Actually, non-reactive let is fine for bind:this, but the warning suggests improved reactivity.
-    // Let's make it a $state.
+	// Fix for messagesContainer warning: "is updated, but is not declared with $state"
+	// In Svelte 5, bind:this requires the variable to be $state only if we read it reactively?
+	// Actually, non-reactive let is fine for bind:this, but the warning suggests improved reactivity.
+	// Let's make it a $state.
 	let messagesContainer: HTMLDivElement | undefined = $state();
 
 	async function loadMessages(partnerId: string) {
@@ -97,7 +98,7 @@
 	<div class="flex w-80 flex-col border-r border-gray-200 bg-gray-50">
 		<div class="border-b border-gray-200 p-4">
 			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-bold text-gray-900">Messages</h2>
+				<h2 class="text-lg font-bold text-gray-900">{m.chat_title()}</h2>
 				<button class="rounded-full bg-indigo-100 p-2 text-indigo-600 hover:bg-indigo-200">
 					<Plus class="h-4 w-4" />
 				</button>
@@ -106,7 +107,7 @@
 				<Search class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
 				<input
 					type="text"
-					placeholder="Search..."
+					placeholder={m.chat_search_placeholder()}
 					class="w-full rounded-lg border border-gray-200 bg-white py-2 pr-4 pl-9 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
 				/>
 			</div>
@@ -116,7 +117,7 @@
 			{#if conversations.length === 0}
 				<div class="p-8 text-center text-gray-500">
 					<MessageSquare class="mx-auto mb-2 h-8 w-8 text-gray-300" />
-					<p class="text-sm">No conversations yet</p>
+					<p class="text-sm">{m.chat_no_conversations()}</p>
 				</div>
 			{/if}
 			{#each conversations as conv}
@@ -210,7 +211,7 @@
 					<input
 						type="text"
 						bind:value={newMessage}
-						placeholder="Type a message..."
+						placeholder={m.chat_type_message()}
 						class="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
 					/>
 					<button
@@ -227,8 +228,8 @@
 				<div class="mb-4 rounded-full bg-gray-50 p-6">
 					<MessageSquare class="h-12 w-12 text-gray-300" />
 				</div>
-				<p class="text-lg font-medium text-gray-900">Select a conversation</p>
-				<p class="text-sm">Choose a chat from the sidebar to start messaging</p>
+				<p class="text-lg font-medium text-gray-900">{m.chat_select_conversation()}</p>
+				<p class="text-sm">{m.chat_select_conversation_desc()}</p>
 			</div>
 		{/if}
 	</div>

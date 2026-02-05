@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages.js';
 </script>
 
 <footer class="bg-gray-900 text-white">
@@ -26,12 +27,11 @@
 						</svg>
 					</div>
 					<span class="text-2xl font-bold tracking-tight text-white">
-						Campus<span class="text-indigo-400">App</span>
+						{m.brand_name()}<span class="text-indigo-400">App</span>
 					</span>
 				</div>
 				<p class="text-sm text-gray-400">
-					Membangun generasi unggul yang siap bersaing di kancah global dengan integritas dan
-					inovasi.
+					{m.footer_desc()}
 				</p>
 				<div class="flex space-x-4">
 					<a href="/" class="text-gray-400 hover:text-white">
@@ -51,11 +51,13 @@
 
 			<!-- Quick Links -->
 			<div>
-				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">Akademik</h3>
+				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
+					{m.footer_academic()}
+				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
-					<li><a href="/" class="hover:text-white">Fakultas Teknik</a></li>
-					<li><a href="/" class="hover:text-white">Fakultas Ekonomi</a></li>
-					<li><a href="/" class="hover:text-white">Fakultas Ilmu Komputer</a></li>
+					<li><a href="/" class="hover:text-white">{m.faculty_engineering()}</a></li>
+					<li><a href="/" class="hover:text-white">{m.faculty_economics()}</a></li>
+					<li><a href="/" class="hover:text-white">{m.faculty_cs()}</a></li>
 					<li><a href="/" class="hover:text-white">Pascasarjana</a></li>
 					<li><a href="/" class="hover:text-white">Kalender Akademik</a></li>
 				</ul>
@@ -63,7 +65,9 @@
 
 			<!-- Quick Links -->
 			<div>
-				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">Informasi</h3>
+				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
+					{m.footer_info()}
+				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
 					<li><a href="/" class="hover:text-white">Pendaftaran Mahasiswa Baru</a></li>
 					<li><a href="/" class="hover:text-white">Beasiswa</a></li>
@@ -76,7 +80,7 @@
 			<!-- Contact -->
 			<div>
 				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
-					Hubungi Kami
+					{m.footer_contact()}
 				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
 					<li class="flex items-start gap-3">
@@ -97,7 +101,8 @@
 
 		<div class="mt-12 border-t border-gray-800 pt-8 text-center">
 			<p class="text-sm text-gray-400">
-				&copy; {new Date().getFullYear()} CampusApp University. All rights reserved.
+				&copy; {new Date().getFullYear()}
+				{m.footer_rights()}
 			</p>
 		</div>
 	</div>

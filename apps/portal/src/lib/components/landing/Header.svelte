@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { Menu, X, LogIn } from 'lucide-svelte';
 	import { page } from '$app/stores';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let isMenuOpen = false;
 
 	const navigation = [
-		{ name: 'Beranda', href: '#' },
-		{ name: 'Tentang Kami', href: '#about' },
-		{ name: 'Akademik', href: '#academic' },
-		{ name: 'Fasilitas', href: '#facilities' },
-		{ name: 'Berita', href: '#news' }
+		{ name: m.nav_home(), href: '#' },
+		{ name: m.nav_about(), href: '#about' },
+		{ name: m.nav_academic(), href: '#academic' },
+		{ name: m.nav_facilities(), href: '#facilities' },
+		{ name: m.nav_news(), href: '#news' }
 	];
 </script>
 
@@ -33,7 +34,7 @@
 				</svg>
 			</div>
 			<span class="text-xl font-bold tracking-tight text-gray-900">
-				Campus<span class="text-indigo-600">App</span>
+				{m.brand_name()}<span class="text-indigo-600">App</span>
 			</span>
 		</div>
 
@@ -55,14 +56,14 @@
 				href="/auth/login"
 				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
 			>
-				Login Staff/Admin
+				{m.nav_login_staff()}
 			</a>
 			<a
 				href="/auth/siakad/login"
 				class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 			>
 				<LogIn class="h-4 w-4" />
-				Portal Mahasiswa
+				{m.nav_student_portal()}
 			</a>
 		</div>
 
@@ -103,14 +104,14 @@
 						href="/auth/login"
 						class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
 					>
-						Login Staff/Admin
+						{m.nav_login_staff()}
 					</a>
 					<a
 						href="/auth/siakad/login"
 						class="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-base font-medium text-white hover:bg-indigo-500"
 					>
 						<LogIn class="h-4 w-4" />
-						Portal Mahasiswa
+						{m.nav_student_portal()}
 					</a>
 				</div>
 			</div>
