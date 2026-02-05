@@ -7,6 +7,10 @@
 		ArrowRight,
 		Sparkles
 	} from 'lucide-svelte';
+	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+	
 	let { data } = $props();
 
 	// Time-based greeting
@@ -29,17 +33,19 @@
 <div class="space-y-8">
 	<!-- Welcome Hero Card -->
 	<div
-		class="relative overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 text-white shadow-xl"
+		class="relative overflow-hidden rounded-xl bg-linear-to-r from-primary to-purple-600 p-8 text-primary-foreground shadow-lg"
 	>
-		<div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10"></div>
-		<div class="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-white/10"></div>
+		<div class="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-white/10 blur-xl"></div>
+		<div class="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-white/10 blur-xl"></div>
 		<div class="relative z-10">
 			<div class="flex items-center gap-2">
-				<Sparkles class="h-5 w-5 text-yellow-300" />
-				<span class="text-sm font-medium text-indigo-200">{data.user?.tenant_slug}</span>
+				<Badge variant="secondary" class="bg-white/20 text-white hover:bg-white/30 border-none">
+					<Sparkles class="mr-1 h-3 w-3 text-yellow-300" />
+					{data.user?.tenant_slug}
+				</Badge>
 			</div>
-			<h1 class="mt-2 text-3xl font-bold">{getGreeting()}, {getFirstName()}!</h1>
-			<p class="mt-2 max-w-lg text-indigo-100">
+			<h1 class="mt-4 text-3xl font-bold tracking-tight">{getGreeting()}, {getFirstName()}!</h1>
+			<p class="mt-2 max-w-lg text-primary-foreground/90">
 				{#if data.user?.roles?.includes('admin')}
 					Manage your institution from the admin dashboard.
 				{:else if data.user?.roles?.includes('lecturer')}
@@ -54,141 +60,123 @@
 	<!-- Stats Grid -->
 	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 		<!-- Classes Enrolled -->
-		<div
-			class="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-		>
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-500">Classes Enrolled</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900">{data.enrollmentsCount}</p>
+		<Card class="transition-all hover:shadow-md">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium text-muted-foreground">Classes Enrolled</CardTitle>
+				<div class="bg-primary/10 p-2 rounded-full">
+					<BookOpen class="h-4 w-4 text-primary" />
 				</div>
-				<div
-					class="rounded-xl bg-indigo-100 p-3 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white"
-				>
-					<BookOpen class="h-6 w-6" />
-				</div>
-			</div>
-			<a
-				href="/lms/classes"
-				class="mt-4 flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800"
-			>
-				View Classes <ArrowRight class="ml-1 h-4 w-4" />
-			</a>
-		</div>
+			</CardHeader>
+			<CardContent>
+				<div class="text-2xl font-bold">{data.enrollmentsCount}</div>
+				<Button variant="link" class="px-0 mt-2 h-auto text-xs text-muted-foreground hover:text-primary" href="/lms/classes">
+					View Classes <ArrowRight class="ml-1 h-3 w-3" />
+				</Button>
+			</CardContent>
+		</Card>
 
 		<!-- Pending Assignments -->
-		<div
-			class="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-		>
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-500">Pending Tasks</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900">{data.pendingAssignments}</p>
+		<Card class="transition-all hover:shadow-md">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium text-muted-foreground">Pending Tasks</CardTitle>
+				<div class="bg-orange-100 p-2 rounded-full">
+					<ClipboardList class="h-4 w-4 text-orange-600" />
 				</div>
-				<div
-					class="rounded-xl bg-orange-100 p-3 text-orange-600 transition-colors group-hover:bg-orange-600 group-hover:text-white"
-				>
-					<ClipboardList class="h-6 w-6" />
-				</div>
-			</div>
-			<p class="mt-4 text-sm text-gray-400">Assignments due soon</p>
-		</div>
+			</CardHeader>
+			<CardContent>
+				<div class="text-2xl font-bold text-orange-600">{data.pendingAssignments}</div>
+				<p class="text-xs text-muted-foreground mt-2">Assignments due soon</p>
+			</CardContent>
+		</Card>
 
 		<!-- Academic Status -->
-		<div
-			class="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-		>
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-500">Status</p>
-					<p class="mt-2 text-xl font-bold text-green-600">Active</p>
+		<Card class="transition-all hover:shadow-md">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium text-muted-foreground">Status</CardTitle>
+				<div class="bg-green-100 p-2 rounded-full">
+					<GraduationCap class="h-4 w-4 text-green-600" />
 				</div>
-				<div
-					class="rounded-xl bg-green-100 p-3 text-green-600 transition-colors group-hover:bg-green-600 group-hover:text-white"
-				>
-					<GraduationCap class="h-6 w-6" />
-				</div>
-			</div>
-			<p class="mt-4 text-sm text-gray-400">Semester 2026-1</p>
-		</div>
+			</CardHeader>
+			<CardContent>
+				<div class="text-2xl font-bold text-green-600">Active</div>
+				<p class="text-xs text-muted-foreground mt-2">Semester 2026-1</p>
+			</CardContent>
+		</Card>
 
 		<!-- Current Time -->
-		<div
-			class="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-		>
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-500">Current Time</p>
-					<p class="mt-2 text-xl font-bold text-gray-900">
-						{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-					</p>
+		<Card class="transition-all hover:shadow-md">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium text-muted-foreground">Current Time</CardTitle>
+				<div class="bg-purple-100 p-2 rounded-full">
+					<Clock class="h-4 w-4 text-purple-600" />
 				</div>
-				<div
-					class="rounded-xl bg-purple-100 p-3 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white"
-				>
-					<Clock class="h-6 w-6" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-2xl font-bold">
+					{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
 				</div>
-			</div>
-			<p class="mt-4 text-sm text-gray-400">
-				{new Date().toLocaleDateString('id-ID', {
-					weekday: 'long',
-					day: 'numeric',
-					month: 'short'
-				})}
-			</p>
-		</div>
+				<p class="text-xs text-muted-foreground mt-2">
+					{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}
+				</p>
+			</CardContent>
+		</Card>
 	</div>
 
 	<!-- Recent Classes -->
 	{#if data.recentClasses && data.recentClasses.length > 0}
-		<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-semibold text-gray-900">Recent Classes</h2>
-				<a href="/lms/classes" class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
-					>View All</a
-				>
-			</div>
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				{#each data.recentClasses as item (item.class_id)}
-					<a
-						href="/lms/classes/{item.class_id}"
-						class="group block rounded-lg border border-gray-200 p-4 transition-all hover:border-indigo-300 hover:shadow-md"
-					>
-						<div class="flex items-center gap-3">
-							<div
-								class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white"
-							>
-								<BookOpen class="h-5 w-5" />
+		<Card>
+			<CardHeader class="flex flex-row items-center justify-between">
+				<CardTitle>Recent Classes</CardTitle>
+				<Button variant="ghost" size="sm" href="/lms/classes">View All</Button>
+			</CardHeader>
+			<CardContent>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					{#each data.recentClasses as item (item.class_id)}
+						<a
+							href="/lms/classes/{item.class_id}"
+							class="group block rounded-lg border bg-card p-4 transition-all hover:border-primary hover:shadow-sm"
+						>
+							<div class="flex items-center gap-3">
+								<div
+									class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
+								>
+									<BookOpen class="h-5 w-5" />
+								</div>
+								<div>
+									<p class="font-medium group-hover:text-primary transition-colors">{item.course_code}</p>
+									<p class="text-sm text-muted-foreground line-clamp-1">{item.course_name}</p>
+								</div>
 							</div>
-							<div>
-								<p class="font-medium text-gray-900">{item.course_code}</p>
-								<p class="text-sm text-gray-500">{item.course_name}</p>
-							</div>
-						</div>
-					</a>
-				{/each}
-			</div>
-		</div>
+						</a>
+					{/each}
+				</div>
+			</CardContent>
+		</Card>
 	{/if}
 
 	<!-- Student Profile Card -->
 	{#if data.studentProfile}
-		<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-			<h2 class="mb-4 text-lg font-semibold text-gray-900">Your Profile</h2>
-			<div class="flex items-center gap-4">
-				<div
-					class="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 text-xl font-bold text-white"
-				>
-					{data.studentProfile.name?.charAt(0).toUpperCase() || 'S'}
+		<Card>
+			<CardHeader>
+				<CardTitle>Your Profile</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div class="flex items-center gap-4">
+					<div
+						class="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 text-xl font-bold text-white shadow"
+					>
+						{data.studentProfile.name?.charAt(0).toUpperCase() || 'S'}
+					</div>
+					<div class="space-y-1">
+						<p class="text-lg font-medium leading-none">{data.studentProfile.name}</p>
+						<div class="flex gap-2 text-sm text-muted-foreground">
+							<span>ID: {data.studentProfile.platform_student_number || 'N/A'}</span>
+							<span>•</span>
+							<span>{data.user?.email}</span>
+						</div>
+					</div>
 				</div>
-				<div>
-					<p class="text-lg font-medium text-gray-900">{data.studentProfile.name}</p>
-					<p class="text-sm text-gray-500">
-						Student ID: {data.studentProfile.platform_student_number || 'N/A'}
-					</p>
-					<p class="text-sm text-gray-500">Email: {data.user?.email}</p>
-				</div>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	{/if}
 </div>
