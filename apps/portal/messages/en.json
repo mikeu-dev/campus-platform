@@ -71,5 +71,21 @@
 	"table_to": "to",
 	"table_of": "of",
 	"table_results": "results",
-	"table_no_data": "No data found."
+	"table_no_data": "No data found.",
+	"nav_enrollment": "Course Enrollment",
+	"nav_grades": "My Grades",
+	"nav_calendar": "Calendar",
+	"nav_teaching": "Teaching",
+	"nav_classes": "My Classes",
+	"nav_messages": "Messages",
+	"nav_dashboard": "Dashboard",
+	"nav_users": "Users",
+	"nav_courses": "Courses",
+	"role_lecturer": "Lecturer",
+	"role_admin": "Admin",
+	"auth_sign_out": "Sign Out",
+	"menu_toggle": "Toggle navigation menu",
+	"default_avatar_alt": "User",
+	"nav_section_lecturer": "Lecturer",
+	"nav_section_admin": "Admin"
 }

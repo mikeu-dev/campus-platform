@@ -16,6 +16,7 @@
 	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
 	import { cn } from '$lib/utils';
+	import * as m from '$lib/paraglide/messages.js';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -26,9 +27,9 @@
 
 	/* Navigation Config */
 	const coreNavItems = [
-		{ href: '/siakad/enrollment', label: 'Course Enrollment', icon: BookOpen },
-		{ href: '/siakad/grades', label: 'My Grades', icon: GraduationCap },
-		{ href: '/siakad/calendar', label: 'Calendar', icon: Calendar }
+		{ href: '/siakad/enrollment', label: m.nav_enrollment(), icon: BookOpen },
+		{ href: '/siakad/grades', label: m.nav_grades(), icon: GraduationCap },
+		{ href: '/siakad/calendar', label: m.nav_calendar(), icon: Calendar }
 	];
 </script>
 
@@ -36,7 +37,7 @@
 	<div class="flex h-full flex-col gap-2">
 		<div class="flex h-14 items-center border-b px-6">
 			<a href="/" class="flex items-center gap-2 font-semibold">
-				<span class="text-primary text-xl font-bold">CampusApp</span>
+				<span class="text-xl font-bold text-primary">{m.brand_name()}</span>
 			</a>
 		</div>
 		<div class="flex-1 overflow-auto py-2">
@@ -45,7 +46,7 @@
 					<a
 						href={item.href}
 						class={cn(
-							'text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 transition-all',
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
 							page.url.pathname.includes(item.href) && 'bg-muted text-primary'
 						)}
 					>
@@ -56,23 +57,27 @@
 
 				{#if page.data.user?.roles?.includes('lecturer')}
 					<div class="my-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Lecturer</p>
+						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							{m.nav_section_lecturer()}
+						</p>
 					</div>
 					<a
 						href="/siakad/teaching"
 						class={cn(
-							'text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 transition-all',
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
 							page.url.pathname.includes('/teaching') && 'bg-muted text-primary'
 						)}
 					>
 						<BookOpen class="h-4 w-4" />
-						Teaching
+						{m.nav_teaching()}
 					</a>
 				{/if}
 			</nav>
 		</div>
 		<div class="mt-auto p-4">
-			<div class="flex items-center gap-4 rounded-xl border p-4 bg-card text-card-foreground shadow-sm">
+			<div
+				class="flex items-center gap-4 rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
+			>
 				<Avatar>
 					<AvatarFallback class="uppercase">
 						{page.data.user?.email?.substring(0, 2) || 'US'}
@@ -82,12 +87,17 @@
 					<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
 					<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
 				</div>
-                <form action="/logout" method="POST">
-                    <Button variant="ghost" size="icon" type="submit" class="h-8 w-8 text-destructive hover:text-destructive">
-                        <LogOut class="h-4 w-4" />
-                        <span class="sr-only">Sign Out</span>
-                    </Button>
-                </form>
+				<form action="/logout" method="POST">
+					<Button
+						variant="ghost"
+						size="icon"
+						type="submit"
+						class="h-8 w-8 text-destructive hover:text-destructive"
+					>
+						<LogOut class="h-4 w-4" />
+						<span class="sr-only">{m.auth_sign_out()}</span>
+					</Button>
+				</form>
 			</div>
 		</div>
 	</div>
@@ -105,22 +115,22 @@
 			<!-- Mobile Sidebar Trigger -->
 			<Sheet>
 				<SheetTrigger>
-                    {#snippet child({ props })}
-                        <Button variant="outline" size="icon" class="shrink-0 md:hidden" {...props}>
-                            <Menu class="h-5 w-5" />
-                            <span class="sr-only">Toggle navigation menu</span>
-                        </Button>
-                    {/snippet}
+					{#snippet child({ props })}
+						<Button variant="outline" size="icon" class="shrink-0 md:hidden" {...props}>
+							<Menu class="h-5 w-5" />
+							<span class="sr-only">{m.menu_toggle()}</span>
+						</Button>
+					{/snippet}
 				</SheetTrigger>
-				<SheetContent side="left" class="flex flex-col p-0 w-72">
+				<SheetContent side="left" class="flex w-72 flex-col p-0">
 					{@render SidebarContent()}
 				</SheetContent>
 			</Sheet>
-			
+
 			<div class="w-full flex-1">
-				<h1 class="text-lg font-semibold md:text-xl text-primary capitalize">
-                    {page.url.pathname.split('/').pop()?.replace('-', ' ') || 'Academic'}
-                </h1>
+				<h1 class="text-lg font-semibold text-primary capitalize md:text-xl">
+					{page.url.pathname.split('/').pop()?.replace('-', ' ') || m.nav_academic()}
+				</h1>
 			</div>
 			<NotificationBell token={data.token || ''} />
 		</header>
@@ -129,4 +139,3 @@
 		</main>
 	</div>
 </div>
-

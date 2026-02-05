@@ -71,5 +71,21 @@
 	"table_to": "sampai",
 	"table_of": "dari",
 	"table_results": "hasil",
-	"table_no_data": "Tidak ada data ditemukan."
+	"table_no_data": "Tidak ada data ditemukan.",
+	"nav_enrollment": "Pendaftaran Mata Kuliah",
+	"nav_grades": "Nilai Saya",
+	"nav_calendar": "Kalender",
+	"nav_teaching": "Mengajar",
+	"nav_classes": "Kelas Saya",
+	"nav_messages": "Pesan",
+	"nav_dashboard": "Dasbor",
+	"nav_users": "Pengguna",
+	"nav_courses": "Mata Kuliah",
+	"role_lecturer": "Dosen",
+	"role_admin": "Admin",
+	"auth_sign_out": "Keluar",
+	"menu_toggle": "Buka menu navigasi",
+	"default_avatar_alt": "Pengguna",
+	"nav_section_lecturer": "Dosen",
+	"nav_section_admin": "Admin"
 }
