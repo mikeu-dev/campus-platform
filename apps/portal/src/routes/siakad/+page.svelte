@@ -30,13 +30,7 @@
 	const finance = $derived(data.finance || { bill: 0, status: '-' });
 	const gpaData = $derived(data.gpaData || { gpa: 0.0, totalCredits: 0 });
 	const announcements = $derived(data.announcements || []);
-
-	// Mock data for display that isn't yet in backend
-	const recentClasses = [
-		{ id: 1, name: 'Algoritma dan Pemrograman', time: '08:00 - 10:30', room: 'Lab 1' },
-		{ id: 2, name: 'Matematika Diskrit', time: '13:00 - 15:30', room: 'R. 302' },
-		{ id: 3, name: 'Arsitektur Komputer', time: '10:00 - 12:30', room: 'R. 401' }
-	];
+	const schedules = $derived(data.schedules || []);
 </script>
 
 <div class="space-y-8">
@@ -171,12 +165,43 @@
 			</CardContent>
 		</Card>
 
-		<!-- Quick Access / Other Info could go here -->
-		<Card
-			class="flex h-full flex-col items-center justify-center border-dashed p-6 text-center text-muted-foreground"
-		>
-			<p>{m.siakad_widget_placeholder()}</p>
-			<span class="text-xs">Widget lainnya dapat ditambahkan di sini</span>
+		<!-- Schedules -->
+		<Card class="lg:col-span-3">
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2">
+					<Calendar class="h-5 w-5 text-primary" />
+					Jadwal Kuliah
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div class="space-y-4">
+					{#each schedules as schedule}
+						<div class="flex items-center justify-between rounded-lg border p-3">
+							<div class="space-y-1">
+								<p class="text-sm font-bold">{schedule.course_name}</p>
+								<div class="flex items-center gap-2 text-[10px] text-muted-foreground">
+									<span>{schedule.day}</span>
+									<Separator orientation="vertical" class="h-2" />
+									<span
+										>{schedule.start_time.substring(0, 5)} - {schedule.end_time.substring(
+											0,
+											5
+										)}</span
+									>
+								</div>
+							</div>
+							<Badge variant="secondary" class="text-[10px]">{schedule.room || 'TBA'}</Badge>
+						</div>
+					{:else}
+						<div
+							class="flex flex-col items-center justify-center py-6 text-center text-muted-foreground"
+						>
+							<p class="text-sm">Tidak ada jadwal kuliah.</p>
+							<Button variant="link" size="sm" href="/siakad/krs">Isi KRS Sekarang</Button>
+						</div>
+					{/each}
+				</div>
+			</CardContent>
 		</Card>
 	</div>
 </div>

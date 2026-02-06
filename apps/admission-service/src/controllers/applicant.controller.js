@@ -120,23 +120,37 @@ class ApplicantController {
 
             const applicant = result.rows[0];
 
-            // If status is PASSED, create a user account in identity-service
+            // If status is PASSED, create a user account in identity-service and academic profile
             if (status === 'PASSED') {
                 try {
                     const axios = require('axios');
-                    // Role is 'student' for new admissions. In a real app, use service discovery or config.
                     const IDENTITY_API = process.env.IDENTITY_API_URL || 'http://localhost:3001';
+                    const ACADEMIC_API = process.env.ACADEMIC_API_URL || 'http://localhost:3002';
 
-                    await axios.post(`${IDENTITY_API}/auth/users`, {
+                    // 1. Create Identity Account
+                    const identityRes = await axios.post(`${IDENTITY_API}/auth/users`, {
                         email: applicant.email,
                         fullName: applicant.full_name,
-                        password: applicant.identity_number || 'Mahasiswa2026!', // Default password
+                        password: applicant.identity_number || 'Mahasiswa2026!',
                         roleName: 'student'
                     }, {
                         headers: { Authorization: req.headers.authorization }
                     });
-                } catch (userErr) {
-                    console.error('Failed to create identity user:', userErr.response?.data || userErr.message);
+
+                    const newUser = identityRes.data.data;
+
+                    // 2. Create Academic Student Profile
+                    if (newUser && newUser.id) {
+                        await axios.post(`${ACADEMIC_API}/api/students`, {
+                            user_id: newUser.id,
+                            name: applicant.full_name,
+                            student_number: applicant.registration_number // Use reg number as temp student number
+                        }, {
+                            headers: { Authorization: req.headers.authorization }
+                        });
+                    }
+                } catch (err) {
+                    console.error('Failed to automate student creation:', err.response?.data || err.message);
                 }
             }
 

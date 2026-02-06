@@ -242,6 +242,33 @@
 						<ClipboardCheck class="h-4 w-4" />
 						Verifikasi Dokumen
 					</a>
+
+					<Separator class="mx-4 my-4" />
+					<div class="my-2 px-3">
+						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							Manajemen Akademik
+						</p>
+					</div>
+					<a
+						href="/panel/academic/courses"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/courses') && 'bg-muted text-primary'
+						)}
+					>
+						<BookOpen class="h-4 w-4" />
+						Mata Kuliah (Master)
+					</a>
+					<a
+						href="/panel/academic/classes"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/classes') && 'bg-muted text-primary'
+						)}
+					>
+						<CalendarDays class="h-4 w-4" />
+						Jadwal & Kelas
+					</a>
 				{/if}
 			</nav>
 		</div>

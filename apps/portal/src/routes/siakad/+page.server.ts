@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     let finance = { bill: 0, status: 'Lunas' };
     let gpaData = { gpa: 0, totalCredits: 0 };
     let announcements: any[] = [];
+    let schedules: any[] = [];
 
     try {
         // Fetch student profile
@@ -37,6 +38,12 @@ export const load: PageServerLoad = async ({ locals }) => {
         });
         announcements = announcementsRes.data.data;
 
+        // Fetch schedules
+        const scheduleRes = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/schedules/my`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        schedules = scheduleRes.data.data;
+
     } catch (error: any) {
         console.error('SIAKAD Dashboard load error:', error.response?.data || error.message);
     }
@@ -45,6 +52,7 @@ export const load: PageServerLoad = async ({ locals }) => {
         userInfo,
         finance,
         gpaData,
-        announcements
+        announcements,
+        schedules
     };
 };
