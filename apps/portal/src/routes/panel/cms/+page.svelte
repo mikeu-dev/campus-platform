@@ -9,14 +9,30 @@
 	} from '$lib/components/ui/card';
 	import { Progress } from '$lib/components/ui/progress';
 
+	interface DailyStat {
+		date: string;
+		visit_count: string;
+	}
+
+	interface RouteStat {
+		route: string;
+		visit_count: string;
+		unique_visitors: string;
+	}
+
+	interface Stats {
+		daily: DailyStat[];
+		byRoute: RouteStat[];
+	}
+
 	let { data } = $props();
-	const { stats } = $derived(data);
+	const stats: Stats = $derived(data.stats || { daily: [], byRoute: [] });
 
 	const totalVisits = $derived(
-		stats.daily.reduce((acc: number, curr: any) => acc + parseInt(curr.visit_count), 0)
+		stats.daily.reduce((acc: number, curr) => acc + parseInt(curr.visit_count), 0)
 	);
 	const uniqueVisitors = $derived(
-		stats.byRoute.reduce((acc: number, curr: any) => acc + parseInt(curr.unique_visitors), 0)
+		stats.byRoute.reduce((acc: number, curr) => acc + parseInt(curr.unique_visitors), 0)
 	);
 </script>
 

@@ -17,7 +17,31 @@
 
 	let { data } = $props();
 
-	const { sliders, settings, posts, agendas, videos } = $derived(data);
+	interface SiteSettings {
+		app_name?: string;
+		app_suffix?: string;
+		address?: string;
+		phone?: string;
+		email?: string;
+		facebook_url?: string;
+		instagram_url?: string;
+		twitter_url?: string;
+		youtube_url?: string;
+		director_name?: string;
+		director_title?: string;
+		director_image?: string; // Note: error log mentioned director_photo, let's check which one it is
+		director_message?: string;
+		director_welcome_title?: string;
+		director_welcome_text?: string;
+	}
+
+	const { sliders, settings, posts, agendas, videos } = $derived(data) as {
+		sliders: any[];
+		settings: SiteSettings;
+		posts: any[];
+		agendas: any[];
+		videos: any[];
+	};
 
 	// Stats Data (keep hardcoded or move to settings later)
 	const stats = [

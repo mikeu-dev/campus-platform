@@ -55,16 +55,18 @@
 			<p class="text-muted-foreground">
 				Kelola tautan penting yang akan muncul di footer halaman utama.
 			</p>
+			<Button
+				onclick={() => {
+					editingLink = null;
+					isDialogOpen = true;
+				}}
+				class="gap-2"
+			>
+				<Plus class="h-4 w-4" />
+				Tambah Tautan
+			</Button>
 		</div>
 		<Dialog bind:open={isDialogOpen}>
-			<DialogTrigger>
-				{#snippet child({ props })}
-					<Button {...props} onclick={() => (editingLink = null)} class="gap-2">
-						<Plus class="h-4 w-4" />
-						Tambah Tautan
-					</Button>
-				{/snippet}
-			</DialogTrigger>
 			<DialogContent class="sm:max-w-[500px]">
 				<form method="POST" action={editingLink ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>

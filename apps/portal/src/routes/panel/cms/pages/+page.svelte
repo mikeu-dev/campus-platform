@@ -71,16 +71,18 @@
 			<p class="text-muted-foreground">
 				Kelola konten halaman statis seperti profil kampus, sejarah, visi misi, dll.
 			</p>
+			<Button
+				onclick={() => {
+					editingPage = null;
+					isDialogOpen = true;
+				}}
+				class="gap-2"
+			>
+				<Plus class="h-4 w-4" />
+				Buat Halaman
+			</Button>
 		</div>
 		<Dialog bind:open={isDialogOpen}>
-			<DialogTrigger>
-				{#snippet child({ props })}
-					<Button {...props} onclick={() => (editingPage = null)} class="gap-2">
-						<Plus class="h-4 w-4" />
-						Buat Halaman
-					</Button>
-				{/snippet}
-			</DialogTrigger>
 			<DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
 				<form method="POST" action={editingPage ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>

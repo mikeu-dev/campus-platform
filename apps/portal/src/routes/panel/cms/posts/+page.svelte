@@ -56,16 +56,18 @@
 			<p class="text-muted-foreground">
 				Kelola pengumuman, berita terkini, dan informasi akademik untuk publik.
 			</p>
+			<Button
+				onclick={() => {
+					editingPost = null;
+					isDialogOpen = true;
+				}}
+				class="gap-2"
+			>
+				<Plus class="h-4 w-4" />
+				Buat Postingan
+			</Button>
 		</div>
 		<Dialog bind:open={isDialogOpen}>
-			<DialogTrigger>
-				{#snippet child({ props })}
-					<Button {...props} onclick={() => (editingPost = null)} class="gap-2">
-						<Plus class="h-4 w-4" />
-						Buat Postingan
-					</Button>
-				{/snippet}
-			</DialogTrigger>
 			<DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
 				<form method="POST" action={editingPost ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>

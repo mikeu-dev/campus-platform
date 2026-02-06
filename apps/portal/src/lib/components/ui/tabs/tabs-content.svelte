@@ -3,7 +3,17 @@
 	import { cn } from '$lib/utils';
 	import type { Writable } from 'svelte/store';
 
-	let { value, class: className, children, ...rest } = $props();
+	let {
+		value,
+		class: className = '',
+		children,
+		...rest
+	}: {
+		value: any;
+		class?: string;
+		children?: import('svelte').Snippet;
+		[key: string]: any;
+	} = $props();
 
 	const tabsContext = getContext('tabs') as { activeTab: Writable<string> };
 	const { activeTab } = tabsContext;

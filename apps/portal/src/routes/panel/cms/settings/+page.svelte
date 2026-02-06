@@ -28,7 +28,24 @@
 	import { toast } from 'svelte-sonner';
 
 	let { data, form } = $props();
-	const { settings = {} } = $derived(data);
+
+	interface SiteSettings {
+		app_name?: string;
+		app_suffix?: string;
+		address?: string;
+		phone?: string;
+		email?: string;
+		facebook_url?: string;
+		instagram_url?: string;
+		twitter_url?: string;
+		youtube_url?: string;
+		director_name?: string;
+		director_title?: string;
+		director_image?: string;
+		director_message?: string;
+	}
+
+	const settings: SiteSettings = $derived(data.settings || {});
 </script>
 
 <div class="space-y-6">

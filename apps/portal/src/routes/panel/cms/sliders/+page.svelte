@@ -64,16 +64,18 @@
 			<p class="text-muted-foreground">
 				Kelola gambar dan teks yang muncul di carousel halaman utama.
 			</p>
+			<Button
+				onclick={() => {
+					editingSlider = null;
+					isDialogOpen = true;
+				}}
+				class="gap-2"
+			>
+				<Plus class="h-4 w-4" />
+				Tambah Slider
+			</Button>
 		</div>
 		<Dialog bind:open={isDialogOpen}>
-			<DialogTrigger>
-				{#snippet child({ props })}
-					<Button {...props} onclick={() => (editingSlider = null)} class="gap-2">
-						<Plus class="h-4 w-4" />
-						Tambah Slider
-					</Button>
-				{/snippet}
-			</DialogTrigger>
 			<DialogContent class="sm:max-w-[500px]">
 				<form method="POST" action={editingSlider ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>

@@ -30,6 +30,7 @@
 		SelectValue
 	} from '$lib/components/ui/select';
 	import { Progress } from '$lib/components/ui/progress';
+	import { Separator } from '$lib/components/ui/separator';
 
 	let { data, form } = $props();
 	const { periods, prodis } = $derived(data);

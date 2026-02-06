@@ -13,7 +13,7 @@
 	let { data } = $props();
 	const { stats } = $derived(data);
 	const summary = $derived(stats.summary || { total: 0, verified: 0, passed: 0, rejected: 0 });
-	const byPeriod = $derived(stats.byPeriod || []);
+	const byPeriod: { name: string; count: number }[] = $derived(stats.byPeriod || []);
 
 	const total = $derived(Number(summary.total) || 0);
 	const verified = $derived(Number(summary.verified) || 0);

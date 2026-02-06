@@ -59,16 +59,18 @@
 			<p class="text-muted-foreground">
 				Kelola jadwal kegiatan, seminar, dan acara kampus lainnya.
 			</p>
+			<Button
+				onclick={() => {
+					editingAgenda = null;
+					isDialogOpen = true;
+				}}
+				class="gap-2"
+			>
+				<Plus class="h-4 w-4" />
+				Tambah Agenda
+			</Button>
 		</div>
 		<Dialog bind:open={isDialogOpen}>
-			<DialogTrigger>
-				{#snippet child({ props })}
-					<Button {...props} onclick={() => (editingAgenda = null)} class="gap-2">
-						<Plus class="h-4 w-4" />
-						Tambah Agenda
-					</Button>
-				{/snippet}
-			</DialogTrigger>
 			<DialogContent class="sm:max-w-[600px]">
 				<form method="POST" action={editingAgenda ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>

@@ -62,74 +62,77 @@
 				Kelola video YouTube yang akan muncul di galeri video beranda.
 			</p>
 		</div>
-		<Dialog bind:open={isDialogOpen}>
-			<DialogTrigger>
-				{#snippet child({ props })}
-					<Button {...props} onclick={() => (editingVideo = null)} class="gap-2">
-						<Plus class="h-4 w-4" />
-						Tambah Video
-					</Button>
-				{/snippet}
-			</DialogTrigger>
-			<DialogContent class="sm:max-w-[500px]">
-				<form method="POST" action={editingVideo ? '?/update' : '?/create'} class="space-y-4">
-					<DialogHeader>
-						<DialogTitle>{editingVideo ? 'Edit Video' : 'Tambah Video Baru'}</DialogTitle>
-						<DialogDescription>Masukkan URL YouTube dan detail video lainnya.</DialogDescription>
-					</DialogHeader>
-
-					{#if editingVideo}
-						<input type="hidden" name="id" value={editingVideo.id} />
-					{/if}
-
-					<div class="grid gap-4 py-4">
-						<div class="space-y-2">
-							<Label for="title">Judul Video</Label>
-							<Input
-								id="title"
-								name="title"
-								value={editingVideo?.title || ''}
-								placeholder="Judul video yang akan ditampilkan"
-								required
-							/>
-						</div>
-						<div class="space-y-2">
-							<Label for="youtube_url">URL YouTube</Label>
-							<Input
-								id="youtube_url"
-								name="url"
-								value={editingVideo?.url || ''}
-								placeholder="https://www.youtube.com/watch?v=..."
-								required
-							/>
-						</div>
-						<div class="space-y-2">
-							<Label for="thumbnail_url">URL Thumbnail (Opsional)</Label>
-							<Input
-								id="thumbnail_url"
-								name="thumbnail_url"
-								value={editingVideo?.thumbnail_url || ''}
-								placeholder="Kosongkan jika ingin menggunakan default YouTube"
-							/>
-						</div>
-						<div class="flex items-center space-x-2 pt-2">
-							<Checkbox
-								id="is_active"
-								name="is_active"
-								checked={editingVideo ? editingVideo.is_active : true}
-							/>
-							<Label for="is_active">Aktifkan Video</Label>
-						</div>
-					</div>
-
-					<DialogFooter>
-						<Button type="button" variant="outline" onclick={resetForm}>Batal</Button>
-						<Button type="submit">{editingVideo ? 'Simpan Perubahan' : 'Tambah Video'}</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+		<Button
+			onclick={() => {
+				editingVideo = null;
+				isDialogOpen = true;
+			}}
+			class="gap-2"
+		>
+			<Plus class="h-4 w-4" />
+			Tambah Video
+		</Button>
 	</div>
+
+	<Dialog bind:open={isDialogOpen}>
+		<DialogContent class="sm:max-w-[500px]">
+			<form method="POST" action={editingVideo ? '?/update' : '?/create'} class="space-y-4">
+				<DialogHeader>
+					<DialogTitle>{editingVideo ? 'Edit Video' : 'Tambah Video Baru'}</DialogTitle>
+					<DialogDescription>Masukkan URL YouTube dan detail video lainnya.</DialogDescription>
+				</DialogHeader>
+
+				{#if editingVideo}
+					<input type="hidden" name="id" value={editingVideo.id} />
+				{/if}
+
+				<div class="grid gap-4 py-4">
+					<div class="space-y-2">
+						<Label for="title">Judul Video</Label>
+						<Input
+							id="title"
+							name="title"
+							value={editingVideo?.title || ''}
+							placeholder="Judul video yang akan ditampilkan"
+							required
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="youtube_url">URL YouTube</Label>
+						<Input
+							id="youtube_url"
+							name="url"
+							value={editingVideo?.url || ''}
+							placeholder="https://www.youtube.com/watch?v=..."
+							required
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="thumbnail_url">URL Thumbnail (Opsional)</Label>
+						<Input
+							id="thumbnail_url"
+							name="thumbnail_url"
+							value={editingVideo?.thumbnail_url || ''}
+							placeholder="Kosongkan jika ingin menggunakan default YouTube"
+						/>
+					</div>
+					<div class="flex items-center space-x-2 pt-2">
+						<Checkbox
+							id="is_active"
+							name="is_active"
+							checked={editingVideo ? editingVideo.is_active : true}
+						/>
+						<Label for="is_active">Aktifkan Video</Label>
+					</div>
+				</div>
+
+				<DialogFooter>
+					<Button type="button" variant="outline" onclick={resetForm}>Batal</Button>
+					<Button type="submit">{editingVideo ? 'Simpan Perubahan' : 'Tambah Video'}</Button>
+				</DialogFooter>
+			</form>
+		</DialogContent>
+	</Dialog>
 
 	<Card>
 		<CardContent class="p-0">
