@@ -1,23 +1,38 @@
 <script lang="ts">
-	import { Menu, X, LogIn } from 'lucide-svelte';
+	import { Menu, X, LogIn, ChevronDown } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages.js';
 
-	let isMenuOpen = false;
+	let { pages = [], settings = {} } = $props();
 
-	const navigation = [
-		{ name: m.nav_home(), href: '#' },
-		{ name: m.nav_about(), href: '#about' },
-		{ name: m.nav_academic(), href: '#academic' },
-		{ name: m.nav_facilities(), href: '#facilities' },
-		{ name: m.nav_news(), href: '#news' }
+	let isMenuOpen = $state(false);
+	let openDropdown = $state<string | null>(null);
+
+	const categories = [
+		{ name: 'Profil', key: 'Profil' },
+		{ name: 'Akademik', key: 'Akademik' },
+		{ name: 'Prodi', key: 'Prodi' },
+		{ name: 'Riset dan Publikasi', key: 'Riset' },
+		{ name: 'Penerimaan', key: 'Penerimaan' }
 	];
+
+	function getPagesByCategory(category: string) {
+		return pages.filter((p: any) => p.parent_menu === category);
+	}
+
+	function toggleDropdown(key: string) {
+		if (openDropdown === key) {
+			openDropdown = null;
+		} else {
+			openDropdown = key;
+		}
+	}
 </script>
 
 <header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
 	<div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 		<!-- Logo -->
-		<div class="flex items-center gap-2">
+		<a href="/" class="flex items-center gap-2">
 			<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -34,20 +49,59 @@
 				</svg>
 			</div>
 			<span class="text-xl font-bold tracking-tight text-gray-900">
-				{m.brand_name()}<span class="text-indigo-600">App</span>
+				{settings.app_name || m.brand_name()}<span class="text-indigo-600">
+					{settings.app_suffix || 'App'}</span
+				>
 			</span>
-		</div>
+		</a>
 
 		<!-- Desktop Navigation -->
-		<nav class="hidden md:flex md:gap-x-8">
-			{#each navigation as item}
-				<a
-					href={item.href}
-					class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
-				>
-					{item.name}
-				</a>
+		<nav class="hidden md:flex md:gap-x-6">
+			<a
+				href="/"
+				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
+			>
+				{m.nav_home()}
+			</a>
+
+			{#each categories as cat}
+				<div class="group relative">
+					<button
+						class="flex items-center gap-1 text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600 focus:outline-none"
+						onmouseenter={() => (openDropdown = cat.key)}
+						onmouseleave={() => (openDropdown = null)}
+					>
+						{cat.name}
+						<ChevronDown class="h-4 w-4" />
+					</button>
+
+					{#if openDropdown === cat.key}
+						<div
+							class="absolute left-0 mt-0 w-56 rounded-xl border border-gray-100 bg-white p-2 shadow-xl ring-1 ring-black/5 focus:outline-none"
+							role="menu"
+							tabindex="-1"
+							onmouseenter={() => (openDropdown = cat.key)}
+							onmouseleave={() => (openDropdown = null)}
+						>
+							{#each getPagesByCategory(cat.key) as p}
+								<a
+									href={`/pages/${p.slug}`}
+									class="block rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+								>
+									{p.title}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
 			{/each}
+
+			<a
+				href="/#news"
+				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
+			>
+				{m.nav_news()}
+			</a>
 		</nav>
 
 		<!-- Desktop CTA -->
@@ -88,18 +142,45 @@
 
 	<!-- Mobile Menu -->
 	{#if isMenuOpen}
-		<div class="md:hidden">
-			<div class="space-y-1 px-4 pt-2 pb-3 sm:px-3">
-				{#each navigation as item}
-					<a
-						href={item.href}
-						class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
-						onclick={() => (isMenuOpen = false)}
-					>
-						{item.name}
-					</a>
+		<div class="border-t border-gray-100 bg-white md:hidden">
+			<div class="space-y-1 px-4 pt-2 pb-6 sm:px-3">
+				<a
+					href="/"
+					class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+					onclick={() => (isMenuOpen = false)}
+				>
+					{m.nav_home()}
+				</a>
+
+				{#each categories as cat}
+					<div class="space-y-1">
+						<button
+							class="flex w-full items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+							onclick={() => toggleDropdown(cat.key)}
+						>
+							{cat.name}
+							<ChevronDown
+								class={`h-4 w-4 transition-transform ${openDropdown === cat.key ? 'rotate-180' : ''}`}
+							/>
+						</button>
+
+						{#if openDropdown === cat.key}
+							<div class="space-y-1 pl-6">
+								{#each getPagesByCategory(cat.key) as p}
+									<a
+										href={`/pages/${p.slug}`}
+										class="block rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600"
+										onclick={() => (isMenuOpen = false)}
+									>
+										{p.title}
+									</a>
+								{/each}
+							</div>
+						{/if}
+					</div>
 				{/each}
-				<div class="mt-4 border-t border-gray-200 pt-4">
+
+				<div class="mt-4 space-y-2 border-t border-gray-100 pt-4">
 					<a
 						href="/auth/login"
 						class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
@@ -108,7 +189,7 @@
 					</a>
 					<a
 						href="/auth/siakad/login"
-						class="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-base font-medium text-white hover:bg-indigo-500"
+						class="flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-3 py-4 text-base font-semibold text-white hover:bg-indigo-500"
 					>
 						<LogIn class="h-4 w-4" />
 						{m.nav_student_portal()}

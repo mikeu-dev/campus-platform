@@ -1,6 +1,5 @@
 <script lang="ts">
-	import Header from '$lib/components/landing/Header.svelte';
-	import Footer from '$lib/components/landing/Footer.svelte';
+	import { onMount } from 'svelte';
 	import {
 		ArrowRight,
 		GraduationCap,
@@ -8,12 +7,19 @@
 		BookOpen,
 		Award,
 		Calendar,
-		ChevronRight
+		ChevronRight,
+		Play,
+		MapPin
 	} from 'lucide-svelte';
 	import { fade, fly } from 'svelte/transition';
 	import * as m from '$lib/paraglide/messages.js';
+	import { PUBLIC_PUBLIC_API_URL } from '$env/static/public';
 
-	// Stats Data
+	let { data } = $props();
+
+	const { sliders, settings, posts, agendas, videos } = $derived(data);
+
+	// Stats Data (keep hardcoded or move to settings later)
 	const stats = [
 		{
 			label: m.stats_active_students(),
@@ -45,113 +51,105 @@
 		}
 	];
 
-	// Faculties Data
-	const faculties = [
-		{
-			name: m.faculty_engineering(),
-			desc: m.faculty_engineering_desc(),
-			color: 'from-blue-500 to-cyan-500'
-		},
-		{
-			name: m.faculty_economics(),
-			desc: m.faculty_economics_desc(),
-			color: 'from-emerald-500 to-teal-500'
-		},
-		{
-			name: m.faculty_cs(),
-			desc: m.faculty_cs_desc(),
-			color: 'from-indigo-500 to-purple-500'
-		},
-		{
-			name: m.faculty_medicine(),
-			desc: m.faculty_medicine_desc(),
-			color: 'from-rose-500 to-pink-500'
-		},
-		{
-			name: m.faculty_law(),
-			desc: m.faculty_law_desc(),
-			color: 'from-amber-500 to-orange-500'
-		},
-		{
-			name: m.faculty_letters(),
-			desc: m.faculty_letters_desc(),
-			color: 'from-fuchsia-500 to-pink-500'
+	// Slider logic
+	let currentSliderIndex = $state(0);
+	onMount(() => {
+		if (sliders.length > 1) {
+			const interval = setInterval(() => {
+				currentSliderIndex = (currentSliderIndex + 1) % sliders.length;
+			}, 5000);
+			return () => clearInterval(interval);
 		}
-	];
 
-	// News Data
-	const news = [
-		{
-			title: 'Mahasiswa FIK Juara 1 Hackathon Nasional 2026',
-			date: '12 Agustus 2026',
-			cat: 'Prestasi',
-			img: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400'
-		},
-		{
-			title: 'Visiting Professor dari Harvard University',
-			date: '10 Agustus 2026',
-			cat: 'Akademik',
-			img: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b955?auto=format&fit=crop&q=80&w=400'
-		},
-		{
-			title: 'Penerimaan Mahasiswa Baru Gelombang 3 Dibuka',
-			date: '05 Agustus 2026',
-			cat: 'Pendaftaran',
-			img: 'https://images.unsplash.com/photo-1627556592933-ffe99c1cd9eb?auto=format&fit=crop&q=80&w=400'
-		}
-	];
+		// Track Visitor
+		fetch(`${PUBLIC_PUBLIC_API_URL}/public/track`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				tenantId: '00000000-0000-0000-0000-000000000000',
+				route: '/'
+			})
+		}).catch(console.error);
+	});
 </script>
 
 <div class="min-h-screen bg-gray-50 font-sans text-gray-900">
-	<Header />
-
 	<main>
-		<!-- HERO SECTION -->
+		<!-- HERO SECTION (Slider) -->
 		<section class="relative h-[600px] w-full overflow-hidden bg-gray-900 text-white lg:h-[700px]">
-			<!-- Background Image with Overlay -->
-			<div class="absolute inset-0">
-				<img
-					src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920"
-					alt="Campus Atmosphere"
-					class="h-full w-full object-cover opacity-60"
-				/>
-				<div
-					class="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent"
-				></div>
-			</div>
+			{#if sliders && sliders.length > 0}
+				{#each sliders as slider, i}
+					{#if i === currentSliderIndex}
+						<div class="absolute inset-0" transition:fade={{ duration: 1000 }}>
+							<!-- Background Image with Overlay -->
+							<img
+								src={slider.image_url}
+								alt={slider.title}
+								class="h-full w-full object-cover opacity-60"
+							/>
+							<div
+								class="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent"
+							></div>
 
-			<div
-				class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8"
-			>
-				<div class="max-w-3xl" in:fly={{ y: 50, duration: 1000 }}>
-					<span
-						class="mb-4 inline-block rounded-full bg-indigo-600/90 px-4 py-1 text-sm font-semibold tracking-wide text-white backdrop-blur-sm"
-					>
-						{m.hero_badge()}
-					</span>
-					<h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl">
-						{m.hero_title()}
-					</h1>
-					<p class="mt-6 text-lg text-gray-200 sm:text-xl lg:max-w-2xl">
-						{m.hero_description()}
-					</p>
-					<div class="mt-8 flex flex-col gap-4 sm:flex-row">
-						<a
-							href="/auth/siakad/login"
-							class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-3 text-base font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
-						>
-							{m.hero_cta_register()}
-							<ArrowRight class="ml-2 h-5 w-5" />
-						</a>
-						<a
-							href="#academic"
-							class="inline-flex items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-8 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-						>
-							{m.hero_cta_explore()}
-						</a>
+							<div
+								class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8"
+							>
+								<div class="max-w-3xl" in:fly={{ y: 50, duration: 1000 }}>
+									<span
+										class="mb-4 inline-block rounded-full bg-indigo-600/90 px-4 py-1 text-sm font-semibold tracking-wide text-white backdrop-blur-sm"
+									>
+										{m.hero_badge()}
+									</span>
+									<h1
+										class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl"
+									>
+										{slider.title || m.hero_title()}
+									</h1>
+									<p class="mt-6 text-lg text-gray-200 sm:text-xl lg:max-w-2xl">
+										{slider.description || m.hero_description()}
+									</p>
+									<div class="mt-8 flex flex-col gap-4 sm:flex-row">
+										<a
+											href="/auth/siakad/login"
+											class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-3 text-base font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
+										>
+											{m.hero_cta_register()}
+											<ArrowRight class="ml-2 h-5 w-5" />
+										</a>
+										<a
+											href="#academic"
+											class="inline-flex items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-8 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+										>
+											{m.hero_cta_explore()}
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					{/if}
+				{/each}
+			{:else}
+				<!-- Fallback static hero -->
+				<div class="absolute inset-0">
+					<img
+						src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920"
+						alt="Campus Atmosphere"
+						class="h-full w-full object-cover opacity-60"
+					/>
+					<div
+						class="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent"
+					></div>
+				</div>
+				<div
+					class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8"
+				>
+					<div class="max-w-3xl" in:fly={{ y: 50, duration: 1000 }}>
+						<h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl">
+							{m.hero_title()}
+						</h1>
 					</div>
 				</div>
-			</div>
+			{/if}
 		</section>
 
 		<!-- STATS SECTION -->
@@ -175,7 +173,7 @@
 			</div>
 		</section>
 
-		<!-- ABOUT / WELCOME SECTION -->
+		<!-- ABOUT / WELCOME SECTION (Director Welcome) -->
 		<section id="about" class="py-20 lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
@@ -186,15 +184,11 @@
 						></div>
 						<div class="relative overflow-hidden rounded-2xl shadow-2xl">
 							<img
-								src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"
-								alt="University Rector"
+								src={settings.director_photo ||
+									'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800'}
+								alt="Director"
 								class="h-full w-full object-cover"
 							/>
-						</div>
-						<!-- Badge -->
-						<div class="absolute -bottom-6 -left-6 rounded-xl bg-white p-6 shadow-xl">
-							<p class="text-sm font-semibold text-gray-500">{m.about_founded()}</p>
-							<p class="text-3xl font-bold text-indigo-600">1985</p>
 						</div>
 					</div>
 					<div>
@@ -202,134 +196,72 @@
 							>{m.nav_about()}</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							{m.about_title()}
+							{settings.director_welcome_title || m.about_title()}
 						</h2>
 						<p class="mt-6 text-lg leading-relaxed text-gray-600">
-							{m.about_description()}
+							{settings.director_welcome_text || m.about_description()}
 						</p>
-						<div class="mt-8 space-y-4">
-							<div class="flex gap-4">
-								<div
-									class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"
-								>
-									<Award class="h-6 w-6" />
-								</div>
-								<div>
-									<h4 class="text-lg font-bold text-gray-900">{m.about_accreditation_title()}</h4>
-									<p class="text-gray-600">
-										{m.about_accreditation_desc()}
-									</p>
-								</div>
-							</div>
-							<div class="flex gap-4">
-								<div
-									class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"
-								>
-									<Users class="h-6 w-6" />
-								</div>
-								<div>
-									<h4 class="text-lg font-bold text-gray-900">{m.about_alumni_title()}</h4>
-									<p class="text-gray-600">
-										{m.about_alumni_desc()}
-									</p>
-								</div>
-							</div>
+						<div class="mt-8">
+							<a
+								href="/profile/welcome"
+								class="inline-flex items-center font-bold text-indigo-600 hover:underline"
+							>
+								Lihat Selengkapnya <ChevronRight class="ml-1 h-5 w-5" />
+							</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- ACADEMIC FACULTIES -->
-		<section id="academic" class="bg-gray-900 py-20 text-white lg:py-28">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="mb-16 text-center">
-					<span class="font-semibold tracking-wider text-indigo-400 uppercase"
-						>{m.academic_subtitle()}</span
-					>
-					<h2 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-						{m.academic_title()}
-					</h2>
-					<p class="mx-auto mt-4 max-w-2xl text-xl text-gray-400">
-						{m.academic_desc()}
-					</p>
-				</div>
-
-				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-					{#each faculties as faculty}
-						<div
-							class="group hover:bg-gray-750 relative overflow-hidden rounded-2xl bg-gray-800 p-8 transition-all"
-						>
-							<div
-								class={`absolute top-0 right-0 h-32 w-32 rounded-bl-full bg-linear-to-br ${faculty.color} opacity-10 transition-opacity group-hover:opacity-20`}
-							></div>
-							<div
-								class={`mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-br ${faculty.color} text-white shadow-lg`}
-							>
-								<BookOpen class="h-7 w-7" />
-							</div>
-							<h3 class="text-xl font-bold text-white">{faculty.name}</h3>
-							<p class="mt-4 text-gray-400">{faculty.desc}</p>
-							<a
-								href="/"
-								class="mt-6 inline-flex items-center text-sm font-semibold text-indigo-400 transition-colors group-hover:text-indigo-300"
-							>
-								{m.news_read_more()}
-								<ChevronRight class="ml-1 h-4 w-4" />
-							</a>
-						</div>
-					{/each}
-				</div>
-			</div>
-		</section>
-
-		<!-- NEWS SECTION -->
-		<section id="news" class="py-20 lg:py-28">
+		<!-- NEWS/POSTS SECTION -->
+		<section id="news" class="bg-white py-20 lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="mb-12 flex items-end justify-between">
 					<div>
 						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
-							>{m.news_subtitle()}</span
+							>Informasi Kampus Kita</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							{m.news_title()}
+							Berita Terkini
 						</h2>
 					</div>
 					<a
-						href="/"
+						href="/posts"
 						class="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block"
 					>
-						{m.news_view_all()} &rarr;
+						Semua Berita &rarr;
 					</a>
 				</div>
 
-				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-					{#each news as item}
+				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+					{#each posts as post}
 						<article
-							class="flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-shadow hover:shadow-xl"
+							class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md"
 						>
 							<div class="relative h-48 w-full overflow-hidden">
 								<img
-									src={item.img}
-									alt={item.title}
+									src={post.image_url ||
+										'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400'}
+									alt={post.title}
 									class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
 								/>
-								<div
-									class="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-indigo-600 backdrop-blur-sm"
-								>
-									{item.cat}
-								</div>
 							</div>
 							<div class="flex flex-1 flex-col p-6">
-								<div class="flex items-center gap-2 text-sm text-gray-500">
-									<Calendar class="h-4 w-4" />
-									<time>{item.date}</time>
+								<div class="flex items-center gap-2 text-xs text-gray-500">
+									<Calendar class="h-3 w-3" />
+									<time>{new Date(post.created_at).toLocaleDateString('id-ID')}</time>
 								</div>
-								<h3 class="mt-3 text-xl leading-snug font-bold text-gray-900">
-									<a href="/" class="hover:text-indigo-600">{item.title}</a>
+								<h3 class="mt-3 text-lg leading-snug font-bold text-gray-900">
+									<a href={`/posts/${post.slug}`} class="line-clamp-2 hover:text-indigo-600"
+										>{post.title}</a
+									>
 								</h3>
-								<div class="mt-auto pt-6">
-									<a href="/" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
+								<div class="mt-auto pt-4">
+									<a
+										href={`/posts/${post.slug}`}
+										class="text-xs font-semibold text-indigo-600 hover:text-indigo-500"
+									>
 										{m.news_read_more()}
 									</a>
 								</div>
@@ -337,11 +269,87 @@
 						</article>
 					{/each}
 				</div>
+			</div>
+		</section>
 
-				<div class="mt-8 text-center sm:hidden">
-					<a href="/" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-						{m.news_view_all()} &rarr;
-					</a>
+		<!-- AGENDA SECTION -->
+		<section id="agenda" class="bg-gray-50 py-20 lg:py-28">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div class="mb-12">
+					<span class="font-semibold tracking-wider text-indigo-600 uppercase">Agenda Terdekat</span
+					>
+					<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+						Jangan Lewatkan
+					</h2>
+				</div>
+
+				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+					{#each agendas as agenda}
+						<div
+							class="rounded-2xl border-l-4 border-indigo-600 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+						>
+							<div class="mb-3 flex items-center gap-2 font-bold text-indigo-600">
+								<Calendar class="h-5 w-5" />
+								<span
+									>{new Date(agenda.date).toLocaleDateString('id-ID', {
+										day: 'numeric',
+										month: 'long',
+										year: 'numeric'
+									})}</span
+								>
+							</div>
+							<h3 class="mb-2 text-xl font-bold text-gray-900">{agenda.title}</h3>
+							<div class="mb-4 flex items-center gap-2 text-sm text-gray-500">
+								<MapPin class="h-4 w-4" />
+								<span>{agenda.location || 'Kampus'}</span>
+							</div>
+							<p class="mb-4 line-clamp-3 text-sm text-gray-600">{agenda.description}</p>
+							<a
+								href={`/agenda/${agenda.id}`}
+								class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:underline"
+							>
+								Detail Agenda <ChevronRight class="ml-1 h-4 w-4" />
+							</a>
+						</div>
+					{/each}
+				</div>
+			</div>
+		</section>
+
+		<!-- VIDEO SECTION -->
+		<section id="videos" class="bg-gray-900 py-20 text-white lg:py-28">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div class="mb-12 text-center">
+					<span class="font-semibold tracking-wider text-indigo-400 uppercase"
+						>Kanal Video Kampus</span
+					>
+					<h2 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+						Video Terbaru
+					</h2>
+				</div>
+
+				<div class="grid gap-8 lg:grid-cols-2">
+					{#each videos as video}
+						<div class="group relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+							<div class="aspect-video w-full">
+								<iframe
+									class="h-full w-full"
+									src={`https://www.youtube.com/embed/${video.youtube_id}`}
+									title={video.title}
+									frameborder="0"
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+									allowfullscreen
+								></iframe>
+							</div>
+							<div class="p-6">
+								<h3
+									class="text-xl font-bold text-white transition-colors group-hover:text-indigo-400"
+								>
+									{video.title}
+								</h3>
+							</div>
+						</div>
+					{/each}
 				</div>
 			</div>
 		</section>
@@ -372,6 +380,4 @@
 			</div>
 		</section>
 	</main>
-
-	<Footer />
 </div>
