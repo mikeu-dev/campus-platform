@@ -8,4 +8,4 @@
 
 {@render children()}
 
-<Footer settings={data.settings} />
+<Footer settings={data.settings} links={data.links} />
