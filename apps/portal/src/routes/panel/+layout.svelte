@@ -19,7 +19,8 @@
 		CalendarRange,
 		ClipboardCheck,
 		CreditCard,
-		Library
+		Library,
+		BarChart3
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -268,6 +269,23 @@
 					>
 						<CalendarDays class="h-4 w-4" />
 						Jadwal & Kelas
+					</a>
+
+					<Separator class="mx-4 my-4" />
+					<div class="my-2 px-3">
+						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							Laporan & Analitik
+						</p>
+					</div>
+					<a
+						href="/panel/analytics"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/analytics') && 'bg-muted text-primary'
+						)}
+					>
+						<BarChart3 class="h-4 w-4" />
+						Dashboard Analitik
 					</a>
 				{/if}
 			</nav>

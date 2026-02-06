@@ -5,6 +5,10 @@ import { PUBLIC_ACADEMIC_API_URL, PUBLIC_LEARNING_API_URL } from '$env/static/pu
 export const load: LayoutServerLoad = async ({ locals, params }) => {
 	const token = locals.token;
 	const { classId } = params;
+	const user = locals.user;
+
+	// Check if user is a lecturer or admin
+	const isLecturer = user?.roles?.includes('lecturer') || user?.roles?.includes('admin');
 
 	try {
 		const [
@@ -22,10 +26,10 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 			}),
 			axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
 				headers: { Authorization: `Bearer ${token}` }
-			}),
+			}).catch(() => ({ data: { data: null } })), // Lecturers may not have student profile
 			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/my`, {
 				headers: { Authorization: `Bearer ${token}` }
-			}),
+			}).catch(() => ({ data: { data: [] } })),
 			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/materials`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),
@@ -34,7 +38,7 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 			}),
 			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/summary`, {
 				headers: { Authorization: `Bearer ${token}` }
-			}),
+			}).catch(() => ({ data: { data: { hadir: 0, alfa: 0, izin: 0, sakit: 0 } } })),
 			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/quizzes`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),
@@ -44,13 +48,14 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 		]);
 
 		const classInfo = classRes.data.data.find((c: any) => c.id === classId);
-		const studentId = profileRes.data.data.id;
+		const studentId = profileRes.data.data?.id || null;
 
 		return {
 			classInfo,
 			classId,
 			studentId,
 			user: locals.user,
+			isLecturer,
 			attendances: attendancesRes.data.data,
 			materials: materialsRes.data.data,
 			assignments: assignmentsRes.data.data,
@@ -64,10 +69,14 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 			classInfo: null,
 			classId,
 			studentId: null,
+			isLecturer,
+			user: locals.user,
 			attendances: [],
 			materials: [],
 			assignments: [],
-			attendanceSummary: { hadir: 0, alfa: 0, izin: 0, sakit: 0 }
+			attendanceSummary: { hadir: 0, alfa: 0, izin: 0, sakit: 0 },
+			quizzes: [],
+			discussions: []
 		};
 	}
 };

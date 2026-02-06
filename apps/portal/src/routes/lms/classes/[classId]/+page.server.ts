@@ -31,5 +31,54 @@ export const actions: Actions = {
         // Placeholder for assignment upload
         // In a real scenario, this would handle Multipart form data and MinIO upload
         return { success: true, message: 'Assignment submitted successfully' };
+    },
+
+    // Lecturer-only actions
+    addMaterial: async ({ request, locals, params }) => {
+        const user = locals.user;
+        if (!user?.roles?.includes('lecturer') && !user?.roles?.includes('admin')) {
+            return fail(403, { message: 'Unauthorized' });
+        }
+
+        const formData = await request.formData();
+        const title = formData.get('title') as string;
+        const content = formData.get('content') as string;
+        const type = formData.get('type') as string || 'text';
+        const meeting_number = parseInt(formData.get('meeting_number') as string) || 1;
+
+        try {
+            await axios.post(
+                `${PUBLIC_LEARNING_API_URL}/classes/${params.classId}/materials`,
+                { title, content, type, meeting_number },
+                { headers: { Authorization: `Bearer ${locals.token}` } }
+            );
+            return { success: true, action: 'addMaterial' };
+        } catch (error: any) {
+            return fail(400, { message: error.response?.data?.message || 'Gagal menambah materi' });
+        }
+    },
+
+    addAssignment: async ({ request, locals, params }) => {
+        const user = locals.user;
+        if (!user?.roles?.includes('lecturer') && !user?.roles?.includes('admin')) {
+            return fail(403, { message: 'Unauthorized' });
+        }
+
+        const formData = await request.formData();
+        const title = formData.get('title') as string;
+        const description = formData.get('description') as string;
+        const deadline = formData.get('deadline') as string;
+        const meeting_number = parseInt(formData.get('meeting_number') as string) || 1;
+
+        try {
+            await axios.post(
+                `${PUBLIC_LEARNING_API_URL}/classes/${params.classId}/assignments`,
+                { title, description, deadline, meeting_number },
+                { headers: { Authorization: `Bearer ${locals.token}` } }
+            );
+            return { success: true, action: 'addAssignment' };
+        } catch (error: any) {
+            return fail(400, { message: error.response?.data?.message || 'Gagal menambah tugas' });
+        }
     }
 };
