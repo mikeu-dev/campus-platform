@@ -63,7 +63,7 @@
 		<div class="absolute -top-12 -left-12 h-64 w-64 rounded-full bg-indigo-800/30 blur-3xl"></div>
 	</section>
 
-	<div class="mx-auto mt-[-3rem] max-w-7xl px-4 sm:px-6 lg:px-8">
+	<div class="mx-auto -mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 			<Card class="border-t-4 border-t-indigo-600 shadow-lg">
 				<CardHeader>
