@@ -7,7 +7,13 @@
 		GraduationCap,
 		User,
 		Menu,
-		MessageSquare
+		MessageSquare,
+		Image,
+		FileText,
+		Video,
+		CalendarDays,
+		Newspaper,
+		Settings2
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -85,6 +91,83 @@
 					>
 						<GraduationCap class="h-4 w-4" />
 						{m.nav_classes()}
+					</a>
+
+					<Separator class="mx-4 my-4" />
+					<div class="my-2 px-3">
+						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							Informasi Publik
+						</p>
+					</div>
+					<a
+						href="/panel/cms"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname === '/panel/cms' && 'bg-muted text-primary'
+						)}
+					>
+						<LayoutDashboard class="h-4 w-4" />
+						Dasbor CMS
+					</a>
+					<a
+						href="/panel/cms/sliders"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/cms/sliders') && 'bg-muted text-primary'
+						)}
+					>
+						<Image class="h-4 w-4" />
+						Slider Hero
+					</a>
+					<a
+						href="/panel/cms/posts"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/cms/posts') && 'bg-muted text-primary'
+						)}
+					>
+						<Newspaper class="h-4 w-4" />
+						Berita & Info
+					</a>
+					<a
+						href="/panel/cms/agendas"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/cms/agendas') && 'bg-muted text-primary'
+						)}
+					>
+						<CalendarDays class="h-4 w-4" />
+						Agenda Kampus
+					</a>
+					<a
+						href="/panel/cms/videos"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/cms/videos') && 'bg-muted text-primary'
+						)}
+					>
+						<Video class="h-4 w-4" />
+						Kanal Video
+					</a>
+					<a
+						href="/panel/cms/pages"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/cms/pages') && 'bg-muted text-primary'
+						)}
+					>
+						<FileText class="h-4 w-4" />
+						Halaman Dinamis
+					</a>
+					<a
+						href="/panel/cms/settings"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/cms/settings') && 'bg-muted text-primary'
+						)}
+					>
+						<Settings2 class="h-4 w-4" />
+						Pengaturan Konten
 					</a>
 				{/if}
 			</nav>
