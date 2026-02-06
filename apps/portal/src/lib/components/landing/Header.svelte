@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Menu, X, LogIn, ChevronDown } from 'lucide-svelte';
+	import { Menu, X, LogIn, ChevronDown, GraduationCap } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -62,6 +62,14 @@
 				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
 			>
 				{m.nav_home()}
+			</a>
+
+			<a
+				href="/pmb"
+				class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 transition-colors hover:text-indigo-700"
+			>
+				<GraduationCap class="h-4 w-4" />
+				PMB 2026
 			</a>
 
 			{#each categories as cat}

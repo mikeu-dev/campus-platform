@@ -14,7 +14,11 @@
 		CalendarDays,
 		Newspaper,
 		Settings2,
-		ExternalLink
+		ExternalLink,
+		UsersRound,
+		CalendarRange,
+		ClipboardCheck,
+		CreditCard
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -179,6 +183,53 @@
 					>
 						<Settings2 class="h-4 w-4" />
 						Pengaturan Konten
+					</a>
+
+					<Separator class="mx-4 my-4" />
+					<div class="my-2 px-3">
+						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							Penerimaan (PMB)
+						</p>
+					</div>
+					<a
+						href="/panel/pmb"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname === '/panel/pmb' && 'bg-muted text-primary'
+						)}
+					>
+						<LayoutDashboard class="h-4 w-4" />
+						Dasbor PMB
+					</a>
+					<a
+						href="/panel/pmb/periods"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/pmb/periods') && 'bg-muted text-primary'
+						)}
+					>
+						<CalendarRange class="h-4 w-4" />
+						Gelombang & Jalur
+					</a>
+					<a
+						href="/panel/pmb/applicants"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/pmb/applicants') && 'bg-muted text-primary'
+						)}
+					>
+						<UsersRound class="h-4 w-4" />
+						Data Pendaftar
+					</a>
+					<a
+						href="/panel/pmb/verification"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/pmb/verification') && 'bg-muted text-primary'
+						)}
+					>
+						<ClipboardCheck class="h-4 w-4" />
+						Verifikasi Dokumen
 					</a>
 				{/if}
 			</nav>
