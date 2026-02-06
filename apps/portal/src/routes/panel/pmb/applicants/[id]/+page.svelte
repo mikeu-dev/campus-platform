@@ -81,14 +81,36 @@
 				</div>
 			</div>
 			<div class="flex gap-2">
-				<form action="?/updateStatus" method="POST">
-					<input type="hidden" name="status" value="PASSED" />
-					<Button class="bg-green-600 hover:bg-green-700">Terima (Lolos)</Button>
-				</form>
-				<form action="?/updateStatus" method="POST">
-					<input type="hidden" name="status" value="REJECTED" />
-					<Button variant="destructive">Tolak</Button>
-				</form>
+				{#if applicant.status !== 'PASSED' && applicant.status !== 'REJECTED'}
+					<form
+						action="?/updateStatus"
+						method="POST"
+						onsubmit={(e) => {
+							if (
+								!confirm(
+									'Nyatakan pendaftar ini LOLOS? Akun mahasiswa akan dibuat secara otomatis.'
+								)
+							)
+								e.preventDefault();
+						}}
+					>
+						<input type="hidden" name="status" value="PASSED" />
+						<input type="hidden" name="selection_score" value={applicant.selection_score || 0} />
+						<Button class="bg-green-600 hover:bg-green-700">Terima (Lolos)</Button>
+					</form>
+					<form
+						action="?/updateStatus"
+						method="POST"
+						onsubmit={(e) => {
+							if (!confirm('Tolak pendaftaran ini?')) e.preventDefault();
+						}}
+					>
+						<input type="hidden" name="status" value="REJECTED" />
+						<Button variant="destructive">Tolak</Button>
+					</form>
+				{:else if applicant.status === 'PASSED'}
+					<Badge class="bg-green-600 px-4 py-1 text-sm text-white">Ak Akun Mahasiswa Aktif</Badge>
+				{/if}
 			</div>
 		</div>
 
@@ -133,7 +155,15 @@
 							</div>
 							<div class="space-y-1">
 								<Label class="text-xs text-muted-foreground uppercase">Pilihan Prodi 1</Label>
-								<div class="text-sm font-bold text-indigo-600">Teknik Informatika (Contoh)</div>
+								<div class="text-sm font-bold text-indigo-600">
+									{applicant.first_choice_prodi_name || '-'}
+								</div>
+							</div>
+							<div class="space-y-1">
+								<Label class="text-xs text-muted-foreground uppercase">Pilihan Prodi 2</Label>
+								<div class="text-sm font-medium">
+									{applicant.second_choice_prodi_name || '-'}
+								</div>
 							</div>
 						</div>
 

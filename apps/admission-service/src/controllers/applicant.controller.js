@@ -83,7 +83,13 @@ class ApplicantController {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
             const result = await db.query(
-                'SELECT * FROM pmb_applicants WHERE id = $1 AND tenant_id = $2',
+                `SELECT a.*, 
+                        p1.name as first_choice_prodi_name, 
+                        p2.name as second_choice_prodi_name 
+                 FROM pmb_applicants a
+                 LEFT JOIN pmb_prodis p1 ON a.first_choice_prodi_id = p1.id
+                 LEFT JOIN pmb_prodis p2 ON a.second_choice_prodi_id = p2.id
+                 WHERE a.id = $1 AND a.tenant_id = $2`,
                 [id, tenantId]
             );
             if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
@@ -111,7 +117,30 @@ class ApplicantController {
             );
 
             if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+
+            const applicant = result.rows[0];
+
+            // If status is PASSED, create a user account in identity-service
+            if (status === 'PASSED') {
+                try {
+                    const axios = require('axios');
+                    // Role is 'student' for new admissions. In a real app, use service discovery or config.
+                    const IDENTITY_API = process.env.IDENTITY_API_URL || 'http://localhost:3001';
+
+                    await axios.post(`${IDENTITY_API}/auth/users`, {
+                        email: applicant.email,
+                        fullName: applicant.full_name,
+                        password: applicant.identity_number || 'Mahasiswa2026!', // Default password
+                        roleName: 'student'
+                    }, {
+                        headers: { Authorization: req.headers.authorization }
+                    });
+                } catch (userErr) {
+                    console.error('Failed to create identity user:', userErr.response?.data || userErr.message);
+                }
+            }
+
+            res.json({ status: 'success', data: applicant });
         } catch (err) { next(err); }
     }
 

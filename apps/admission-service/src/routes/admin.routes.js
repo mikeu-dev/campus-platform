@@ -14,6 +14,8 @@ router.delete('/periods/:id', periodController.delete);
 // PMB Prodis Management
 router.get('/prodis', prodiController.getAll);
 router.post('/prodis', prodiController.create);
+router.put('/prodis/:id', prodiController.update);
+router.delete('/prodis/:id', prodiController.delete);
 
 // Applicants Management
 router.get('/stats', applicantController.getStats);

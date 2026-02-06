@@ -18,7 +18,8 @@
 		UsersRound,
 		CalendarRange,
 		ClipboardCheck,
-		CreditCard
+		CreditCard,
+		Library
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -210,6 +211,16 @@
 					>
 						<CalendarRange class="h-4 w-4" />
 						Gelombang & Jalur
+					</a>
+					<a
+						href="/panel/pmb/prodis"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/pmb/prodis') && 'bg-muted text-primary'
+						)}
+					>
+						<Library class="h-4 w-4" />
+						Program Studi
 					</a>
 					<a
 						href="/panel/pmb/applicants"
