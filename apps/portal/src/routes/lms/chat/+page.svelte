@@ -24,6 +24,7 @@
 	let selectedUser: any = $state(null);
 	let messages: any[] = $state([]);
 	let newMessage = $state('');
+	// svelte-ignore state_referenced_locally
 	let conversations = $state(data.conversations);
 	let messagesContainer: HTMLDivElement | undefined = $state();
 
@@ -274,6 +275,7 @@
 						class="h-9 w-9 shrink-0 rounded-full text-muted-foreground"
 						><Plus class="h-5 w-5" /></Button
 					>
+					<!-- svelte-ignore a11y_autofocus -->
 					<input
 						bind:value={newMessage}
 						placeholder={m.chat_type_message()}

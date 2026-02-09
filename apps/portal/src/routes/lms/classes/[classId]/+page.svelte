@@ -39,19 +39,17 @@
 	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
-	const {
-		classInfo,
-		attendances,
-		materials,
-		assignments,
-		attendanceSummary,
-		studentId,
-		user,
-		quizzes,
-		discussions,
-		classId,
-		isLecturer
-	} = data;
+	const assignments = $derived(data.assignments);
+	const quizzes = $derived(data.quizzes);
+	const discussions = $derived(data.discussions);
+	const classId = $derived(data.classId);
+	const isLecturer = $derived(data.isLecturer);
+	const classInfo = $derived(data.classInfo); // Added based on usage
+	const attendances = $derived(data.attendances); // Added based on usage
+	const materials = $derived(data.materials); // Added based on usage
+	const attendanceSummary = $derived(data.attendanceSummary); // Added based on usage
+	const studentId = $derived(data.studentId); // Added based on usage
+	const user = $derived(data.user); // Added based on usage
 
 	let activeMeeting = $state(1);
 	let commentText = $state('');

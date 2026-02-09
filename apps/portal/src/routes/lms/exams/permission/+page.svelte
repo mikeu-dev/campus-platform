@@ -12,7 +12,8 @@
 	} from '$lib/components/ui/table';
 
 	let { data } = $props();
-	const { profile, exams } = data;
+	const profile = $derived(data.profile);
+	const exams = $derived(data.exams);
 
 	function handlePrint() {
 		window.print();

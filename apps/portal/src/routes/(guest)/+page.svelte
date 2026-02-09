@@ -206,11 +206,11 @@
 						<div
 							class="absolute -right-4 -bottom-4 h-72 w-72 rounded-full bg-purple-50 blur-3xl"
 						></div>
-						<div class="relative overflow-hidden rounded-2xl shadow-2xl">
+						<div class="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg">
 							<img
-								src={settings.director_photo ||
+								src={settings.director_image ||
 									'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800'}
-								alt="Director"
+								alt={settings.director_name}
 								class="h-full w-full object-cover"
 							/>
 						</div>

@@ -21,7 +21,7 @@
 	import { cn } from '$lib/utils';
 
 	let { data } = $props();
-	const { exams } = data;
+	const exams = $derived(data.exams);
 
 	function formatDate(date: string) {
 		return new Date(date).toLocaleDateString('id-ID', {
