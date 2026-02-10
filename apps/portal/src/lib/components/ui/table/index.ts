@@ -7,13 +7,4 @@ import TableHead from './table-head.svelte';
 import TableHeader from './table-header.svelte';
 import TableRow from './table-row.svelte';
 
-export {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
-    TableRow
-};
+export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow };

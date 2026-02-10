@@ -2,11 +2,7 @@
 	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils';
 
-	let {
-		children,
-		class: className,
-		...rest
-	}: DropdownMenuPrimitive.GroupHeadingProps = $props();
+	let { children, class: className, ...rest }: DropdownMenuPrimitive.GroupHeadingProps = $props();
 </script>
 
 <DropdownMenuPrimitive.GroupHeading

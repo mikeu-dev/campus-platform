@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { Calendar as CalendarIcon, Clock, CheckCircle, AlertCircle } from 'lucide-svelte';
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
 
@@ -13,13 +19,15 @@
 		return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 	}
 
-	function getUrgencyVariant(deadline: string): "default" | "secondary" | "destructive" | "outline" {
+	function getUrgencyVariant(
+		deadline: string
+	): 'default' | 'secondary' | 'destructive' | 'outline' {
 		const days = getDaysUntil(deadline);
 		if (days <= 1) return 'destructive';
 		if (days <= 3) return 'default'; // Orange-ish usually? default is primary color.
 		return 'secondary';
 	}
-	
+
 	function getUrgencyColorClass(deadline: string): string {
 		const days = getDaysUntil(deadline);
 		if (days <= 1) return 'bg-red-100 text-red-700 hover:bg-red-100/80';
@@ -101,7 +109,9 @@
 		<div class="space-y-6">
 			{#each Object.entries(groupedDeadlines) as [date, items]}
 				<div>
-					<h3 class="mb-3 text-sm font-semibold tracking-wider text-muted-foreground uppercase">{date}</h3>
+					<h3 class="mb-3 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+						{date}
+					</h3>
 					<div class="grid gap-4">
 						{#each items as item (item.id)}
 							<Card class="transition-shadow hover:shadow-md">
@@ -118,18 +128,24 @@
 											<div>
 												<p class="font-medium">{item.title}</p>
 												{#if item.description}
-													<p class="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+													<p class="mt-1 line-clamp-2 text-sm text-muted-foreground">
+														{item.description}
+													</p>
 												{/if}
 											</div>
 											<div class="shrink-0 text-right">
-												<div class="flex items-center justify-end gap-1 text-sm text-muted-foreground">
+												<div
+													class="flex items-center justify-end gap-1 text-sm text-muted-foreground"
+												>
 													<Clock class="h-3.5 w-3.5" />
 													<span>{formatDate(item.deadline)}</span>
 												</div>
 												<div class="mt-2 text-right">
 													<Badge class={getUrgencyColorClass(item.deadline)} variant="outline">
-														{getDaysUntil(item.deadline) <= 1 
-															? (getDaysUntil(item.deadline) === 0 ? 'Due Today!' : 'Tomorrow') 
+														{getDaysUntil(item.deadline) <= 1
+															? getDaysUntil(item.deadline) === 0
+																? 'Due Today!'
+																: 'Tomorrow'
 															: `${getDaysUntil(item.deadline)} days left`}
 													</Badge>
 												</div>
@@ -137,7 +153,10 @@
 										</div>
 										{#if item.is_submitted}
 											<div class="mt-2">
-												<Badge variant="secondary" class="text-green-700 bg-green-100 hover:bg-green-100/80">
+												<Badge
+													variant="secondary"
+													class="bg-green-100 text-green-700 hover:bg-green-100/80"
+												>
 													<CheckCircle class="mr-1 h-3 w-3" /> Submitted
 												</Badge>
 											</div>

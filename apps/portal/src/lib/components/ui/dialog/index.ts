@@ -7,11 +7,11 @@ import DialogDescription from './dialog-description.svelte';
 import DialogTrigger from './dialog-trigger.svelte';
 
 export {
-    Dialog,
-    DialogHeader,
-    DialogFooter,
-    DialogTitle,
-    DialogContent,
-    DialogDescription,
-    DialogTrigger
+	Dialog,
+	DialogHeader,
+	DialogFooter,
+	DialogTitle,
+	DialogContent,
+	DialogDescription,
+	DialogTrigger
 };

@@ -28,7 +28,6 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 			// TODO: Fetch pending assignments count (requires new API or aggregation)
 			// For now, we'll show a placeholder
-
 		} catch (error: any) {
 			console.error('Dashboard data fetch error', error.response?.data || error.message);
 		}

@@ -24,9 +24,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 					});
 					const studentId = profileRes.data.data.id;
 
-					const statsRes = await axios.get(`${PUBLIC_LEARNING_API_URL}/students/${studentId}/stats`, {
-						headers: { Authorization: `Bearer ${token}` }
-					});
+					const statsRes = await axios.get(
+						`${PUBLIC_LEARNING_API_URL}/students/${studentId}/stats`,
+						{
+							headers: { Authorization: `Bearer ${token}` }
+						}
+					);
 					return { ...e, stats: statsRes.data.data };
 				} catch {
 					return { ...e, stats: null };

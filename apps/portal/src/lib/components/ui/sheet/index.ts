@@ -12,25 +12,25 @@ const Close = SheetPrimitive.Close;
 const Portal = SheetPrimitive.Portal;
 
 export {
-    Root,
-    Trigger,
-    Close,
-    Portal,
-    Overlay,
-    Content,
-    Header,
-    Footer,
-    Title,
-    Description,
-    //
-    Root as Sheet,
-    Trigger as SheetTrigger,
-    Close as SheetClose,
-    Portal as SheetPortal,
-    Overlay as SheetOverlay,
-    Content as SheetContent,
-    Header as SheetHeader,
-    Footer as SheetFooter,
-    Title as SheetTitle,
-    Description as SheetDescription
+	Root,
+	Trigger,
+	Close,
+	Portal,
+	Overlay,
+	Content,
+	Header,
+	Footer,
+	Title,
+	Description,
+	//
+	Root as Sheet,
+	Trigger as SheetTrigger,
+	Close as SheetClose,
+	Portal as SheetPortal,
+	Overlay as SheetOverlay,
+	Content as SheetContent,
+	Header as SheetHeader,
+	Footer as SheetFooter,
+	Title as SheetTitle,
+	Description as SheetDescription
 };

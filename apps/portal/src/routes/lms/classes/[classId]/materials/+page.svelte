@@ -2,35 +2,51 @@
 	import { FileText, Video, Link as LinkIcon, File as FileIcon, Plus, Save } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription,
+		CardFooter
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
-	
+
 	let { data, form } = $props();
 	let showForm = $state(false);
 
 	function getIcon(type: string) {
 		switch (type) {
-			case 'video': return Video;
-			case 'link': return LinkIcon;
-			case 'file': return FileIcon;
-			default: return FileText;
+			case 'video':
+				return Video;
+			case 'link':
+				return LinkIcon;
+			case 'file':
+				return FileIcon;
+			default:
+				return FileText;
 		}
 	}
 
-	function getTypeVariant(type: string): "default" | "secondary" | "outline" | "destructive" {
+	function getTypeVariant(type: string): 'default' | 'secondary' | 'outline' | 'destructive' {
 		switch (type) {
-			case 'video': return 'destructive'; // Red-ish
-			case 'link': return 'secondary';
-			case 'file': return 'outline';
-			default: return 'default';
+			case 'video':
+				return 'destructive'; // Red-ish
+			case 'link':
+				return 'secondary';
+			case 'file':
+				return 'outline';
+			default:
+				return 'default';
 		}
 	}
 
 	// Styles matching Shadcn Input for native elements we haven't ported yet
-	const inputClass = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
+	const inputClass =
+		'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 </script>
 
 <div class="space-y-6">
@@ -40,8 +56,12 @@
 			<p class="text-sm text-muted-foreground">Resources and learning content.</p>
 		</div>
 		{#if page.data.user?.roles?.includes('lecturer')}
-			<Button variant={showForm ? "secondary" : "default"} onclick={() => (showForm = !showForm)} size="sm">
-				<Plus class="mr-2 h-4 w-4" /> 
+			<Button
+				variant={showForm ? 'secondary' : 'default'}
+				onclick={() => (showForm = !showForm)}
+				size="sm"
+			>
+				<Plus class="mr-2 h-4 w-4" />
 				{showForm ? 'Cancel' : 'Add Material'}
 			</Button>
 		{/if}
@@ -64,9 +84,15 @@
 				>
 					<div class="grid gap-2">
 						<Label for="title">Title</Label>
-						<Input type="text" name="title" id="title" required placeholder="e.g. Introduction Slides" />
+						<Input
+							type="text"
+							name="title"
+							id="title"
+							required
+							placeholder="e.g. Introduction Slides"
+						/>
 					</div>
-					
+
 					<div class="grid gap-2">
 						<Label for="type">Type</Label>
 						<select id="type" name="type" class={inputClass}>
@@ -79,14 +105,20 @@
 
 					<div class="grid gap-2">
 						<Label for="content">Content / URL</Label>
-						<textarea id="content" name="content" rows="3" class="{inputClass} min-h-[80px]" placeholder="Description or URL..."></textarea>
+						<textarea
+							id="content"
+							name="content"
+							rows="3"
+							class="{inputClass} min-h-[80px]"
+							placeholder="Description or URL..."
+						></textarea>
 					</div>
 
 					<div class="grid gap-2">
 						<Label for="file">Or Upload File</Label>
 						<Input type="file" name="file" id="file" />
 					</div>
-					
+
 					<div class="flex justify-end pt-2">
 						<Button type="submit">
 							<Save class="mr-2 h-4 w-4" /> Save Material
@@ -95,12 +127,12 @@
 				</form>
 
 				{#if form?.error}
-					<div class="mt-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive font-medium">
+					<div class="mt-4 rounded-md bg-destructive/15 p-3 text-sm font-medium text-destructive">
 						{form.error}
 					</div>
 				{/if}
 				{#if form?.success}
-					<div class="mt-4 rounded-md bg-green-500/15 p-3 text-sm text-green-700 font-medium">
+					<div class="mt-4 rounded-md bg-green-500/15 p-3 text-sm font-medium text-green-700">
 						Material added successfully!
 					</div>
 				{/if}
@@ -119,9 +151,9 @@
 					<div class="min-w-0 flex-1">
 						<div class="flex items-start justify-between gap-2">
 							<div>
-								<h4 class="font-medium leading-none">{item.title}</h4>
+								<h4 class="leading-none font-medium">{item.title}</h4>
 								{#if item.content}
-									<p class="mt-1 text-sm text-muted-foreground line-clamp-2">{item.content}</p>
+									<p class="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.content}</p>
 								{/if}
 							</div>
 							<Badge variant={getTypeVariant(item.type)} class="capitalize">

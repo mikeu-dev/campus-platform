@@ -2,16 +2,12 @@
 	import { cn } from '$lib/utils';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	let {
-		class: className,
-		children,
-		...rest
-	}: HTMLAttributes<HTMLTableRowElement> = $props();
+	let { class: className, children, ...rest }: HTMLAttributes<HTMLTableRowElement> = $props();
 </script>
 
 <tr
 	class={cn(
-		'data-[state=selected]:bg-muted border-b transition-colors hover:bg-muted/50',
+		'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
 		className
 	)}
 	{...rest}

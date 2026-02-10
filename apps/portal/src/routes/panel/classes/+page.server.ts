@@ -6,7 +6,13 @@ import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const token = locals.token;
 	if (!locals.user?.roles.includes('admin')) {
-		return { courses: [], lecturers: [], classes: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 }, isAdmin: false };
+		return {
+			courses: [],
+			lecturers: [],
+			classes: [],
+			meta: { page: 1, limit: 10, total: 0, totalPages: 1 },
+			isAdmin: false
+		};
 	}
 
 	const page = Number(url.searchParams.get('page')) || 1;

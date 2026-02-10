@@ -24,21 +24,27 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 			axios.get(`${PUBLIC_ACADEMIC_API_URL}/classes`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),
-			axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
-				headers: { Authorization: `Bearer ${token}` }
-			}).catch(() => ({ data: { data: null } })), // Lecturers may not have student profile
-			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/my`, {
-				headers: { Authorization: `Bearer ${token}` }
-			}).catch(() => ({ data: { data: [] } })),
+			axios
+				.get(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
+					headers: { Authorization: `Bearer ${token}` }
+				})
+				.catch(() => ({ data: { data: null } })), // Lecturers may not have student profile
+			axios
+				.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/my`, {
+					headers: { Authorization: `Bearer ${token}` }
+				})
+				.catch(() => ({ data: { data: [] } })),
 			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/materials`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),
 			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/assignments`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),
-			axios.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/summary`, {
-				headers: { Authorization: `Bearer ${token}` }
-			}).catch(() => ({ data: { data: { hadir: 0, alfa: 0, izin: 0, sakit: 0 } } })),
+			axios
+				.get(`${PUBLIC_ACADEMIC_API_URL}/attendance/${classId}/summary`, {
+					headers: { Authorization: `Bearer ${token}` }
+				})
+				.catch(() => ({ data: { data: { hadir: 0, alfa: 0, izin: 0, sakit: 0 } } })),
 			axios.get(`${PUBLIC_LEARNING_API_URL}/classes/${classId}/quizzes`, {
 				headers: { Authorization: `Bearer ${token}` }
 			}),

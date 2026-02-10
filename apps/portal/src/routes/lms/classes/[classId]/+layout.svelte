@@ -6,7 +6,7 @@
 <div class="space-y-6">
 	<div class="rounded-xl border bg-card text-card-foreground shadow">
 		<div class="p-6">
-			<h2 class="text-2xl font-semibold leading-none tracking-tight">
+			<h2 class="text-2xl leading-none font-semibold tracking-tight">
 				{#if data.classInfo}
 					{data.classInfo.course_code} - {data.classInfo.course_name}
 				{:else}
