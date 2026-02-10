@@ -36,6 +36,8 @@ router.delete('/lecturers/:id', academicController.deleteLecturer);
 // Classes
 router.post('/classes', academicController.createClass);
 router.get('/classes', academicController.getClasses);
+router.put('/classes/:id', academicController.updateClass);
+router.delete('/classes/:id', academicController.deleteClass);
 
 // Enrollments
 router.post('/enrollments', academicController.enrollStudent);

@@ -426,6 +426,7 @@ class AcademicController {
                 SELECT COUNT(c.id)
                 FROM classes c
                 JOIN courses co ON c.course_id = co.id
+                LEFT JOIN lecturers l ON c.lecturer_id = l.id
                 ${whereClause}
             `;
             const countRes = await db.query(countQuery, params);
@@ -435,9 +436,12 @@ class AcademicController {
             params.push(limit);
             params.push(offset);
             const query = `
-            SELECT c.id, c.semester, c.year, c.lecturer_id, co.name as course_name, co.code as course_code
+            SELECT c.id, c.semester, c.year, c.lecturer_id, c.capacity, 
+                   co.name as course_name, co.code as course_code, co.credits,
+                   l.name as lecturer_name
             FROM classes c
             JOIN courses co ON c.course_id = co.id
+            LEFT JOIN lecturers l ON c.lecturer_id = l.id
             ${whereClause}
             ORDER BY c.year DESC, c.semester DESC
             LIMIT $${params.length - 1} OFFSET $${params.length}
@@ -454,6 +458,52 @@ class AcademicController {
                     totalPages: Math.ceil(total / limit)
                 }
             });
+        } catch (err) { next(err); }
+    }
+
+    async updateClass(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const classId = req.params.id;
+            const schemaWithLecturer = classSchema.partial().extend({ lecturer_id: z.string().uuid().nullable().optional() });
+            const { course_id, semester, year, lecturer_id, capacity } = schemaWithLecturer.parse(req.body);
+
+            // TODO: Adding unique check for course+semester+year+class_group if needed
+
+            const result = await db.query(
+                `UPDATE classes 
+                 SET course_id = COALESCE($1, course_id), 
+                     semester = COALESCE($2, semester), 
+                     year = COALESCE($3, year),
+                     lecturer_id = $4, -- Allow null explicitly if passed
+                     capacity = COALESCE($5, capacity),
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE tenant_id = $6 AND id = $7 
+                 RETURNING *`,
+                [course_id, semester, year, lecturer_id, capacity, tenantId, classId]
+            );
+
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Class not found' });
+
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteClass(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const classId = req.params.id;
+
+            const result = await db.query(
+                'DELETE FROM classes WHERE tenant_id = $1 AND id = $2 RETURNING *',
+                [tenantId, classId]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({ status: 'fail', message: 'Class not found' });
+            }
+
+            res.json({ status: 'success', message: 'Class deleted successfully' });
         } catch (err) { next(err); }
     }
 
