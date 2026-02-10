@@ -55,17 +55,21 @@ router.get('/finance/my-bill', academicController.getMyFinancialStatus);
 router.get('/gpa/my', academicController.getMyGPA);
 
 // Attendance
-// Attendance
 router.post('/attendance', academicController.recordAttendance);
 router.post('/attendance/batch', academicController.recordBatchAttendance);
 router.get('/classes/:classId/students', academicController.getClassStudents);
-router.get('/classes/:classId/attendance', academicController.getClassAttendance); // for lecturer view
+router.get('/classes/:classId/attendance', academicController.getClassAttendance);
 router.get('/attendance/:classId/my', academicController.getMyAttendance);
 router.get('/attendance/:classId/summary', academicController.getClassAttendanceSummary);
-
 
 // Grading
 router.get('/classes/:classId/grades', academicController.getGradesByClass);
 router.post('/grades/batch', academicController.upsertGrades);
+
+// Class Schedules
+router.get('/classes/:classId/schedules', academicController.getSchedulesByClass);
+router.post('/schedules', academicController.createSchedule);
+router.put('/schedules/:id', academicController.updateSchedule);
+router.delete('/schedules/:id', academicController.deleteSchedule);
 
 module.exports = router;

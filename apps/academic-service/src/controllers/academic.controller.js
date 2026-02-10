@@ -952,6 +952,68 @@ class AcademicController {
             client.release();
         }
     }
+
+    // --- Class Schedules ---
+    async getSchedulesByClass(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT * FROM class_schedules WHERE tenant_id = $1 AND class_id = $2 ORDER BY day, start_time',
+                [tenantId, classId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async createSchedule(req, res, next) {
+        try {
+            const { class_id, day, start_time, end_time, room, type } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            if (!class_id || !day || !start_time || !end_time) {
+                return res.status(400).json({ status: 'fail', message: 'class_id, day, start_time, end_time are required' });
+            }
+
+            const result = await db.query(
+                `INSERT INTO class_schedules (tenant_id, class_id, day, start_time, end_time, room, type)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+                [tenantId, class_id, day, start_time, end_time, room || null, type || 'offline']
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async updateSchedule(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { day, start_time, end_time, room, type } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `UPDATE class_schedules SET day = $1, start_time = $2, end_time = $3, room = $4, type = $5
+                 WHERE id = $6 AND tenant_id = $7 RETURNING *`,
+                [day, start_time, end_time, room, type || 'offline', id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Schedule not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteSchedule(req, res, next) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'DELETE FROM class_schedules WHERE id = $1 AND tenant_id = $2 RETURNING id',
+                [id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Schedule not found' });
+            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new AcademicController();
