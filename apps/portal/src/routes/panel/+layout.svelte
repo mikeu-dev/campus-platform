@@ -290,6 +290,16 @@
 						<CalendarDays class="h-4 w-4" />
 						Jadwal & Kelas
 					</a>
+					<a
+						href="/panel/academic/schedule"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/schedule') && 'bg-muted text-primary'
+						)}
+					>
+						<ClipboardCheck class="h-4 w-4" />
+						Jadwal Mengajar
+					</a>
 
 					<Separator class="mx-4 my-4" />
 					<div class="my-2 px-3">

@@ -816,6 +816,83 @@ class AcademicController {
             res.json({ status: 'success', data: summary });
         } catch (err) { next(err); }
     }
+
+    async getClassStudents(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const query = `
+                SELECT s.id, s.name, s.student_number
+                FROM enrollments e
+                JOIN students s ON e.student_id = s.id
+                WHERE e.tenant_id = $1 AND e.class_id = $2
+                ORDER BY s.name ASC
+            `;
+            const result = await db.query(query, [tenantId, classId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getClassAttendance(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+            const meetingNumber = req.query.meeting;
+
+            let query = `
+                SELECT a.*, s.name as student_name, s.student_number
+                FROM attendances a
+                JOIN students s ON a.student_id = s.id
+                WHERE a.tenant_id = $1 AND a.class_id = $2
+            `;
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                params.push(meetingNumber);
+                query += ` AND a.meeting_number = $${params.length}`;
+            }
+
+            query += ` ORDER BY s.name ASC`;
+
+            const result = await db.query(query, params);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async recordBatchAttendance(req, res, next) {
+        const client = await db.connect();
+        try {
+            const { class_id, attendances } = req.body; // attendances: [{ student_id, status }]
+            const meeting_number = req.body.meeting_number;
+            const tenantId = req.user.tenant_id;
+
+            if (!attendances || !Array.isArray(attendances)) {
+                return res.status(400).json({ status: 'fail', message: 'Invalid attendances data' });
+            }
+
+            await client.query('BEGIN');
+
+            const query = `
+                INSERT INTO attendances (tenant_id, class_id, student_id, meeting_number, status)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (class_id, student_id, meeting_number)
+                DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP
+            `;
+
+            for (const att of attendances) {
+                await client.query(query, [tenantId, class_id, att.student_id, meeting_number, att.status]);
+            }
+
+            await client.query('COMMIT');
+            res.json({ status: 'success', message: 'Attendance recorded successfully' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            next(err);
+        } finally {
+            client.release();
+        }
+    }
 }
 
 module.exports = new AcademicController();

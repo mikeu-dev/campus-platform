@@ -55,7 +55,11 @@ router.get('/finance/my-bill', academicController.getMyFinancialStatus);
 router.get('/gpa/my', academicController.getMyGPA);
 
 // Attendance
+// Attendance
 router.post('/attendance', academicController.recordAttendance);
+router.post('/attendance/batch', academicController.recordBatchAttendance);
+router.get('/classes/:classId/students', academicController.getClassStudents);
+router.get('/classes/:classId/attendance', academicController.getClassAttendance); // for lecturer view
 router.get('/attendance/:classId/my', academicController.getMyAttendance);
 router.get('/attendance/:classId/summary', academicController.getClassAttendanceSummary);
 
