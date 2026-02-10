@@ -416,6 +416,16 @@ class AcademicController {
                 whereClause += ` AND c.lecturer_id = $${params.length}`;
             }
 
+            if (req.query.semester) {
+                params.push(req.query.semester);
+                whereClause += ` AND c.semester = $${params.length}`;
+            }
+
+            if (req.query.year) {
+                params.push(req.query.year);
+                whereClause += ` AND c.year = $${params.length}`;
+            }
+
             if (search) {
                 params.push(`%${search}%`);
                 whereClause += ` AND (co.name ILIKE $${params.length} OR co.code ILIKE $${params.length})`;
