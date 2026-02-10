@@ -251,6 +251,16 @@
 						</p>
 					</div>
 					<a
+						href="/panel/academic/students"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/students') && 'bg-muted text-primary'
+						)}
+					>
+						<UsersRound class="h-4 w-4" />
+						Data Mahasiswa
+					</a>
+					<a
 						href="/panel/academic/courses"
 						class={cn(
 							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',

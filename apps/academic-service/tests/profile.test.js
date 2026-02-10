@@ -94,4 +94,52 @@ describe('Student Profile API', () => {
             expect(res.body.status).toBe('success');
         });
     });
+
+    describe('Admin Routes', () => {
+        describe('GET /api/v1/students', () => {
+            it('should return list of students', async () => {
+                db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] }); // Count
+                db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1' }] }); // Data
+
+                const res = await request(app).get('/api/v1/students');
+                expect(res.statusCode).toBe(200);
+                expect(res.body.data).toHaveLength(1);
+            });
+        });
+
+        describe('GET /api/v1/students/:id/profile', () => {
+            it('should return student profile by id', async () => {
+                db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1' }] }); // Student
+                db.query.mockResolvedValueOnce({ rows: [{ phone_1: '123' }] }); // Profile
+
+                const res = await request(app).get('/api/v1/students/s1/profile');
+                expect(res.statusCode).toBe(200);
+                expect(res.body.data.name).toBe('Student 1');
+            });
+
+            it('should return 404 if student not found', async () => {
+                db.query.mockResolvedValueOnce({ rows: [] }); // Student
+
+                const res = await request(app).get('/api/v1/students/s1/profile');
+                expect(res.statusCode).toBe(404);
+            });
+        });
+
+        describe('PUT /api/v1/students/:id/profile', () => {
+            it('should update student profile by id', async () => {
+                db.query.mockResolvedValueOnce({ rows: [{ id: 's1' }] }); // Verify student
+                db.query.mockResolvedValueOnce({ rows: [] }); // Check profile (not exists)
+                db.query.mockResolvedValueOnce({ rows: [{ id: 'p1' }] }); // Insert profile
+                db.query.mockResolvedValueOnce({ rows: [{ id: 's1' }] }); // Fresh student
+                db.query.mockResolvedValueOnce({ rows: [{ id: 'p1', phone_1: '999' }] }); // Fresh profile
+
+                const res = await request(app)
+                    .put('/api/v1/students/s1/profile')
+                    .send({ phone_1: '999' });
+
+                expect(res.statusCode).toBe(200);
+                expect(res.body.status).toBe('success');
+            });
+        });
+    });
 });

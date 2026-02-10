@@ -14,9 +14,14 @@ const studentProfileController = require('../controllers/student-profile.control
 
 // Students
 router.post('/students', academicController.createStudent);
+router.get('/students', academicController.getStudents); // Admin: List all students
 router.get('/students/me', academicController.getMyProfile); // Basic info from students table
 router.get('/students/me/profile', studentProfileController.getMyProfile); // Detailed info
 router.put('/students/me/profile', studentProfileController.updateMyProfile);
+
+// Admin Student Management
+router.get('/students/:id/profile', studentProfileController.getStudentProfileById);
+router.put('/students/:id/profile', studentProfileController.updateStudentProfileById);
 
 // Lecturers
 router.post('/lecturers', academicController.createLecturer);

@@ -129,6 +129,50 @@ class AcademicController {
         } catch (err) { next(err); }
     }
 
+    async getStudents(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const search = req.query.search || '';
+            const offset = (page - 1) * limit;
+
+            const params = [tenantId];
+            let whereClause = 'WHERE tenant_id = $1';
+
+            if (search) {
+                params.push(`%${search}%`);
+                whereClause += ` AND (name ILIKE $${params.length} OR platform_student_number ILIKE $${params.length})`;
+            }
+
+            // Count
+            const countRes = await db.query(`SELECT COUNT(id) FROM students ${whereClause}`, params);
+            const total = parseInt(countRes.rows[0].count);
+
+            // Data
+            params.push(limit);
+            params.push(offset);
+            const query = `
+                SELECT * FROM students 
+                ${whereClause} 
+                ORDER BY created_at DESC 
+                LIMIT $${params.length - 1} OFFSET $${params.length}
+            `;
+            const result = await db.query(query, params);
+
+            res.json({
+                status: 'success',
+                data: result.rows,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
+        } catch (err) { next(err); }
+    }
+
     async getMyProfile(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
