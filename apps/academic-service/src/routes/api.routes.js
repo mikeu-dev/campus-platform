@@ -28,6 +28,8 @@ router.put('/students/:id/profile', studentProfileController.updateStudentProfil
 router.post('/lecturers', academicController.createLecturer);
 router.get('/lecturers/me', academicController.getMyLecturerProfile);
 router.get('/lecturers', academicController.getLecturers);
+router.put('/lecturers/:id', academicController.updateLecturer);
+router.delete('/lecturers/:id', academicController.deleteLecturer);
 
 // Classes
 router.post('/classes', academicController.createClass);

@@ -259,8 +259,84 @@ class AcademicController {
     async getLecturers(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query('SELECT * FROM lecturers WHERE tenant_id = $1', [tenantId]);
-            res.json({ status: 'success', data: result.rows });
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const search = req.query.search || '';
+            const offset = (page - 1) * limit;
+
+            const params = [tenantId];
+            let whereClause = 'WHERE tenant_id = $1';
+
+            if (search) {
+                params.push(`%${search}%`);
+                whereClause += ` AND (name ILIKE $${params.length} OR platform_lecturer_number ILIKE $${params.length})`;
+            }
+
+            // Count
+            const countRes = await db.query(`SELECT COUNT(id) FROM lecturers ${whereClause}`, params);
+            const total = parseInt(countRes.rows[0].count);
+
+            // Data
+            params.push(limit);
+            params.push(offset);
+            const query = `
+                SELECT * FROM lecturers 
+                ${whereClause} 
+                ORDER BY created_at DESC 
+                LIMIT $${params.length - 1} OFFSET $${params.length}
+            `;
+            const result = await db.query(query, params);
+
+            res.json({
+                status: 'success',
+                data: result.rows,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
+        } catch (err) { next(err); }
+    }
+
+    async updateLecturer(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const lecturerId = req.params.id;
+            const { name, lecturer_number } = req.body;
+
+            const result = await db.query(
+                `UPDATE lecturers 
+                 SET name = COALESCE($1, name), 
+                     platform_lecturer_number = COALESCE($2, platform_lecturer_number),
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE tenant_id = $3 AND id = $4 
+                 RETURNING *`,
+                [name, lecturer_number, tenantId, lecturerId]
+            );
+
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Lecturer not found' });
+
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteLecturer(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const lecturerId = req.params.id;
+
+            const result = await db.query(
+                'DELETE FROM lecturers WHERE tenant_id = $1 AND id = $2 RETURNING *',
+                [tenantId, lecturerId]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({ status: 'fail', message: 'Lecturer not found' });
+            }
+
+            res.json({ status: 'success', message: 'Lecturer deleted successfully' });
         } catch (err) { next(err); }
     }
 
