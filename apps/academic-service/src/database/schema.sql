@@ -160,3 +160,86 @@ CREATE TABLE IF NOT EXISTS attendances (
   UNIQUE(class_id, student_id, meeting_number)
 );
 
+
+-- Student Profiles Table (Detailed Bios)
+CREATE TABLE IF NOT EXISTS student_profiles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  
+  -- General
+  gender VARCHAR(20), -- Laki-laki, Perempuan
+  place_of_birth VARCHAR(100),
+  date_of_birth DATE,
+  religion VARCHAR(50),
+  phone_1 VARCHAR(20),
+  phone_2 VARCHAR(20),
+  whatsapp VARCHAR(20),
+
+  -- Job
+  job_status VARCHAR(50), -- Bekerja, Tidak Bekerja
+  company_name VARCHAR(255),
+  job_start_year INT,
+  income_range VARCHAR(100), -- < 1M, 1M-5M, etc.
+
+  -- Domicile (KTP)
+  ktp_province VARCHAR(100),
+  ktp_city VARCHAR(100),
+  ktp_district VARCHAR(100), -- Kecamatan
+  ktp_subdistrict VARCHAR(100), -- Kelurahan
+  ktp_rt VARCHAR(10),
+  ktp_rw VARCHAR(10),
+  ktp_postal_code VARCHAR(10),
+  ktp_address TEXT,
+
+  -- Domicile (Current)
+  current_province VARCHAR(100),
+  current_city VARCHAR(100),
+  current_district VARCHAR(100),
+  current_subdistrict VARCHAR(100),
+  current_rt VARCHAR(10),
+  current_rw VARCHAR(10),
+  current_postal_code VARCHAR(10),
+  current_address TEXT,
+
+  -- Citizenship
+  citizenship VARCHAR(50), -- WNI, WNA
+  nik VARCHAR(20),
+  kk_number VARCHAR(20),
+  living_status VARCHAR(50), -- Hidup, Meninggal
+
+  -- Parents (Father)
+  father_nik VARCHAR(20),
+  father_name VARCHAR(255),
+  father_living_status VARCHAR(50),
+  father_phone VARCHAR(20),
+  father_place_of_birth VARCHAR(100),
+  father_date_of_birth DATE,
+  father_religion VARCHAR(50),
+  father_job VARCHAR(100),
+  father_income_range VARCHAR(100),
+  father_address TEXT,
+
+  -- Parents (Mother)
+  mother_nik VARCHAR(20),
+  mother_name VARCHAR(255),
+  mother_living_status VARCHAR(50),
+  mother_phone VARCHAR(20),
+  mother_place_of_birth VARCHAR(100),
+  mother_date_of_birth DATE,
+  mother_religion VARCHAR(50),
+  mother_job VARCHAR(100),
+  mother_income_range VARCHAR(100),
+  mother_address TEXT,
+
+  -- School Origin
+  school_name VARCHAR(255),
+  school_major VARCHAR(100), -- IPA, IPS, SMK TKJ, etc.
+  nisn VARCHAR(20),
+  diploma_number VARCHAR(50),
+  graduation_year INT,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(student_id)
+);

@@ -121,10 +121,10 @@
 						{page.data.user?.email?.substring(0, 2) || 'US'}
 					</AvatarFallback>
 				</Avatar>
-				<div class="flex-1 overflow-hidden">
+				<a href="/siakad/profile" class="flex-1 overflow-hidden hover:underline">
 					<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
 					<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
-				</div>
+				</a>
 				<form action="/logout" method="POST">
 					<Button
 						variant="ghost"

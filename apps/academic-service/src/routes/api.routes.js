@@ -10,9 +10,13 @@ router.use(verifyToken);
 router.post('/courses', academicController.createCourse);
 router.get('/courses', academicController.getCourses);
 
+const studentProfileController = require('../controllers/student-profile.controller');
+
 // Students
 router.post('/students', academicController.createStudent);
-router.get('/students/me', academicController.getMyProfile);
+router.get('/students/me', academicController.getMyProfile); // Basic info from students table
+router.get('/students/me/profile', studentProfileController.getMyProfile); // Detailed info
+router.put('/students/me/profile', studentProfileController.updateMyProfile);
 
 // Lecturers
 router.post('/lecturers', academicController.createLecturer);
