@@ -64,4 +64,8 @@ router.get('/attendance/:classId/my', academicController.getMyAttendance);
 router.get('/attendance/:classId/summary', academicController.getClassAttendanceSummary);
 
 
+// Grading
+router.get('/classes/:classId/grades', academicController.getGradesByClass);
+router.post('/grades/batch', academicController.upsertGrades);
+
 module.exports = router;

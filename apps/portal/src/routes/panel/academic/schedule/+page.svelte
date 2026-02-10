@@ -11,7 +11,7 @@
 		TableRow
 	} from '$lib/components/ui/table';
 	import { Input } from '$lib/components/ui/input';
-	import { CalendarDays, Users, Loader2, Search, Clock, MapPin } from 'lucide-svelte';
+	import { CalendarDays, Users, Loader2, Search, Clock, MapPin, Award } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -163,14 +163,24 @@
 										</div>
 									</TableCell>
 									<TableCell class="text-right">
-										<Button
-											size="sm"
-											variant="outline"
-											href={`/panel/academic/schedule/${cls.id}/attendance`}
-										>
-											<CalendarDays class="mr-2 h-4 w-4" />
-											Presensi
-										</Button>
+										<div class="flex items-center justify-end gap-2">
+											<Button
+												size="sm"
+												variant="outline"
+												href={`/panel/academic/schedule/${cls.id}/attendance`}
+											>
+												<CalendarDays class="mr-2 h-4 w-4" />
+												Presensi
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												href={`/panel/academic/schedule/${cls.id}/grades`}
+											>
+												<Award class="mr-2 h-4 w-4" />
+												Nilai
+											</Button>
+										</div>
 									</TableCell>
 								</TableRow>
 							{/each}

@@ -893,6 +893,65 @@ class AcademicController {
             client.release();
         }
     }
+
+    // --- Grading ---
+    async getGradesByClass(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const query = `
+                SELECT 
+                    e.id as enrollment_id,
+                    s.id as student_id,
+                    s.name as student_name,
+                    s.student_number,
+                    g.id as grade_id,
+                    g.grade,
+                    g.score
+                FROM enrollments e
+                JOIN students s ON e.student_id = s.id
+                LEFT JOIN grades g ON g.enrollment_id = e.id
+                WHERE e.tenant_id = $1 AND e.class_id = $2
+                ORDER BY s.name ASC
+            `;
+            const result = await db.query(query, [tenantId, classId]);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async upsertGrades(req, res, next) {
+        const client = await db.connect();
+        try {
+            const { class_id, grades } = req.body; // grades: [{ enrollment_id, score, grade }]
+            const tenantId = req.user.tenant_id;
+
+            if (!grades || !Array.isArray(grades)) {
+                return res.status(400).json({ status: 'fail', message: 'Invalid grades data' });
+            }
+
+            await client.query('BEGIN');
+
+            const query = `
+                INSERT INTO grades (tenant_id, enrollment_id, score, grade)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (enrollment_id)
+                DO UPDATE SET score = EXCLUDED.score, grade = EXCLUDED.grade
+            `;
+
+            for (const g of grades) {
+                await client.query(query, [tenantId, g.enrollment_id, g.score, g.grade]);
+            }
+
+            await client.query('COMMIT');
+            res.json({ status: 'success', message: 'Grades saved successfully' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            next(err);
+        } finally {
+            client.release();
+        }
+    }
 }
 
 module.exports = new AcademicController();
