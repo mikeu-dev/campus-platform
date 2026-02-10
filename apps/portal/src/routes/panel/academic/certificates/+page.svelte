@@ -204,7 +204,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each requests as req}
+							{#each requests as req (req.id)}
 								<TableRow>
 									<TableCell>
 										<div class="font-medium">{req.student_name}</div>

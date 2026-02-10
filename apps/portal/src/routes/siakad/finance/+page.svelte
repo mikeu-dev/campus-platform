@@ -1,13 +1,5 @@
 <script lang="ts">
-	import {
-		Wallet,
-		CreditCard,
-		History,
-		AlertCircle,
-		CheckCircle2,
-		Download,
-		Printer
-	} from 'lucide-svelte';
+	import { Wallet, CreditCard, History, AlertCircle, Download, Printer } from 'lucide-svelte';
 	import {
 		Card,
 		CardContent,
@@ -25,7 +17,7 @@
 		TableHeader,
 		TableRow
 	} from '$lib/components/ui/table';
-	import { Separator } from '$lib/components/ui/separator';
+
 	import * as m from '$lib/paraglide/messages.js';
 
 	interface Bill {
@@ -156,7 +148,7 @@
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{#each unpaidBills as bill}
+						{#each unpaidBills as bill (bill.id)}
 							<TableRow>
 								<TableCell class="font-medium">{bill.title}</TableCell>
 								<TableCell>{new Date(bill.due_date).toLocaleDateString('id-ID')}</TableCell>
@@ -202,7 +194,7 @@
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{#each paidBills as bill}
+						{#each paidBills as bill (bill.id)}
 							<TableRow>
 								<TableCell class="font-medium">{bill.title}</TableCell>
 								<TableCell

@@ -5,7 +5,6 @@
 		BookOpen,
 		LogOut,
 		GraduationCap,
-		User,
 		Menu,
 		MessageSquare,
 		Calendar
@@ -13,8 +12,7 @@
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Sheet, SheetContent, SheetTrigger } from '$lib/components/ui/sheet';
-	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
-	import { Separator } from '$lib/components/ui/separator';
+	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 	import { cn } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -70,7 +68,7 @@
 		</div>
 		<div class="flex-1 overflow-auto py-2">
 			<nav class="grid items-start px-4 text-sm font-medium">
-				{#each navGroups as group}
+				{#each navGroups as group, i (i)}
 					{#if group.label}
 						<div class="mt-4 mb-2 px-3">
 							<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
@@ -79,7 +77,7 @@
 						</div>
 					{/if}
 
-					{#each group.items as item}
+					{#each group.items as item (item.href)}
 						<a
 							href={item.href}
 							class={cn(

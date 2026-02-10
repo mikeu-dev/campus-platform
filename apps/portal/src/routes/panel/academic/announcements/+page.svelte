@@ -20,7 +20,7 @@
 	} from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Plus, Pencil, Trash2, Loader2, Megaphone, Eye, EyeOff } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Loader2, Eye, EyeOff } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -261,7 +261,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each announcements as item}
+							{#each announcements as item (item.id)}
 								<TableRow>
 									<TableCell>
 										<div class="font-medium">{item.title}</div>

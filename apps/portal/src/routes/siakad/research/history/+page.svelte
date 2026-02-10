@@ -35,7 +35,7 @@
 	</div>
 
 	<div class="grid gap-4">
-		{#each researchHistory as item}
+		{#each researchHistory as item (item.id)}
 			{@const statusInfo = getStatusInfo(item.status)}
 			<Card class="group cursor-pointer transition-colors hover:border-primary/50">
 				<CardContent class="p-6">

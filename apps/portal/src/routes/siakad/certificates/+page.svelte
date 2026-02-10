@@ -127,7 +127,7 @@
 									<option value="" disabled selected
 										>{m.siakad_certificates_form_type_placeholder()}</option
 									>
-									{#each certificateTypes as type}
+									{#each certificateTypes as type (type.value)}
 										<option value={type.value}>{type.label}</option>
 									{/each}
 								</select>
@@ -201,7 +201,7 @@
 				</Card>
 			{:else}
 				<div class="grid gap-4">
-					{#each requestHistory as request}
+					{#each requestHistory as request (request.id)}
 						{@const statusInfo = getStatusInfo(request.status)}
 						{@const Icon = statusInfo.icon}
 						<Card>

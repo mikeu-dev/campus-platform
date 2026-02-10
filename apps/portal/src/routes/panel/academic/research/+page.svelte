@@ -176,7 +176,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each proposals as p}
+							{#each proposals as p (p.id)}
 								<TableRow>
 									<TableCell>
 										<div class="font-medium">{p.student_name}</div>

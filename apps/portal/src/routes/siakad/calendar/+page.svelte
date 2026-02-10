@@ -1,12 +1,6 @@
 <script lang="ts">
 	import { Calendar as CalendarIcon, Clock, CheckCircle, AlertCircle } from 'lucide-svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
+	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
 
@@ -17,15 +11,6 @@
 		const due = new Date(deadline);
 		const diffTime = due.getTime() - now.getTime();
 		return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-	}
-
-	function getUrgencyVariant(
-		deadline: string
-	): 'default' | 'secondary' | 'destructive' | 'outline' {
-		const days = getDaysUntil(deadline);
-		if (days <= 1) return 'destructive';
-		if (days <= 3) return 'default'; // Orange-ish usually? default is primary color.
-		return 'secondary';
 	}
 
 	function getUrgencyColorClass(deadline: string): string {
@@ -107,7 +92,7 @@
 		</Card>
 	{:else}
 		<div class="space-y-6">
-			{#each Object.entries(groupedDeadlines) as [date, items]}
+			{#each Object.entries(groupedDeadlines) as [date, items] (date)}
 				<div>
 					<h3 class="mb-3 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
 						{date}

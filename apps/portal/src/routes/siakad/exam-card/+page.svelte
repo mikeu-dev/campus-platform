@@ -1,12 +1,6 @@
 <script lang="ts">
-	import { Printer, Download, BookOpen, User, Calendar } from 'lucide-svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
+	import { Printer, Download } from 'lucide-svelte';
+	import { Card, CardContent, CardHeader, CardHeader } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Table,
@@ -82,7 +76,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each examCard.exams as exam, i}
+					{#each examCard.exams as exam, i (exam.id || i)}
 						<TableRow>
 							<TableCell>{i + 1}</TableCell>
 							<TableCell class="font-mono">{exam.code}</TableCell>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -16,19 +15,9 @@
 		DialogDescription,
 		DialogHeader,
 		DialogTitle,
-		DialogTrigger,
-		DialogFooter
+		DialogTrigger
 	} from '$lib/components/ui/dialog';
-	import {
-		BookOpen,
-		Calendar,
-		CheckCircle2,
-		Clock,
-		Plus,
-		Loader2,
-		Search,
-		AlertCircle
-	} from 'lucide-svelte';
+	import { Plus, Loader2, Search } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { Input } from '$lib/components/ui/input';
@@ -94,46 +83,6 @@
 		}
 	}
 
-	async function handleEnroll(classId: string) {
-		enrollingId = classId;
-		try {
-			const res = await fetch('http://localhost:3002/api/v1/enrollments', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${data.token}`
-				},
-				body: JSON.stringify({
-					class_id: classId,
-					student_id: data.user?.student_id // Assuming user object has student_id or backend handles it via token
-					// Actually backend enrollStudent expects student_id in body if using that endpoint directly?
-					// Let's check controller: it takes class_id and student_id from body.
-					// But usually student enrolls THEMSELVES.
-					// Controller implementation: "const { class_id, student_id } = enrollmentSchema.parse(req.body);"
-					// If I am a student, I might not know my UUID.
-					// Ideally backend should infer student_id from user_id in token.
-					// For now, let's assume we need to pass it.
-					// We need to fetch basic profile to get student_id if not in session.
-					// Or let's fetch profile first.
-				})
-			});
-
-			const response = await res.json();
-			if (response.status === 'success') {
-				toast.success('Berhasil mengambil mata kuliah');
-				fetchEnrollments();
-				// Optionally remove from list or mark as taken
-			} else {
-				throw new Error(response.message || 'Gagal mengambil mata kuliah');
-			}
-		} catch (error: any) {
-			console.error('Enrollment error:', error);
-			toast.error(error.message || 'Terjadi kesalahan');
-		} finally {
-			enrollingId = null;
-		}
-	}
-
 	// Need to get student ID.
 	// Usually this is done in layout or load function.
 	// Let's assume we fetch it on mount if missing.
@@ -148,7 +97,7 @@
 			if (response.status === 'success') {
 				studentId = response.data.id;
 			}
-		} catch (e) {
+		} catch {
 			console.error('Failed to get profile', e);
 		}
 	}
@@ -274,7 +223,7 @@
 									</TableCell>
 								</TableRow>
 							{:else}
-								{#each availableClasses as cls}
+								{#each availableClasses as cls (cls.id)}
 									<TableRow>
 										<TableCell>{cls.course_code}</TableCell>
 										<TableCell class="font-medium">{cls.course_name}</TableCell>
@@ -373,7 +322,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each enrollments as enr}
+							{#each enrollments as enr (enr.id)}
 								<TableRow>
 									<TableCell>{enr.course_code}</TableCell>
 									<TableCell class="font-medium">{enr.course_name}</TableCell>

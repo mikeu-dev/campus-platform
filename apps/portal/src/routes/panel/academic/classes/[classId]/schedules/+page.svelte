@@ -199,7 +199,7 @@
 							class="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 							bind:value={formDay}
 						>
-							{#each days as day}
+							{#each days as day (day)}
 								<option value={day}>{day}</option>
 							{/each}
 						</select>
@@ -269,7 +269,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each schedules as schedule}
+							{#each schedules as schedule (schedule.id)}
 								<TableRow>
 									<TableCell class="font-medium">{schedule.day}</TableCell>
 									<TableCell>

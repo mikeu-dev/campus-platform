@@ -2,10 +2,7 @@
 	import {
 		Award,
 		TrendingUp,
-		BarChart3,
 		CheckCircle,
-		Lock,
-		Calendar,
 		BookOpen,
 		GraduationCap,
 		Download,
@@ -29,7 +26,7 @@
 	} from '$lib/components/ui/table';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
+
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
@@ -37,12 +34,6 @@
 	const stats = $derived(data.stats);
 	const gpaData = $derived(data.gpaData);
 	const academicGrades = $derived(data.academicGrades);
-
-	// Mock period status - this would come from the server in a real scenario
-	const gradePeriod = $derived({
-		isOpen: true, // Forcing open for Phase 3 demo
-		message: m.siakad_grades_period_closed_desc()
-	});
 
 	function getScoreColorClass(score: number): string {
 		if (score >= 80) return 'bg-green-100 text-green-700';
@@ -154,7 +145,7 @@
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each academicGrades as item}
+							{#each academicGrades as item (item.course_code)}
 								<TableRow>
 									<TableCell class="font-mono text-xs">{item.course_code}</TableCell>
 									<TableCell class="font-medium">{item.course_name}</TableCell>
@@ -211,7 +202,7 @@
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each grades as item}
+							{#each grades as item (item.id)}
 								<TableRow>
 									<TableCell class="font-medium">{item.assignment_title}</TableCell>
 									<TableCell>

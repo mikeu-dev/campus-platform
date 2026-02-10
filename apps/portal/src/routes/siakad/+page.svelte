@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		User,
-		Megaphone,
-		Wallet,
-		TrendingUp,
-		AlertTriangle,
-		Calendar,
-		GraduationCap,
-		Bell
-	} from 'lucide-svelte';
+	import { User, Wallet, Calendar, GraduationCap, Bell } from 'lucide-svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -138,7 +129,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					{#each announcements as announcement}
+					{#each announcements as announcement (announcement.id)}
 						<div class="flex items-start gap-4 border-b pb-4 last:border-0 last:pb-0">
 							<div
 								class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded bg-blue-50 text-blue-600"
@@ -176,7 +167,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					{#each schedules as schedule}
+					{#each schedules as schedule (schedule.id)}
 						<div class="flex items-center justify-between rounded-lg border p-3">
 							<div class="space-y-1">
 								<p class="text-sm font-bold">{schedule.course_name}</p>

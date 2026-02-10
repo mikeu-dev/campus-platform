@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import axios from 'axios';
 import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const token = locals.token;

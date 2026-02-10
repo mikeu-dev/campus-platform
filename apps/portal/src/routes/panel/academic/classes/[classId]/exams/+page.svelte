@@ -260,7 +260,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each exams as exam}
+							{#each exams as exam (exam.id)}
 								<TableRow>
 									<TableCell>
 										<Badge variant={getTypeBadge(exam.type)}>

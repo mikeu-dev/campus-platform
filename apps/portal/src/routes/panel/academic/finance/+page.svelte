@@ -200,7 +200,7 @@
 								bind:value={formStudentId}
 							>
 								<option value="" disabled>Pilih Mahasiswa</option>
-								{#each students as s}
+								{#each students as s (s.id)}
 									<option value={s.id}>{s.student_number} - {s.name}</option>
 								{/each}
 							</select>
@@ -272,7 +272,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each bills as bill}
+							{#each bills as bill (bill.id)}
 								<TableRow>
 									<TableCell>
 										<div class="font-medium">{bill.student_name}</div>

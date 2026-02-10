@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FileText, Send, AlertCircle, CheckCircle2, Info } from 'lucide-svelte';
+	import { Send, AlertCircle, CheckCircle2, Info } from 'lucide-svelte';
 	import {
 		Card,
 		CardContent,
@@ -122,7 +122,7 @@
 						>
 							<option value="" disabled selected>{m.siakad_research_form_type_placeholder()}</option
 							>
-							{#each researchTypes as type}
+							{#each researchTypes as type (type.value)}
 								<option value={type.value}>{type.label}</option>
 							{/each}
 						</select>
