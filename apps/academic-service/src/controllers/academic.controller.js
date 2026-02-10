@@ -115,6 +115,50 @@ class AcademicController {
         } catch (err) { next(err); }
     }
 
+    async updateCourse(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const courseId = req.params.id;
+            const { code, name, credits } = courseSchema.partial().parse(req.body);
+
+            const result = await db.query(
+                `UPDATE courses 
+                 SET code = COALESCE($1, code), 
+                     name = COALESCE($2, name), 
+                     credits = COALESCE($3, credits),
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE tenant_id = $4 AND id = $5 
+                 RETURNING *`,
+                [code, name, credits, tenantId, courseId]
+            );
+
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Course not found' });
+
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) {
+            if (err.code === '23505') return res.status(400).json({ status: 'fail', message: 'Course code already exists' });
+            next(err);
+        }
+    }
+
+    async deleteCourse(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const courseId = req.params.id;
+
+            const result = await db.query(
+                'DELETE FROM courses WHERE tenant_id = $1 AND id = $2 RETURNING *',
+                [tenantId, courseId]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({ status: 'fail', message: 'Course not found' });
+            }
+
+            res.json({ status: 'success', message: 'Course deleted successfully' });
+        } catch (err) { next(err); }
+    }
+
     // --- Students ---
     async createStudent(req, res, next) {
         try {

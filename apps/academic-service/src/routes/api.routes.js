@@ -9,6 +9,8 @@ router.use(verifyToken);
 // Courses
 router.post('/courses', academicController.createCourse);
 router.get('/courses', academicController.getCourses);
+router.put('/courses/:id', academicController.updateCourse);
+router.delete('/courses/:id', academicController.deleteCourse);
 
 const studentProfileController = require('../controllers/student-profile.controller');
 
