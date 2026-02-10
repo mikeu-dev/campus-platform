@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { enhance, applyAction } from '$app/forms';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import {
 		Card,
@@ -13,11 +13,21 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as m from '$lib/paraglide/messages.js';
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogHeader,
+		DialogTitle,
+		DialogTrigger,
+		DialogFooter
+	} from '$lib/components/ui/dialog';
 
 	let { data, form } = $props();
 	let profile = $derived(data.profile || {});
 
 	let activeTab = $state('general');
+	let photoDialogOpen = $state(false);
 </script>
 
 <div class="space-y-6">
@@ -43,13 +53,46 @@
 							<span class="text-xs text-muted-foreground">No Photo</span>
 						{/if}
 					</div>
-					<!-- Upload Placeholder -->
-					<Button variant="outline" size="sm" class="w-full">Upload Foto</Button>
+					<!-- Upload Button -> Opens Dialog -->
+					<Dialog bind:open={photoDialogOpen}>
+						<DialogTrigger>
+							<Button variant="outline" size="sm" class="w-full">Upload Foto</Button>
+						</DialogTrigger>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>Upload Foto Profil</DialogTitle>
+								<DialogDescription>Format: JPG, PNG. Maksimal 2MB.</DialogDescription>
+							</DialogHeader>
+							<form
+								method="POST"
+								action="?/uploadPhoto"
+								enctype="multipart/form-data"
+								use:enhance={() => {
+									return async ({ result }) => {
+										if (result.type === 'success') {
+											photoDialogOpen = false;
+										}
+										await applyAction(result);
+									};
+								}}
+								class="space-y-4"
+							>
+								<div class="grid w-full max-w-sm items-center gap-1.5">
+									<Label for="photo">File Foto</Label>
+									<Input id="photo" name="photo" type="file" accept="image/*" required />
+								</div>
+								<DialogFooter>
+									<Button type="submit">Upload</Button>
+								</DialogFooter>
+							</form>
+						</DialogContent>
+					</Dialog>
 				</div>
 
-				<!-- ACADEMIC INFO FORM -->
+				<!-- ACADEMIC INFO (READ ONLY) -->
 				<div class="flex-1">
-					<form method="POST" action="?/update" use:enhance class="space-y-4">
+					<!-- No Form wrapper needed for read-only display -->
+					<div class="space-y-4">
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 							<div class="space-y-2">
 								<Label>Nama Lengkap</Label>
@@ -61,20 +104,12 @@
 							</div>
 							<div class="space-y-2">
 								<Label for="study_program">Prodi</Label>
-								<Input
-									id="study_program"
-									name="study_program"
-									value={profile.study_program}
-									disabled
-									class="bg-muted"
-								/>
+								<Input id="study_program" value={profile.study_program} disabled class="bg-muted" />
 							</div>
 							<div class="space-y-2">
 								<Label for="current_semester">Semester</Label>
 								<Input
 									id="current_semester"
-									name="current_semester"
-									type="number"
 									value={profile.current_semester}
 									disabled
 									class="bg-muted"
@@ -82,44 +117,19 @@
 							</div>
 							<div class="space-y-2">
 								<Label for="class_program">Program Kelas</Label>
-								<Input
-									id="class_program"
-									name="class_program"
-									value={profile.class_program}
-									disabled
-									class="bg-muted"
-								/>
+								<Input id="class_program" value={profile.class_program} disabled class="bg-muted" />
 							</div>
 							<div class="space-y-2">
 								<Label for="entry_year">Tahun Masuk</Label>
-								<Input
-									id="entry_year"
-									name="entry_year"
-									type="number"
-									value={profile.entry_year}
-									disabled
-									class="bg-muted"
-								/>
+								<Input id="entry_year" value={profile.entry_year} disabled class="bg-muted" />
 							</div>
 							<div class="space-y-2">
 								<Label for="entry_path">Jalur Pendaftaran</Label>
-								<Input
-									id="entry_path"
-									name="entry_path"
-									value={profile.entry_path}
-									disabled
-									class="bg-muted"
-								/>
+								<Input id="entry_path" value={profile.entry_path} disabled class="bg-muted" />
 							</div>
 							<div class="space-y-2">
 								<Label for="entry_batch">Gelombang</Label>
-								<Input
-									id="entry_batch"
-									name="entry_batch"
-									value={profile.entry_batch}
-									disabled
-									class="bg-muted"
-								/>
+								<Input id="entry_batch" value={profile.entry_batch} disabled class="bg-muted" />
 							</div>
 							<div class="space-y-2">
 								<Label for="status">Status</Label>
@@ -129,7 +139,6 @@
 								<Label for="academic_group">Group Akademik</Label>
 								<Input
 									id="academic_group"
-									name="academic_group"
 									value={profile.academic_group}
 									disabled
 									class="bg-muted"
@@ -139,17 +148,14 @@
 								<Label for="academic_advisor">Pembimbing Akademik</Label>
 								<Input
 									id="academic_advisor"
-									name="academic_advisor"
 									value={profile.academic_advisor}
 									disabled
 									class="bg-muted"
 								/>
 							</div>
 						</div>
-						<div class="flex justify-end">
-							<Button type="submit" size="sm">Simpan Data Akademik</Button>
-						</div>
-					</form>
+						<!-- BUTTON REMOVED -->
+					</div>
 				</div>
 			</div>
 		</CardContent>

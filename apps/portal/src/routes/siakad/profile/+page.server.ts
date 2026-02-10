@@ -1,27 +1,64 @@
-import type { PageServerLoad, Actions } from './$types';
+import { fail, redirect } from '@sveltejs/kit';
 import axios from 'axios';
 import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
-import { fail } from '@sveltejs/kit';
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load = async ({ locals, depends }) => {
+    depends('app:profile');
     const token = locals.token;
-    let profile = null;
-
     try {
-        const res = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`, {
+        const response = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        profile = res.data.data;
-    } catch (error: any) {
-        console.error('Failed to load profile:', error.response?.data || error.message);
+        return {
+            profile: response.data.data
+        };
+    } catch (e: any) {
+        if (e.response?.status === 401) {
+            throw redirect(302, '/login');
+        }
+        console.error('Failed to load profile:', e.response?.data || e.message);
+        return {
+            profile: {} // Fail gracefully or show error
+        };
     }
-
-    return {
-        profile
-    };
 };
 
-export const actions: Actions = {
+export const actions = {
+    uploadPhoto: async ({ request, locals }) => {
+        const token = locals.token;
+        const formData = await request.formData();
+        const photo = formData.get('photo') as File;
+
+        if (!photo || photo.size === 0) {
+            return fail(400, { missing: true });
+        }
+
+        try {
+            // Save file to static/uploads
+            const arrayBuffer = await photo.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const fileName = `${Date.now()}-${photo.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+            const uploadDir = 'static/uploads';
+            const filePath = join(process.cwd(), uploadDir, fileName); // Ensure process.cwd() is root of app
+
+            await writeFile(filePath, buffer);
+
+            const photoUrl = `/uploads/${fileName}`;
+
+            // Update profile with photo_url
+            await axios.put(`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`,
+                { photo_url: photoUrl },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            return { success: true };
+        } catch (err: any) {
+            console.error('Upload error:', err);
+            return fail(500, { message: 'Upload failed' });
+        }
+    },
     update: async ({ request, locals }) => {
         const token = locals.token;
         const formData = await request.formData();
