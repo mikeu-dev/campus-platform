@@ -72,6 +72,16 @@ describe('Student Profile API', () => {
                 rows: [{ phone_1: '08123456789' }]
             });
 
+            // Mock fresh student Select
+            db.query.mockResolvedValueOnce({
+                rows: [{ id: 'student-id' }]
+            });
+
+            // Mock fresh profile Select
+            db.query.mockResolvedValueOnce({
+                rows: [{ phone_1: '08123456789' }]
+            });
+
             const res = await request(app)
                 .put('/api/v1/students/me/profile')
                 .send({

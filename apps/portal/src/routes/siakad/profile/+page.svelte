@@ -26,6 +26,135 @@
 		<p class="text-muted-foreground">Kelola informasi lengkap data diri, akademik, dan keluarga.</p>
 	</div>
 
+	<!-- HEADER / ACADEMIC INFO -->
+	<Card>
+		<CardContent class="p-6">
+			<div class="flex flex-col gap-6 md:flex-row">
+				<!-- PHOTO -->
+				<div class="flex flex-col items-center gap-4">
+					<div class="flex h-40 w-32 items-center justify-center rounded-lg border bg-muted">
+						{#if profile.photo_url}
+							<img
+								src={profile.photo_url}
+								alt="Foto Profil"
+								class="h-full w-full rounded-lg object-cover"
+							/>
+						{:else}
+							<span class="text-xs text-muted-foreground">No Photo</span>
+						{/if}
+					</div>
+					<!-- Upload Placeholder -->
+					<Button variant="outline" size="sm" class="w-full">Upload Foto</Button>
+				</div>
+
+				<!-- ACADEMIC INFO FORM -->
+				<div class="flex-1">
+					<form method="POST" action="?/update" use:enhance class="space-y-4">
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+							<div class="space-y-2">
+								<Label>Nama Lengkap</Label>
+								<Input value={profile.name} disabled class="bg-muted" />
+							</div>
+							<div class="space-y-2">
+								<Label>NIM</Label>
+								<Input value={profile.platform_student_number} disabled class="bg-muted" />
+							</div>
+							<div class="space-y-2">
+								<Label for="study_program">Prodi</Label>
+								<Input
+									id="study_program"
+									name="study_program"
+									value={profile.study_program}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="current_semester">Semester</Label>
+								<Input
+									id="current_semester"
+									name="current_semester"
+									type="number"
+									value={profile.current_semester}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="class_program">Program Kelas</Label>
+								<Input
+									id="class_program"
+									name="class_program"
+									value={profile.class_program}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="entry_year">Tahun Masuk</Label>
+								<Input
+									id="entry_year"
+									name="entry_year"
+									type="number"
+									value={profile.entry_year}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="entry_path">Jalur Pendaftaran</Label>
+								<Input
+									id="entry_path"
+									name="entry_path"
+									value={profile.entry_path}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="entry_batch">Gelombang</Label>
+								<Input
+									id="entry_batch"
+									name="entry_batch"
+									value={profile.entry_batch}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="status">Status</Label>
+								<Input id="status" value={profile.status} disabled class="bg-muted capitalize" />
+							</div>
+							<div class="space-y-2">
+								<Label for="academic_group">Group Akademik</Label>
+								<Input
+									id="academic_group"
+									name="academic_group"
+									value={profile.academic_group}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+							<div class="space-y-2">
+								<Label for="academic_advisor">Pembimbing Akademik</Label>
+								<Input
+									id="academic_advisor"
+									name="academic_advisor"
+									value={profile.academic_advisor}
+									disabled
+									class="bg-muted"
+								/>
+							</div>
+						</div>
+						<div class="flex justify-end">
+							<Button type="submit" size="sm">Simpan Data Akademik</Button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</CardContent>
+	</Card>
+
 	<Tabs value={activeTab} onValueChange={(v: string) => (activeTab = v)} class="space-y-4">
 		<TabsList class="grid h-auto w-full grid-cols-2 lg:grid-cols-6">
 			<TabsTrigger value="general">Umum</TabsTrigger>

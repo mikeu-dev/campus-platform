@@ -3,6 +3,16 @@ const { z } = require('zod');
 
 // Validation Schema for Profile
 const studentProfileSchema = z.object({
+    // Academic
+    study_program: z.string().optional(),
+    current_semester: z.coerce.number().optional(),
+    class_program: z.string().optional(),
+    entry_year: z.coerce.number().optional(),
+    entry_path: z.string().optional(),
+    entry_batch: z.string().optional(),
+    academic_group: z.string().optional(),
+    academic_advisor: z.string().optional(),
+
     // General
     gender: z.string().optional(),
     place_of_birth: z.string().optional(),
@@ -86,7 +96,7 @@ class StudentProfileController {
 
             // First get the student ID
             const studentRes = await db.query(
-                'SELECT id, name, platform_student_number, status FROM students WHERE tenant_id = $1 AND user_id = $2',
+                'SELECT * FROM students WHERE tenant_id = $1 AND user_id = $2',
                 [tenantId, userId]
             );
 
@@ -136,41 +146,80 @@ class StudentProfileController {
             }
             const studentId = studentRes.rows[0].id;
 
-            // Construct Update/Insert Query
-            // We use upsert on student_id
+            // Split data into students table fields and student_profiles table fields
+            // Academic fields are read-only for students, except photo_url
+            const studentFields = ['photo_url'];
 
-            const columns = Object.keys(data).filter(key => data[key] !== undefined);
+            const studentData = {};
+            const profileData = {};
 
-            if (columns.length === 0) {
-                return res.json({ status: 'success', message: 'No changes detected' });
+            Object.keys(data).forEach(key => {
+                if (data[key] !== undefined) {
+                    if (studentFields.includes(key)) {
+                        studentData[key] = data[key];
+                    } else {
+                        profileData[key] = data[key];
+                    }
+                }
+            });
+
+            // 1. Update students table if there are relevant fields
+            if (Object.keys(studentData).length > 0) {
+                const cols = Object.keys(studentData);
+                const setClause = cols.map((col, idx) => `${col} = $${idx + 2}`).join(', ');
+                const values = [studentId, ...cols.map(col => studentData[col])];
+
+                await db.query(`UPDATE students SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1`, values);
             }
 
-            // check if profile exists
-            const checkRes = await db.query('SELECT id FROM student_profiles WHERE student_id = $1', [studentId]);
-            const exists = checkRes.rows.length > 0;
+            // 2. Update/Insert student_profiles table
+            const profileColumns = Object.keys(profileData);
+            let profileResult = {};
 
-            let result;
-            if (exists) {
-                // Update
-                const setClause = columns.map((col, idx) => `${col} = $${idx + 2}`).join(', ');
-                const values = [studentId, ...columns.map(col => data[col])];
-                // Add updated_at
+            if (profileColumns.length > 0) {
+                // check if profile exists
+                const checkRes = await db.query('SELECT id FROM student_profiles WHERE student_id = $1', [studentId]);
+                const exists = checkRes.rows.length > 0;
 
-                const query = `UPDATE student_profiles SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE student_id = $1 RETURNING *`;
-                const updateRes = await db.query(query, values);
-                result = updateRes.rows[0];
-            } else {
-                // Insert
-                const cols = ['tenant_id', 'student_id', ...columns].join(', ');
-                const placeholders = ['$1', '$2', ...columns.map((_, idx) => `$${idx + 3}`)].join(', ');
-                const values = [tenantId, studentId, ...columns.map(col => data[col])];
+                if (exists) {
+                    // Update
+                    const setClause = profileColumns.map((col, idx) => `${col} = $${idx + 2}`).join(', ');
+                    const values = [studentId, ...profileColumns.map(col => profileData[col])];
+                    const query = `UPDATE student_profiles SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE student_id = $1 RETURNING *`;
+                    const updateRes = await db.query(query, values);
+                    profileResult = updateRes.rows[0];
+                } else {
+                    // Insert
+                    const cols = ['tenant_id', 'student_id', ...profileColumns].join(', ');
+                    const placeholders = ['$1', '$2', ...profileColumns.map((_, idx) => `$${idx + 3}`)].join(', ');
+                    const values = [tenantId, studentId, ...profileColumns.map(col => profileData[col])];
 
-                const query = `INSERT INTO student_profiles (${cols}) VALUES (${placeholders}) RETURNING *`;
-                const insertRes = await db.query(query, values);
-                result = insertRes.rows[0];
+                    const query = `INSERT INTO student_profiles (${cols}) VALUES (${placeholders}) RETURNING *`;
+                    const insertRes = await db.query(query, values);
+                    profileResult = insertRes.rows[0];
+                }
             }
 
-            res.json({ status: 'success', data: result });
+            // Return combined data
+            // Fetch fresh student data to be sure
+            const freshStudentRes = await db.query('SELECT * FROM students WHERE id = $1', [studentId]);
+            const freshStudent = freshStudentRes.rows[0];
+
+            // Re-fetch profile if we didn't just update it (or even if we did, to be safe/simple, but we have profileResult)
+            // If profileResult is empty (no fields updated), we should fetch it. 
+            // If we updated it, profileResult has the data.
+            // Simplified: just fetch everything fresh.
+            const freshProfileRes = await db.query('SELECT * FROM student_profiles WHERE student_id = $1', [studentId]);
+            const freshProfile = freshProfileRes.rows[0] || {};
+
+            const fullProfile = {
+                ...freshStudent,
+                ...freshProfile,
+                id: freshStudent.id,
+                profile_id: freshProfile.id
+            };
+
+            res.json({ status: 'success', data: fullProfile });
 
         } catch (err) {
             next(err);

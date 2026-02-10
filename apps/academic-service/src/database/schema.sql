@@ -11,6 +11,18 @@ CREATE TABLE IF NOT EXISTS students (
   status VARCHAR(50) DEFAULT 'active', -- active, graduated, dropout, leave
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  photo_url VARCHAR(255),
+  
+  -- Academic Details
+  study_program VARCHAR(100), -- Prodi
+  current_semester INT DEFAULT 1,
+  class_program VARCHAR(50), -- Reguler, Ekstensi
+  entry_year INT,
+  entry_path VARCHAR(50), -- SBMPTN, Mandiri
+  entry_batch VARCHAR(20), -- Gelombang 1
+  academic_group VARCHAR(50), -- Kelas A, B
+  academic_advisor VARCHAR(100), -- Name of advisor
+  
   UNIQUE(tenant_id, user_id)
 );
 
