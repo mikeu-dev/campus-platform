@@ -85,7 +85,9 @@ describe('Student Profile API', () => {
             const res = await request(app)
                 .put('/api/v1/students/me/profile')
                 .send({
-                    phone_1: '08123456789'
+                    phone_1: '08123456789',
+                    father_religion: 'Islam',
+                    mother_address: 'Jl. Merdeka No. 1'
                 });
 
             expect(res.statusCode).toBe(200);

@@ -539,6 +539,18 @@
 										value={profile.father_income_range}
 									/>
 								</div>
+								<div class="space-y-2">
+									<Label for="father_religion">Agama</Label>
+									<Input
+										id="father_religion"
+										name="father_religion"
+										value={profile.father_religion}
+									/>
+								</div>
+								<div class="col-span-1 space-y-2 md:col-span-2">
+									<Label for="father_address">Alamat</Label>
+									<Input id="father_address" name="father_address" value={profile.father_address} />
+								</div>
 							</div>
 						</div>
 
@@ -597,6 +609,18 @@
 										name="mother_income_range"
 										value={profile.mother_income_range}
 									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="mother_religion">Agama</Label>
+									<Input
+										id="mother_religion"
+										name="mother_religion"
+										value={profile.mother_religion}
+									/>
+								</div>
+								<div class="col-span-1 space-y-2 md:col-span-2">
+									<Label for="mother_address">Alamat</Label>
+									<Input id="mother_address" name="mother_address" value={profile.mother_address} />
 								</div>
 							</div>
 						</div>

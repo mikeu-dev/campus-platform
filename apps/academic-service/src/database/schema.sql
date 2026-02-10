@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
   father_date_of_birth DATE,
   father_religion VARCHAR(50),
   father_job VARCHAR(100),
-  father_income_range VARCHAR(100),
+  father_income_range VARCHAR(50),
   father_address TEXT,
 
   -- Parents (Mother)
@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
   mother_date_of_birth DATE,
   mother_religion VARCHAR(50),
   mother_job VARCHAR(100),
-  mother_income_range VARCHAR(100),
+  mother_income_range VARCHAR(50),
   mother_address TEXT,
 
   -- School Origin
