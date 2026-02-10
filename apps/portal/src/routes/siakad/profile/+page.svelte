@@ -28,6 +28,17 @@
 
 	let activeTab = $state('general');
 	let photoDialogOpen = $state(false);
+
+	// Edit Mode States
+	let editGeneral = $state(false);
+	let editContact = $state(false);
+	let editJob = $state(false);
+	let editKtp = $state(false);
+	let editCurrent = $state(false);
+	let editCitizenship = $state(false);
+	let editFather = $state(false);
+	let editMother = $state(false);
+	let editSchool = $state(false);
 </script>
 
 <div class="space-y-6">
@@ -172,82 +183,180 @@
 		</TabsList>
 
 		<!-- GENERAL -->
-		<TabsContent value="general">
+		<!-- GENERAL -->
+		<TabsContent value="general" class="space-y-4">
+			<!-- Informasi Umum -->
 			<Card>
-				<CardHeader>
-					<CardTitle>Informasi Umum & Kontak</CardTitle>
-					<CardDescription>Data pribadi dan informasi kontak yang dapat dihubungi.</CardDescription>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Informasi Umum</CardTitle>
+						<CardDescription>Data pribadi</CardDescription>
+					</div>
+					{#if !editGeneral}
+						<Button variant="ghost" size="sm" onclick={() => (editGeneral = true)}>Edit</Button>
+					{/if}
 				</CardHeader>
-				<CardContent class="space-y-4">
-					<form method="POST" action="?/update" use:enhance class="space-y-4">
-						<input type="hidden" name="section" value="general" />
-
+				<CardContent>
+					{#if !editGeneral}
+						<!-- READ ONLY VIEW -->
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-							<div class="space-y-2">
-								<Label>Nama Lengkap</Label>
-								<Input value={profile.name} disabled />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nama Lengkap</p>
+								<p>{profile.name || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label>NIM</Label>
-								<Input value={profile.platform_student_number} disabled />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">NIM</p>
+								<p>{profile.platform_student_number || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="gender">Jenis Kelamin</Label>
-								<Input
-									id="gender"
-									name="gender"
-									value={profile.gender}
-									placeholder="Laki-laki / Perempuan"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Jenis Kelamin</p>
+								<p>{profile.gender || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="religion">Agama</Label>
-								<Input
-									id="religion"
-									name="religion"
-									value={profile.religion}
-									placeholder="Islam, Kristen, dll"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Agama</p>
+								<p>{profile.religion || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="place_of_birth">Tempat Lahir</Label>
-								<Input id="place_of_birth" name="place_of_birth" value={profile.place_of_birth} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tempat Lahir</p>
+								<p>{profile.place_of_birth || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="date_of_birth">Tanggal Lahir</Label>
-								<Input
-									id="date_of_birth"
-									name="date_of_birth"
-									type="date"
-									value={profile.date_of_birth
-										? new Date(profile.date_of_birth).toISOString().split('T')[0]
-										: ''}
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tanggal Lahir</p>
+								<p>
+									{profile.date_of_birth
+										? new Date(profile.date_of_birth).toLocaleDateString('id-ID')
+										: '-'}
+								</p>
 							</div>
 						</div>
+					{:else}
+						<!-- EDIT FORM -->
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editGeneral = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="space-y-2">
+									<Label>Nama Lengkap</Label>
+									<Input value={profile.name} disabled />
+								</div>
+								<div class="space-y-2">
+									<Label>NIM</Label>
+									<Input value={profile.platform_student_number} disabled />
+								</div>
+								<div class="space-y-2">
+									<Label for="gender">Jenis Kelamin</Label>
+									<Input
+										id="gender"
+										name="gender"
+										value={profile.gender}
+										placeholder="Laki-laki / Perempuan"
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="religion">Agama</Label>
+									<Input
+										id="religion"
+										name="religion"
+										value={profile.religion}
+										placeholder="Islam, Kristen, dll"
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="place_of_birth">Tempat Lahir</Label>
+									<Input id="place_of_birth" name="place_of_birth" value={profile.place_of_birth} />
+								</div>
+								<div class="space-y-2">
+									<Label for="date_of_birth">Tanggal Lahir</Label>
+									<Input
+										id="date_of_birth"
+										name="date_of_birth"
+										type="date"
+										value={profile.date_of_birth
+											? new Date(profile.date_of_birth).toISOString().split('T')[0]
+											: ''}
+									/>
+								</div>
+							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editGeneral = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
+				</CardContent>
+			</Card>
 
-						<Separator />
-						<h3 class="text-lg font-medium">Kontak</h3>
-
+			<!-- Kontak -->
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Kontak</CardTitle>
+						<CardDescription>Informasi kontak</CardDescription>
+					</div>
+					{#if !editContact}
+						<Button variant="ghost" size="sm" onclick={() => (editContact = true)}>Edit</Button>
+					{/if}
+				</CardHeader>
+				<CardContent>
+					{#if !editContact}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-							<div class="space-y-2">
-								<Label for="phone_1">No. HP 1</Label>
-								<Input id="phone_1" name="phone_1" value={profile.phone_1} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">No. HP 1</p>
+								<p>{profile.phone_1 || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="phone_2">No. HP 2</Label>
-								<Input id="phone_2" name="phone_2" value={profile.phone_2} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">No. HP 2</p>
+								<p>{profile.phone_2 || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="whatsapp">WhatsApp</Label>
-								<Input id="whatsapp" name="whatsapp" value={profile.whatsapp} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">WhatsApp</p>
+								<p>{profile.whatsapp || '-'}</p>
 							</div>
 						</div>
-
-						<div class="flex justify-end">
-							<Button type="submit">Simpan Perubahan</Button>
-						</div>
-					</form>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editContact = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+								<div class="space-y-2">
+									<Label for="phone_1">No. HP 1</Label>
+									<Input id="phone_1" name="phone_1" value={profile.phone_1} />
+								</div>
+								<div class="space-y-2">
+									<Label for="phone_2">No. HP 2</Label>
+									<Input id="phone_2" name="phone_2" value={profile.phone_2} />
+								</div>
+								<div class="space-y-2">
+									<Label for="whatsapp">WhatsApp</Label>
+									<Input id="whatsapp" name="whatsapp" value={profile.whatsapp} />
+								</div>
+							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editContact = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
 				</CardContent>
 			</Card>
 		</TabsContent>
@@ -255,66 +364,158 @@
 		<!-- JOB -->
 		<TabsContent value="job">
 			<Card>
-				<CardHeader>
-					<CardTitle>Data Pekerjaan</CardTitle>
-					<CardDescription>Informasi mengenai status pekerjaan saat ini.</CardDescription>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Data Pekerjaan</CardTitle>
+						<CardDescription>Informasi mengenai status pekerjaan saat ini.</CardDescription>
+					</div>
+					{#if !editJob}
+						<Button variant="ghost" size="sm" onclick={() => (editJob = true)}>Edit</Button>
+					{/if}
 				</CardHeader>
 				<CardContent>
-					<form method="POST" action="?/update" use:enhance class="space-y-4">
+					{#if !editJob}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-							<div class="space-y-2">
-								<Label for="job_status">Status Pekerjaan</Label>
-								<Input
-									id="job_status"
-									name="job_status"
-									value={profile.job_status}
-									placeholder="Bekerja / Tidak Bekerja"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Status Pekerjaan</p>
+								<p>{profile.job_status || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="company_name">Nama Perusahaan</Label>
-								<Input id="company_name" name="company_name" value={profile.company_name} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nama Perusahaan</p>
+								<p>{profile.company_name || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="job_start_year">Tahun Mulai</Label>
-								<Input
-									id="job_start_year"
-									name="job_start_year"
-									type="number"
-									value={profile.job_start_year}
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tahun Mulai</p>
+								<p>{profile.job_start_year || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="income_range">Penghasilan</Label>
-								<Input
-									id="income_range"
-									name="income_range"
-									value={profile.income_range}
-									placeholder="< 5 Juta"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Penghasilan</p>
+								<p>{profile.income_range || '-'}</p>
 							</div>
 						</div>
-						<div class="flex justify-end">
-							<Button type="submit">Simpan Perubahan</Button>
-						</div>
-					</form>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editJob = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="space-y-2">
+									<Label for="job_status">Status Pekerjaan</Label>
+									<Input
+										id="job_status"
+										name="job_status"
+										value={profile.job_status}
+										placeholder="Bekerja / Tidak Bekerja"
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="company_name">Nama Perusahaan</Label>
+									<Input id="company_name" name="company_name" value={profile.company_name} />
+								</div>
+								<div class="space-y-2">
+									<Label for="job_start_year">Tahun Mulai</Label>
+									<Input
+										id="job_start_year"
+										name="job_start_year"
+										type="number"
+										value={profile.job_start_year}
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="income_range">Penghasilan</Label>
+									<Input
+										id="income_range"
+										name="income_range"
+										value={profile.income_range}
+										placeholder="< 5 Juta"
+									/>
+								</div>
+							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editJob = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
 				</CardContent>
 			</Card>
 		</TabsContent>
 
 		<!-- DOMICILE -->
-		<TabsContent value="domicile">
+		<!-- DOMICILE -->
+		<TabsContent value="domicile" class="space-y-4">
+			<!-- KTP -->
 			<Card>
-				<CardHeader>
-					<CardTitle>Data Domisili</CardTitle>
-					<CardDescription>Alamat sesuai KTP dan tempat tinggal saat ini.</CardDescription>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Domisili KTP</CardTitle>
+						<CardDescription>Alamat sesuai KTP/Identitas</CardDescription>
+					</div>
+					{#if !editKtp}
+						<Button variant="ghost" size="sm" onclick={() => (editKtp = true)}>Edit</Button>
+					{/if}
 				</CardHeader>
-				<CardContent class="space-y-6">
-					<form method="POST" action="?/update" use:enhance class="space-y-6">
-						<div class="space-y-4">
-							<h3 class="text-lg font-medium">Domisili KTP</h3>
+				<CardContent>
+					{#if !editKtp}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div class="md:col-span-2">
+								<p class="text-sm font-medium text-muted-foreground">Alamat Lengkap</p>
+								<p>{profile.ktp_address || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Provinsi</p>
+								<p>{profile.ktp_province || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kota/Kabupaten</p>
+								<p>{profile.ktp_city || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kecamatan</p>
+								<p>{profile.ktp_district || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kelurahan</p>
+								<p>{profile.ktp_subdistrict || '-'}</p>
+							</div>
+							<div class="grid grid-cols-3 gap-2">
+								<div>
+									<p class="text-sm font-medium text-muted-foreground">RT</p>
+									<p>{profile.ktp_rt || '-'}</p>
+								</div>
+								<div>
+									<p class="text-sm font-medium text-muted-foreground">RW</p>
+									<p>{profile.ktp_rw || '-'}</p>
+								</div>
+								<div>
+									<p class="text-sm font-medium text-muted-foreground">Kode Pos</p>
+									<p>{profile.ktp_postal_code || '-'}</p>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editKtp = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-6"
+						>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-								<div class="space-y-2">
+								<div class="space-y-2 md:col-span-2">
 									<Label for="ktp_address">Alamat Lengkap</Label>
 									<Input id="ktp_address" name="ktp_address" value={profile.ktp_address} />
 								</div>
@@ -357,14 +558,80 @@
 									</div>
 								</div>
 							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editKtp = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
+				</CardContent>
+			</Card>
+
+			<!-- DOMISILI SAAT INI -->
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Domisili Saat Ini</CardTitle>
+						<CardDescription>Tempat tinggal sekarang</CardDescription>
+					</div>
+					{#if !editCurrent}
+						<Button variant="ghost" size="sm" onclick={() => (editCurrent = true)}>Edit</Button>
+					{/if}
+				</CardHeader>
+				<CardContent>
+					{#if !editCurrent}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div class="md:col-span-2">
+								<p class="text-sm font-medium text-muted-foreground">Alamat Lengkap</p>
+								<p>{profile.current_address || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Provinsi</p>
+								<p>{profile.current_province || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kota/Kabupaten</p>
+								<p>{profile.current_city || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kecamatan</p>
+								<p>{profile.current_district || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kelurahan</p>
+								<p>{profile.current_subdistrict || '-'}</p>
+							</div>
+							<div class="grid grid-cols-3 gap-2">
+								<div>
+									<p class="text-sm font-medium text-muted-foreground">RT</p>
+									<p>{profile.current_rt || '-'}</p>
+								</div>
+								<div>
+									<p class="text-sm font-medium text-muted-foreground">RW</p>
+									<p>{profile.current_rw || '-'}</p>
+								</div>
+								<div>
+									<p class="text-sm font-medium text-muted-foreground">Kode Pos</p>
+									<p>{profile.current_postal_code || '-'}</p>
+								</div>
+							</div>
 						</div>
-
-						<Separator />
-
-						<div class="space-y-4">
-							<h3 class="text-lg font-medium">Domisili Saat Ini</h3>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editCurrent = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-								<div class="space-y-2">
+								<div class="space-y-2 md:col-span-2">
 									<Label for="current_address">Alamat Lengkap</Label>
 									<Input
 										id="current_address"
@@ -419,74 +686,179 @@
 									</div>
 								</div>
 							</div>
-						</div>
-
-						<div class="flex justify-end">
-							<Button type="submit">Simpan Perubahan</Button>
-						</div>
-					</form>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editCurrent = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
 				</CardContent>
 			</Card>
 		</TabsContent>
 
 		<!-- CITIZENSHIP -->
+		<!-- CITIZENSHIP -->
 		<TabsContent value="citizenship">
 			<Card>
-				<CardHeader>
-					<CardTitle>Kewarganegaraan</CardTitle>
-					<CardDescription
-						>Informasi status kewarganegaraan dan dokumen kependudukan.</CardDescription
-					>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Kewarganegaraan</CardTitle>
+						<CardDescription
+							>Informasi status kewarganegaraan dan dokumen kependudukan.</CardDescription
+						>
+					</div>
+					{#if !editCitizenship}
+						<Button variant="ghost" size="sm" onclick={() => (editCitizenship = true)}>Edit</Button>
+					{/if}
 				</CardHeader>
 				<CardContent>
-					<form method="POST" action="?/update" use:enhance class="space-y-4">
+					{#if !editCitizenship}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-							<div class="space-y-2">
-								<Label for="citizenship">Kewarganegaraan</Label>
-								<Input
-									id="citizenship"
-									name="citizenship"
-									value={profile.citizenship}
-									placeholder="WNI / WNA"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Kewarganegaraan</p>
+								<p>{profile.citizenship || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="nik">NIK (Nomor Induk Kependudukan)</Label>
-								<Input id="nik" name="nik" value={profile.nik} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">NIK</p>
+								<p>{profile.nik || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="kk_number">Nomor KK</Label>
-								<Input id="kk_number" name="kk_number" value={profile.kk_number} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nomor KK</p>
+								<p>{profile.kk_number || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="living_status">Status Hidup</Label>
-								<Input
-									id="living_status"
-									name="living_status"
-									value={profile.living_status}
-									placeholder="Hidup"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Status Hidup</p>
+								<p>{profile.living_status || '-'}</p>
 							</div>
 						</div>
-						<div class="flex justify-end">
-							<Button type="submit">Simpan Perubahan</Button>
-						</div>
-					</form>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editCitizenship = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="space-y-2">
+									<Label for="citizenship">Kewarganegaraan</Label>
+									<Input
+										id="citizenship"
+										name="citizenship"
+										value={profile.citizenship}
+										placeholder="WNI / WNA"
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="nik">NIK (Nomor Induk Kependudukan)</Label>
+									<Input id="nik" name="nik" value={profile.nik} />
+								</div>
+								<div class="space-y-2">
+									<Label for="kk_number">Nomor KK</Label>
+									<Input id="kk_number" name="kk_number" value={profile.kk_number} />
+								</div>
+								<div class="space-y-2">
+									<Label for="living_status">Status Hidup</Label>
+									<Input
+										id="living_status"
+										name="living_status"
+										value={profile.living_status}
+										placeholder="Hidup"
+									/>
+								</div>
+							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editCitizenship = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
 				</CardContent>
 			</Card>
 		</TabsContent>
 
 		<!-- PARENTS -->
-		<TabsContent value="parents">
+		<!-- PARENTS -->
+		<TabsContent value="parents" class="space-y-4">
+			<!-- FATHER -->
 			<Card>
-				<CardHeader>
-					<CardTitle>Data Orang Tua</CardTitle>
-					<CardDescription>Informasi mengenai Ayah dan Ibu kandung.</CardDescription>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Ayah Kandung</CardTitle>
+						<CardDescription>Informasi mengenai Ayah kandung.</CardDescription>
+					</div>
+					{#if !editFather}
+						<Button variant="ghost" size="sm" onclick={() => (editFather = true)}>Edit</Button>
+					{/if}
 				</CardHeader>
-				<CardContent class="space-y-6">
-					<form method="POST" action="?/update" use:enhance class="space-y-6">
-						<div class="space-y-4">
-							<h3 class="text-lg font-medium">Ayah Kandung</h3>
+				<CardContent>
+					{#if !editFather}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nama Lengkap</p>
+								<p>{profile.father_name || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">NIK</p>
+								<p>{profile.father_nik || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Status Hidup</p>
+								<p>{profile.father_living_status || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">No. HP</p>
+								<p>{profile.father_phone || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tempat Lahir</p>
+								<p>{profile.father_place_of_birth || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tanggal Lahir</p>
+								<p>
+									{profile.father_date_of_birth
+										? new Date(profile.father_date_of_birth).toLocaleDateString('id-ID')
+										: '-'}
+								</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Agama</p>
+								<p>{profile.father_religion || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Pekerjaan</p>
+								<p>{profile.father_job || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Penghasilan</p>
+								<p>{profile.father_income_range || '-'}</p>
+							</div>
+							<div class="md:col-span-2">
+								<p class="text-sm font-medium text-muted-foreground">Alamat</p>
+								<p>{profile.father_address || '-'}</p>
+							</div>
+						</div>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editFather = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 								<div class="space-y-2">
 									<Label for="father_name">Nama Lengkap</Label>
@@ -547,17 +919,93 @@
 										value={profile.father_religion}
 									/>
 								</div>
-								<div class="col-span-1 space-y-2 md:col-span-2">
+								<div class="space-y-2 md:col-span-2">
 									<Label for="father_address">Alamat</Label>
 									<Input id="father_address" name="father_address" value={profile.father_address} />
 								</div>
 							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editFather = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
+				</CardContent>
+			</Card>
+
+			<!-- MOTHER -->
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Ibu Kandung</CardTitle>
+						<CardDescription>Informasi mengenai Ibu kandung.</CardDescription>
+					</div>
+					{#if !editMother}
+						<Button variant="ghost" size="sm" onclick={() => (editMother = true)}>Edit</Button>
+					{/if}
+				</CardHeader>
+				<CardContent>
+					{#if !editMother}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nama Lengkap</p>
+								<p>{profile.mother_name || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">NIK</p>
+								<p>{profile.mother_nik || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Status Hidup</p>
+								<p>{profile.mother_living_status || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">No. HP</p>
+								<p>{profile.mother_phone || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tempat Lahir</p>
+								<p>{profile.mother_place_of_birth || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tanggal Lahir</p>
+								<p>
+									{profile.mother_date_of_birth
+										? new Date(profile.mother_date_of_birth).toLocaleDateString('id-ID')
+										: '-'}
+								</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Agama</p>
+								<p>{profile.mother_religion || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Pekerjaan</p>
+								<p>{profile.mother_job || '-'}</p>
+							</div>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Penghasilan</p>
+								<p>{profile.mother_income_range || '-'}</p>
+							</div>
+							<div class="md:col-span-2">
+								<p class="text-sm font-medium text-muted-foreground">Alamat</p>
+								<p>{profile.mother_address || '-'}</p>
+							</div>
 						</div>
-
-						<Separator />
-
-						<div class="space-y-4">
-							<h3 class="text-lg font-medium">Ibu Kandung</h3>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editMother = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 								<div class="space-y-2">
 									<Label for="mother_name">Nama Lengkap</Label>
@@ -618,73 +1066,119 @@
 										value={profile.mother_religion}
 									/>
 								</div>
-								<div class="col-span-1 space-y-2 md:col-span-2">
+								<div class="space-y-2 md:col-span-2">
 									<Label for="mother_address">Alamat</Label>
 									<Input id="mother_address" name="mother_address" value={profile.mother_address} />
 								</div>
 							</div>
-						</div>
-
-						<div class="flex justify-end">
-							<Button type="submit">Simpan Perubahan</Button>
-						</div>
-					</form>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editMother = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
 				</CardContent>
 			</Card>
 		</TabsContent>
 
 		<!-- SCHOOL -->
+		<!-- SCHOOL -->
 		<TabsContent value="school">
 			<Card>
-				<CardHeader>
-					<CardTitle>Sekolah Asal</CardTitle>
-					<CardDescription
-						>Informasi mengenai pendidikan terakhir sebelum masuk universitas.</CardDescription
-					>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<div class="space-y-1">
+						<CardTitle>Sekolah Asal</CardTitle>
+						<CardDescription
+							>Informasi mengenai pendidikan terakhir sebelum masuk universitas.</CardDescription
+						>
+					</div>
+					{#if !editSchool}
+						<Button variant="ghost" size="sm" onclick={() => (editSchool = true)}>Edit</Button>
+					{/if}
 				</CardHeader>
 				<CardContent>
-					<form method="POST" action="?/update" use:enhance class="space-y-4">
+					{#if !editSchool}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-							<div class="space-y-2">
-								<Label for="school_name">Nama Sekolah</Label>
-								<Input
-									id="school_name"
-									name="school_name"
-									value={profile.school_name}
-									placeholder="SMA Negeri 1 ..."
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nama Sekolah</p>
+								<p>{profile.school_name || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="school_major">Jurusan</Label>
-								<Input
-									id="school_major"
-									name="school_major"
-									value={profile.school_major}
-									placeholder="IPA / IPS / TKJ"
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Jurusan</p>
+								<p>{profile.school_major || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="nisn">NISN</Label>
-								<Input id="nisn" name="nisn" value={profile.nisn} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">NISN</p>
+								<p>{profile.nisn || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="diploma_number">Nomor Ijazah</Label>
-								<Input id="diploma_number" name="diploma_number" value={profile.diploma_number} />
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Nomor Ijazah</p>
+								<p>{profile.diploma_number || '-'}</p>
 							</div>
-							<div class="space-y-2">
-								<Label for="graduation_year">Tahun Lulus</Label>
-								<Input
-									id="graduation_year"
-									name="graduation_year"
-									type="number"
-									value={profile.graduation_year}
-								/>
+							<div>
+								<p class="text-sm font-medium text-muted-foreground">Tahun Lulus</p>
+								<p>{profile.graduation_year || '-'}</p>
 							</div>
 						</div>
-						<div class="flex justify-end">
-							<Button type="submit">Simpan Perubahan</Button>
-						</div>
-					</form>
+					{:else}
+						<form
+							method="POST"
+							action="?/update"
+							use:enhance={() => {
+								return async ({ result }) => {
+									if (result.type === 'success') editSchool = false;
+									await applyAction(result);
+								};
+							}}
+							class="space-y-4"
+						>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="space-y-2">
+									<Label for="school_name">Nama Sekolah</Label>
+									<Input
+										id="school_name"
+										name="school_name"
+										value={profile.school_name}
+										placeholder="SMA Negeri 1 ..."
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="school_major">Jurusan</Label>
+									<Input
+										id="school_major"
+										name="school_major"
+										value={profile.school_major}
+										placeholder="IPA / IPS / TKJ"
+									/>
+								</div>
+								<div class="space-y-2">
+									<Label for="nisn">NISN</Label>
+									<Input id="nisn" name="nisn" value={profile.nisn} />
+								</div>
+								<div class="space-y-2">
+									<Label for="diploma_number">Nomor Ijazah</Label>
+									<Input id="diploma_number" name="diploma_number" value={profile.diploma_number} />
+								</div>
+								<div class="space-y-2">
+									<Label for="graduation_year">Tahun Lulus</Label>
+									<Input
+										id="graduation_year"
+										name="graduation_year"
+										type="number"
+										value={profile.graduation_year}
+									/>
+								</div>
+							</div>
+							<div class="flex justify-end gap-2">
+								<Button type="button" variant="outline" onclick={() => (editSchool = false)}
+									>Batal</Button
+								>
+								<Button type="submit">Simpan</Button>
+							</div>
+						</form>
+					{/if}
 				</CardContent>
 			</Card>
 		</TabsContent>
