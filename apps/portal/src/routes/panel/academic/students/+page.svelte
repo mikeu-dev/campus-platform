@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 	import {
 		Table,
 		TableBody,
@@ -12,9 +13,19 @@
 		TableHeader,
 		TableRow
 	} from '$lib/components/ui/table';
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogHeader,
+		DialogTitle,
+		DialogTrigger,
+		DialogFooter
+	} from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Search, Loader2, Eye, FileEdit } from 'lucide-svelte';
+	import { Search, Loader2, Eye, FileEdit, Trash2, Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		data: { token?: string };
@@ -32,6 +43,16 @@
 		totalPages: 1
 	});
 	let debounceTimer: NodeJS.Timeout;
+
+	// Create Student State
+	let createOpen = $state(false);
+	let createLoading = $state(false);
+	let newStudent = $state({
+		fullName: '',
+		email: '',
+		password: '',
+		studentNumber: ''
+	});
 
 	async function fetchStudents() {
 		loading = true;
@@ -55,8 +76,94 @@
 			}
 		} catch (error) {
 			console.error('Failed to fetch students:', error);
+			toast.error('Gagal memuat data mahasiswa');
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function handleCreateStudent() {
+		createLoading = true;
+		try {
+			// 1. Create User in Identity Service
+			const userRes = await fetch('http://localhost:3001/api/v1/auth/users', {
+				// Adjusted to match identity-service port
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${data.token}`
+				},
+				body: JSON.stringify({
+					email: newStudent.email,
+					password: newStudent.password,
+					fullName: newStudent.fullName,
+					roleName: 'student'
+				})
+			});
+			const userResponse = await userRes.json();
+
+			if (userResponse.status !== 'success') {
+				throw new Error(userResponse.message || 'Gagal membuat user');
+			}
+
+			const userId = userResponse.data.id;
+
+			// 2. Create Student in Academic Service
+			const studentRes = await fetch('http://localhost:3002/api/v1/students', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${data.token}`
+				},
+				body: JSON.stringify({
+					user_id: userId,
+					name: newStudent.fullName,
+					student_number: newStudent.studentNumber
+				})
+			});
+			const studentResponse = await studentRes.json();
+
+			if (studentResponse.status !== 'success') {
+				throw new Error(studentResponse.message || 'Gagal membuat data mahasiswa');
+			}
+
+			toast.success('Mahasiswa berhasil ditambahkan');
+			createOpen = false;
+			newStudent = { fullName: '', email: '', password: '', studentNumber: '' };
+			fetchStudents();
+		} catch (error: any) {
+			console.error('Create student error:', error);
+			toast.error(error.message || 'Terjadi kesalahan');
+		} finally {
+			createLoading = false;
+		}
+	}
+
+	async function handleDeleteStudent(id: string) {
+		if (
+			!confirm(
+				'Apakah Anda yakin ingin menghapus mahasiswa ini? Data yang dihapus tidak dapat dikembalikan.'
+			)
+		)
+			return;
+
+		try {
+			const res = await fetch(`http://localhost:3002/api/v1/students/${id}`, {
+				method: 'DELETE',
+				headers: {
+					Authorization: `Bearer ${data.token}`
+				}
+			});
+			const response = await res.json();
+			if (response.status === 'success') {
+				toast.success('Mahasiswa berhasil dihapus');
+				fetchStudents();
+			} else {
+				toast.error(response.message || 'Gagal menghapus mahasiswa');
+			}
+		} catch (error) {
+			console.error('Delete error:', error);
+			toast.error('Terjadi kesalahan saat menghapus');
 		}
 	}
 
@@ -88,7 +195,69 @@
 			<h1 class="text-3xl font-bold tracking-tight">Data Mahasiswa</h1>
 			<p class="text-muted-foreground">Kelola data dan profil mahasiswa.</p>
 		</div>
-		<Button href="/panel/academic/students/report" variant="outline">Laporan</Button>
+		<div class="flex gap-2">
+			<Button href="/panel/academic/students/report" variant="outline">Laporan</Button>
+			<!-- CREATE STUDENT DIALOG -->
+			<Dialog bind:open={createOpen}>
+				<DialogTrigger>
+					<Button>
+						<Plus class="mr-2 h-4 w-4" />
+						Tambah Mahasiswa
+					</Button>
+				</DialogTrigger>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Tambah Mahasiswa Baru</DialogTitle>
+						<DialogDescription>
+							Buat akun user dan data mahasiswa baru secara bersamaan.
+						</DialogDescription>
+					</DialogHeader>
+					<div class="grid gap-4 py-4">
+						<div class="grid gap-2">
+							<Label for="name">Nama Lengkap</Label>
+							<Input
+								id="name"
+								bind:value={newStudent.fullName}
+								placeholder="Contoh: Budi Santoso"
+							/>
+						</div>
+						<div class="grid gap-2">
+							<Label for="nim">NIM (Opsional)</Label>
+							<Input id="nim" bind:value={newStudent.studentNumber} placeholder="Contoh: 2024001" />
+						</div>
+						<div class="grid gap-2">
+							<Label for="email">Email</Label>
+							<Input
+								id="email"
+								type="email"
+								bind:value={newStudent.email}
+								placeholder="budi@example.com"
+							/>
+						</div>
+						<div class="grid gap-2">
+							<Label for="password">Password</Label>
+							<Input
+								id="password"
+								type="password"
+								bind:value={newStudent.password}
+								placeholder="Minimal 6 karakter"
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onclick={() => (createOpen = false)} disabled={createLoading}
+							>Batal</Button
+						>
+						<Button onclick={handleCreateStudent} disabled={createLoading}>
+							{#if createLoading}
+								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							{/if}
+							Simpan
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</div>
 	</div>
 
 	<div class="rounded-xl border bg-card text-card-foreground shadow">
@@ -143,14 +312,25 @@
 										{new Date(student.created_at).toLocaleDateString('id-ID')}
 									</TableCell>
 									<TableCell class="text-right">
-										<Button
-											variant="ghost"
-											size="icon"
-											href={`/panel/academic/students/${student.id}`}
-										>
-											<FileEdit class="h-4 w-4" />
-											<span class="sr-only">Edit</span>
-										</Button>
+										<div class="flex justify-end gap-2">
+											<Button
+												variant="ghost"
+												size="icon"
+												href={`/panel/academic/students/${student.id}`}
+											>
+												<FileEdit class="h-4 w-4" />
+												<span class="sr-only">Edit</span>
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												class="text-destructive hover:bg-destructive/10"
+												onclick={() => handleDeleteStudent(student.id)}
+											>
+												<Trash2 class="h-4 w-4" />
+												<span class="sr-only">Hapus</span>
+											</Button>
+										</div>
 									</TableCell>
 								</TableRow>
 							{/each}

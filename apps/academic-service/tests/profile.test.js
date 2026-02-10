@@ -123,6 +123,23 @@ describe('Student Profile API', () => {
             });
         });
 
+        describe('DELETE /api/v1/students/:id', () => {
+            it('should delete student by id', async () => {
+                db.query.mockResolvedValueOnce({ rows: [{ id: 's1' }], rowCount: 1 }); // Delete result
+
+                const res = await request(app).delete('/api/v1/students/s1');
+                expect(res.statusCode).toBe(200);
+                expect(res.body.message).toBe('Student deleted successfully');
+            });
+
+            it('should return 404 if student not found', async () => {
+                db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // Delete result
+
+                const res = await request(app).delete('/api/v1/students/s1');
+                expect(res.statusCode).toBe(404);
+            });
+        });
+
         describe('GET /api/v1/students/:id/profile', () => {
             it('should return student profile by id', async () => {
                 db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1' }] }); // Student

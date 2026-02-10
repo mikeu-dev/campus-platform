@@ -129,6 +129,29 @@ class AcademicController {
         } catch (err) { next(err); }
     }
 
+    async deleteStudent(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const studentId = req.params.id;
+
+            // Optional: Check dependencies (enrollments, grades) before deleting
+            // For now, we'll assume cascade delete or let DB error if constraint fails
+            // But usually safer to check or soft delete.
+            // Let's do a hard delete for simplicity as per plan.
+
+            const result = await db.query(
+                'DELETE FROM students WHERE tenant_id = $1 AND id = $2 RETURNING *',
+                [tenantId, studentId]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({ status: 'fail', message: 'Student not found' });
+            }
+
+            res.json({ status: 'success', message: 'Student deleted successfully' });
+        } catch (err) { next(err); }
+    }
+
     async getStudents(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;

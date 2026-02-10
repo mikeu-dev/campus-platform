@@ -327,12 +327,8 @@
 		.no-print {
 			display: none !important;
 		}
-		.print-only {
+		.print-block {
 			display: block !important;
-		}
-		main {
-			padding: 0 !important;
-			margin: 0 !important;
 		}
 	}
 </style>
