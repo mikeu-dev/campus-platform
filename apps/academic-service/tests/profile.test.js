@@ -105,6 +105,22 @@ describe('Student Profile API', () => {
                 expect(res.statusCode).toBe(200);
                 expect(res.body.data).toHaveLength(1);
             });
+
+            it('should filter students by status', async () => {
+                db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] }); // Count
+                db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1', status: 'active' }] }); // Data
+
+                const res = await request(app).get('/api/v1/students?status=active');
+                expect(res.statusCode).toBe(200);
+                // Verify DB query call contains status filter
+                const countCall = db.query.mock.calls[db.query.mock.calls.length - 2];
+                const dataCall = db.query.mock.calls[db.query.mock.calls.length - 1];
+
+                // Flexible check for SQL content since exact string matches are brittle
+                expect(countCall[0]).toMatch(/status = \$\d+/);
+                expect(dataCall[0]).toMatch(/status = \$\d+/);
+                expect(res.body.data).toHaveLength(1);
+            });
         });
 
         describe('GET /api/v1/students/:id/profile', () => {

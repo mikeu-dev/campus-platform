@@ -135,6 +135,9 @@ class AcademicController {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             const search = req.query.search || '';
+            const studyProgram = req.query.study_program || '';
+            const entryYear = req.query.entry_year || '';
+            const status = req.query.status || '';
             const offset = (page - 1) * limit;
 
             const params = [tenantId];
@@ -143,6 +146,21 @@ class AcademicController {
             if (search) {
                 params.push(`%${search}%`);
                 whereClause += ` AND (name ILIKE $${params.length} OR platform_student_number ILIKE $${params.length})`;
+            }
+
+            if (studyProgram) {
+                params.push(studyProgram);
+                whereClause += ` AND study_program = $${params.length}`;
+            }
+
+            if (entryYear) {
+                params.push(entryYear);
+                whereClause += ` AND entry_year = $${params.length}`;
+            }
+
+            if (status) {
+                params.push(status);
+                whereClause += ` AND status = $${params.length}`;
             }
 
             // Count
