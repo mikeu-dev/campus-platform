@@ -30,7 +30,7 @@ const seedDev = async () => {
         }
 
         // 2. Create Roles
-        const roles = ['admin', 'user'];
+        const roles = ['admin', 'student', 'lecturer'];
         const roleIds = {};
 
         for (const roleName of roles) {
@@ -52,47 +52,47 @@ const seedDev = async () => {
             roleIds[roleName] = roleId;
         }
 
-        // 3. Create Dev User
-        const userEmail = 'dev@example.com';
-        let userId;
+        // 3. Create Users & Assign Roles
+        const usersToSeed = [
+            { email: 'admin@example.com', name: 'Admin User', role: 'admin' },
+            { email: 'student@example.com', name: 'Student User', role: 'student' },
+            { email: 'lecturer@example.com', name: 'Lecturer User', role: 'lecturer' }
+        ];
 
-        const userRes = await client.query('SELECT id FROM users WHERE email = $1', [userEmail]);
+        for (const userData of usersToSeed) {
+            let userId;
+            const userRes = await client.query('SELECT id FROM users WHERE email = $1', [userData.email]);
 
-        if (userRes.rows.length > 0) {
-            console.log(`User '${userEmail}' already exists.`);
-            userId = userRes.rows[0].id;
-        } else {
-            console.log(`Creating user '${userEmail}'...`);
-            const hashedPassword = await bcrypt.hash('password123', 10);
+            if (userRes.rows.length > 0) {
+                console.log(`User '${userData.email}' already exists.`);
+                userId = userRes.rows[0].id;
+            } else {
+                console.log(`Creating user '${userData.email}'...`);
+                const hashedPassword = await bcrypt.hash('password123', 10);
+                const newUser = await client.query(
+                    'INSERT INTO users (tenant_id, email, password_hash, full_name, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+                    [tenantId, userData.email, hashedPassword, userData.name, 'active']
+                );
+                userId = newUser.rows[0].id;
+                console.log(`User '${userData.email}' created with ID: ${userId}`);
+            }
 
-            // Check constraints for user creation? 
-            // In schema: tenant_id, email are unique.
-            // But user table also has tenant_id.
-
-            const newUser = await client.query(
-                'INSERT INTO users (tenant_id, email, password_hash, full_name, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-                [tenantId, userEmail, hashedPassword, 'Developer User', 'active']
+            // Assign Role
+            const roleId = roleIds[userData.role];
+            const userRoleRes = await client.query(
+                'SELECT id FROM user_roles WHERE user_id = $1 AND role_id = $2',
+                [userId, roleId]
             );
-            userId = newUser.rows[0].id;
-            console.log(`User '${userEmail}' created with ID: ${userId}`);
-        }
 
-        // 4. Assign Admin Role to Dev User
-        const adminRoleId = roleIds['admin'];
-        const userRoleRes = await client.query(
-            'SELECT id FROM user_roles WHERE user_id = $1 AND role_id = $2',
-            [userId, adminRoleId]
-        );
-
-        if (userRoleRes.rows.length > 0) {
-            console.log(`User '${userEmail}' already has 'admin' role.`);
-        } else {
-            console.log(`Assigning 'admin' role to user '${userEmail}'...`);
-            await client.query(
-                'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
-                [userId, adminRoleId]
-            );
-            console.log(`Role assigned.`);
+            if (userRoleRes.rows.length > 0) {
+                console.log(`User '${userData.email}' already has '${userData.role}' role.`);
+            } else {
+                console.log(`Assigning '${userData.role}' role to user '${userData.email}'...`);
+                await client.query(
+                    'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
+                    [userId, roleId]
+                );
+            }
         }
 
         console.log('Seeding completed successfully!');
