@@ -21,7 +21,15 @@
 		DialogFooter
 	} from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Search, Loader2, FileEdit, Trash2, Plus, CalendarClock } from 'lucide-svelte';
+	import {
+		Search,
+		Loader2,
+		FileEdit,
+		Trash2,
+		Plus,
+		CalendarClock,
+		ClipboardList
+	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import * as Select from '$lib/components/ui/select';
@@ -476,6 +484,14 @@
 											>
 												<CalendarClock class="h-4 w-4" />
 												<span class="sr-only">Jadwal</span>
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												href={`/panel/academic/classes/${cls.id}/exams`}
+											>
+												<ClipboardList class="h-4 w-4" />
+												<span class="sr-only">Ujian</span>
 											</Button>
 											<Button variant="ghost" size="icon" onclick={() => openEditDialog(cls)}>
 												<FileEdit class="h-4 w-4" />

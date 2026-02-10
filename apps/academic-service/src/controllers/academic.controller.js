@@ -1014,6 +1014,294 @@ class AcademicController {
             res.json({ status: 'success', data: { deleted: result.rows[0].id } });
         } catch (err) { next(err); }
     }
+
+    // --- Exams ---
+    async getExamsByClass(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `SELECT e.*, co.name as course_name, co.code as course_code
+                 FROM exams e
+                 JOIN classes c ON e.class_id = c.id
+                 JOIN courses co ON c.course_id = co.id
+                 WHERE e.tenant_id = $1 AND e.class_id = $2
+                 ORDER BY e.date, e.start_time`,
+                [tenantId, classId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async createExam(req, res, next) {
+        try {
+            const { class_id, type, date, start_time, end_time, room } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            if (!class_id || !type || !date || !start_time || !end_time) {
+                return res.status(400).json({ status: 'fail', message: 'class_id, type, date, start_time, end_time are required' });
+            }
+
+            const result = await db.query(
+                `INSERT INTO exams (tenant_id, class_id, type, date, start_time, end_time, room)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+                [tenantId, class_id, type, date, start_time, end_time, room || null]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async updateExam(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { type, date, start_time, end_time, room } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `UPDATE exams SET type = $1, date = $2, start_time = $3, end_time = $4, room = $5
+                 WHERE id = $6 AND tenant_id = $7 RETURNING *`,
+                [type, date, start_time, end_time, room, id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Exam not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteExam(req, res, next) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'DELETE FROM exams WHERE id = $1 AND tenant_id = $2 RETURNING id',
+                [id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Exam not found' });
+            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+        } catch (err) { next(err); }
+    }
+
+    // --- Announcements Admin ---
+    async getAllAnnouncements(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                'SELECT * FROM announcements WHERE tenant_id = $1 ORDER BY created_at DESC',
+                [tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async createAnnouncement(req, res, next) {
+        try {
+            const { title, content, type } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            if (!title || !content) {
+                return res.status(400).json({ status: 'fail', message: 'title and content are required' });
+            }
+
+            const result = await db.query(
+                `INSERT INTO announcements (tenant_id, title, content, type, is_active)
+                 VALUES ($1, $2, $3, $4, TRUE) RETURNING *`,
+                [tenantId, title, content, type || 'general']
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async updateAnnouncement(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { title, content, type, is_active } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `UPDATE announcements SET title = $1, content = $2, type = $3, is_active = $4
+                 WHERE id = $5 AND tenant_id = $6 RETURNING *`,
+                [title, content, type || 'general', is_active !== undefined ? is_active : true, id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Announcement not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteAnnouncement(req, res, next) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'DELETE FROM announcements WHERE id = $1 AND tenant_id = $2 RETURNING id',
+                [id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Announcement not found' });
+            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+        } catch (err) { next(err); }
+    }
+
+    // --- Financial Bills Admin ---
+    async getAllBills(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                `SELECT fb.*, s.name as student_name, s.student_number
+                 FROM financial_bills fb
+                 JOIN students s ON fb.student_id = s.id
+                 WHERE fb.tenant_id = $1
+                 ORDER BY fb.created_at DESC`,
+                [tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async createBill(req, res, next) {
+        try {
+            const { student_id, title, amount, due_date } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            if (!student_id || !title || !amount) {
+                return res.status(400).json({ status: 'fail', message: 'student_id, title, amount are required' });
+            }
+
+            const result = await db.query(
+                `INSERT INTO financial_bills (tenant_id, student_id, title, amount, due_date)
+                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                [tenantId, student_id, title, amount, due_date || null]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async updateBill(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { title, amount, is_paid, due_date } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `UPDATE financial_bills SET title = $1, amount = $2, is_paid = $3, due_date = $4
+                 WHERE id = $5 AND tenant_id = $6 RETURNING *`,
+                [title, amount, is_paid || false, due_date, id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Bill not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteBill(req, res, next) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'DELETE FROM financial_bills WHERE id = $1 AND tenant_id = $2 RETURNING id',
+                [id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Bill not found' });
+            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+        } catch (err) { next(err); }
+    }
+
+    // --- Research Proposals Admin ---
+    async getAllResearchProposals(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                `SELECT rp.*, s.name as student_name, s.student_number
+                 FROM research_proposals rp
+                 JOIN students s ON rp.student_id = s.id
+                 WHERE rp.tenant_id = $1
+                 ORDER BY rp.created_at DESC`,
+                [tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async updateResearchStatus(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            if (!['pending', 'approved', 'rejected'].includes(status)) {
+                return res.status(400).json({ status: 'fail', message: 'Invalid status' });
+            }
+
+            const result = await db.query(
+                'UPDATE research_proposals SET status = $1 WHERE id = $2 AND tenant_id = $3 RETURNING *',
+                [status, id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Proposal not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteResearchProposal(req, res, next) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                'DELETE FROM research_proposals WHERE id = $1 AND tenant_id = $2 RETURNING id',
+                [id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Proposal not found' });
+            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+        } catch (err) { next(err); }
+    }
+
+    // --- Certificate Requests Admin ---
+    async getAllCertificateRequests(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                `SELECT cr.*, s.name as student_name, s.student_number
+                 FROM certificate_requests cr
+                 JOIN students s ON cr.student_id = s.id
+                 WHERE cr.tenant_id = $1
+                 ORDER BY cr.created_at DESC`,
+                [tenantId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async updateCertificateStatus(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { status, rejection_reason, download_url } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            if (!['pending', 'processing', 'finished', 'rejected'].includes(status)) {
+                return res.status(400).json({ status: 'fail', message: 'Invalid status' });
+            }
+
+            const result = await db.query(
+                `UPDATE certificate_requests SET status = $1, rejection_reason = $2, download_url = $3
+                 WHERE id = $4 AND tenant_id = $5 RETURNING *`,
+                [status, rejection_reason || null, download_url || null, id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Request not found' });
+            res.json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async deleteCertificateRequest(req, res, next) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.user.tenant_id;
+            const result = await db.query(
+                'DELETE FROM certificate_requests WHERE id = $1 AND tenant_id = $2 RETURNING id',
+                [id, tenantId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Request not found' });
+            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+        } catch (err) { next(err); }
+    }
 }
 
 module.exports = new AcademicController();

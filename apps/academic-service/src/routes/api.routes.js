@@ -72,4 +72,32 @@ router.post('/schedules', academicController.createSchedule);
 router.put('/schedules/:id', academicController.updateSchedule);
 router.delete('/schedules/:id', academicController.deleteSchedule);
 
+// Exams
+router.get('/classes/:classId/exams', academicController.getExamsByClass);
+router.post('/exams', academicController.createExam);
+router.put('/exams/:id', academicController.updateExam);
+router.delete('/exams/:id', academicController.deleteExam);
+
+// Announcements Admin
+router.get('/announcements/all', academicController.getAllAnnouncements);
+router.post('/announcements', academicController.createAnnouncement);
+router.put('/announcements/:id', academicController.updateAnnouncement);
+router.delete('/announcements/:id', academicController.deleteAnnouncement);
+
+// Financial Bills Admin
+router.get('/finance/bills', academicController.getAllBills);
+router.post('/finance/bills', academicController.createBill);
+router.put('/finance/bills/:id', academicController.updateBill);
+router.delete('/finance/bills/:id', academicController.deleteBill);
+
+// Research Proposals Admin
+router.get('/research/all', academicController.getAllResearchProposals);
+router.put('/research/:id/status', academicController.updateResearchStatus);
+router.delete('/research/:id', academicController.deleteResearchProposal);
+
+// Certificate Requests Admin
+router.get('/certificates/all', academicController.getAllCertificateRequests);
+router.put('/certificates/:id/status', academicController.updateCertificateStatus);
+router.delete('/certificates/:id', academicController.deleteCertificateRequest);
+
 module.exports = router;

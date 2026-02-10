@@ -20,7 +20,9 @@
 		ClipboardCheck,
 		CreditCard,
 		Library,
-		BarChart3
+		BarChart3,
+		Megaphone,
+		FileCheck
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -299,6 +301,46 @@
 					>
 						<ClipboardCheck class="h-4 w-4" />
 						Jadwal Mengajar
+					</a>
+					<a
+						href="/panel/academic/announcements"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/announcements') && 'bg-muted text-primary'
+						)}
+					>
+						<Megaphone class="h-4 w-4" />
+						Pengumuman
+					</a>
+					<a
+						href="/panel/academic/finance"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/finance') && 'bg-muted text-primary'
+						)}
+					>
+						<CreditCard class="h-4 w-4" />
+						Keuangan
+					</a>
+					<a
+						href="/panel/academic/research"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/research') && 'bg-muted text-primary'
+						)}
+					>
+						<BookOpen class="h-4 w-4" />
+						Proposal Penelitian
+					</a>
+					<a
+						href="/panel/academic/certificates"
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							page.url.pathname.includes('/panel/academic/certificates') && 'bg-muted text-primary'
+						)}
+					>
+						<FileCheck class="h-4 w-4" />
+						Permohonan Surat
 					</a>
 
 					<Separator class="mx-4 my-4" />
