@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let posts = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/posts`, {
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/posts`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		posts = res.data.data;
@@ -30,7 +30,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_PUBLIC_API_URL}/admin/posts`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/public/posts`,
 				{
 					...data,
 					is_pinned: data.is_pinned === 'on',
@@ -51,7 +51,7 @@ export const actions = {
 
 		try {
 			await axios.put(
-				`${PUBLIC_PUBLIC_API_URL}/admin/posts/${id}`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/public/posts/${id}`,
 				{
 					...data,
 					is_pinned: data.is_pinned === 'on',
@@ -70,7 +70,7 @@ export const actions = {
 		const id = formData.get('id');
 
 		try {
-			await axios.delete(`${PUBLIC_PUBLIC_API_URL}/admin/posts/${id}`, {
+			await axios.delete(`${PUBLIC_PUBLIC_API_URL}/admin/public/posts/${id}`, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 			return { success: true };
