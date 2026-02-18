@@ -40,6 +40,7 @@
 	}
 
 	function getYoutubeEmbed(url: string) {
+		if (!url) return null;
 		const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
 		const match = url.match(regExp);
 		return match && match[2].length === 11 ? match[2] : null;
@@ -94,7 +95,7 @@
 						<Input
 							id="youtube_url"
 							name="url"
-							value={editingVideo?.url || ''}
+							value={editingVideo?.url || (editingVideo?.youtube_id ? `https://www.youtube.com/watch?v=${editingVideo.youtube_id}` : '')}
 							placeholder="https://www.youtube.com/watch?v=..."
 							required
 						/>
@@ -142,9 +143,10 @@
 						<TableRow>
 							<TableCell>
 								<div class="group relative h-20 w-32 overflow-hidden rounded-md border bg-muted">
-									{#if getYoutubeEmbed(video.url)}
+									{#const yid = video.youtube_id || getYoutubeEmbed(video.url)}
+									{#if yid}
 										<img
-											src={`https://img.youtube.com/vi/${getYoutubeEmbed(video.url)}/mqdefault.jpg`}
+											src={`https://img.youtube.com/vi/${yid}/mqdefault.jpg`}
 											alt={video.title}
 											class="h-full w-full object-cover"
 										/>
@@ -162,12 +164,13 @@
 							</TableCell>
 							<TableCell>
 								<div class="font-medium">{video.title}</div>
+								{#const displayUrl = video.url || `https://www.youtube.com/watch?v=${video.youtube_id}`}
 								<a
-									href={video.url}
+									href={displayUrl}
 									target="_blank"
 									class="mt-1 flex items-center gap-1 text-xs text-indigo-600 hover:underline"
 								>
-									{video.url}
+									{displayUrl}
 									<ExternalLink class="h-3 w-3" />
 								</a>
 							</TableCell>
