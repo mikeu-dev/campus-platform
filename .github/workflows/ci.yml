@@ -69,6 +69,13 @@ jobs:
             run:
                 working-directory: apps/portal
 
+        env:
+            PUBLIC_IDENTITY_API_URL: http://localhost:3001
+            PUBLIC_ACADEMIC_API_URL: http://localhost:3002/api/v1
+            PUBLIC_LEARNING_API_URL: http://localhost:3003/api/v1
+            PUBLIC_PUBLIC_API_URL: http://localhost:3004/api/v1
+            PUBLIC_ADMISSION_API_URL: http://localhost:3005/api/v1
+
         steps:
             - uses: actions/checkout@v4
 
