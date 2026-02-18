@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, ExternalLink, Link as LinkIcon, Check, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, ExternalLink, Link as LinkIcon } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -18,20 +18,11 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
-	import { toast } from 'svelte-sonner';
-
-	let { data, form } = $props();
+	import { Card, CardContent } from '$lib/components/ui/card';
+	let { data } = $props();
 	const { links = [] } = $derived(data);
 
 	let isDialogOpen = $state(false);
@@ -145,7 +136,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each links as link}
+					{#each links as link (link.id)}
 						<TableRow>
 							<TableCell>
 								<div class="flex items-center gap-2 font-medium">
@@ -154,6 +145,7 @@
 								</div>
 							</TableCell>
 							<TableCell>
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 								<a
 									href={link.url}
 									target="_blank"

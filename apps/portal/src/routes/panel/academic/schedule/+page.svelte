@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
 	import {
 		Table,
 		TableBody,
@@ -16,7 +14,7 @@
 	import { toast } from 'svelte-sonner';
 
 	interface Props {
-		data: { token?: string; user?: any };
+		data: { token?: string };
 	}
 
 	let { data }: Props = $props();
@@ -134,7 +132,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each classes as cls}
+							{#each classes as cls (cls.id)}
 								<TableRow>
 									<TableCell>{cls.course_code}</TableCell>
 									<TableCell>

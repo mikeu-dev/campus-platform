@@ -1,23 +1,20 @@
 <script lang="ts">
 	import {
 		MessageSquare,
-		User,
 		Search,
 		Send,
 		Plus,
 		Check,
 		CheckCheck,
-		MoreVertical,
 		Phone,
 		Video,
 		Info
 	} from 'lucide-svelte';
-	import { onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import axios from 'axios';
 	import { PUBLIC_LEARNING_API_URL } from '$env/static/public';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import { Separator } from '$lib/components/ui/separator';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
@@ -25,6 +22,7 @@
 	let messages: any[] = $state([]);
 	let newMessage = $state('');
 	// svelte-ignore state_referenced_locally
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let conversations = $state(data.conversations);
 	let messagesContainer: HTMLDivElement | undefined = $state();
 
@@ -40,7 +38,7 @@
 			messages = res.data.data;
 			await tick();
 			scrollToBottom();
-		} catch (error) {
+		} catch (_error) {
 			console.error('Failed to load messages');
 		}
 	}
@@ -72,7 +70,7 @@
 				const item = conversations.splice(convIndex, 1)[0];
 				conversations.unshift(item);
 			}
-		} catch (error) {
+		} catch (_error) {
 			console.error('Failed to send message');
 			newMessage = content;
 		}
@@ -138,7 +136,7 @@
 					<p class="text-sm">{m.chat_no_conversations()}</p>
 				</div>
 			{/if}
-			{#each conversations as conv}
+			{#each conversations as conv (conv.partner_id)}
 				<button
 					onclick={() => selectConversation(conv)}
 					class={`flex w-full items-center gap-3 border-b border-border/50 p-4 text-left transition-colors hover:bg-muted/50 ${selectedUser?.partner_id === conv.partner_id ? 'bg-background shadow-sm ring-1 ring-primary/10 ring-inset' : ''}`}
@@ -206,9 +204,9 @@
 			<!-- Messages -->
 			<div
 				bind:this={messagesContainer}
-				class="flex-1 space-y-6 overflow-y-auto bg-gradient-to-b from-muted/50 to-background p-6"
+				class="flex-1 space-y-6 overflow-y-auto bg-linear-to-b from-muted/50 to-background p-6"
 			>
-				{#each messages as msg, i}
+				{#each messages as msg, i (msg.id || i)}
 					{#if isNewDay(msg.created_at, messages[i - 1]?.created_at)}
 						<div class="my-4 flex justify-center">
 							<span

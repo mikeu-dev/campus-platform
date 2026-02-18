@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, Youtube, Play, ExternalLink, Check, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Youtube, Play, ExternalLink } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -18,20 +18,12 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
-	import { toast } from 'svelte-sonner';
+	import { Card, CardContent } from '$lib/components/ui/card';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	const { videos = [] } = $derived(data);
 
 	let isDialogOpen = $state(false);
@@ -48,7 +40,7 @@
 	}
 
 	function getYoutubeEmbed(url: string) {
-		const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+		const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
 		const match = url.match(regExp);
 		return match && match[2].length === 11 ? match[2] : null;
 	}
@@ -146,7 +138,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each videos as video}
+					{#each videos as video (video.id)}
 						<TableRow>
 							<TableCell>
 								<div class="group relative h-20 w-32 overflow-hidden rounded-md border bg-muted">

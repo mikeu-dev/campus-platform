@@ -2,7 +2,6 @@
 	import {
 		Bell,
 		CheckCircle2,
-		Circle,
 		Clock,
 		ExternalLink,
 		Info,
@@ -11,18 +10,9 @@
 		BookOpen,
 		Trash2
 	} from 'lucide-svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
+	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
 	import { enhance } from '$app/forms';
-	import * as m from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 	const notifications = $derived(data.notifications);
@@ -55,7 +45,7 @@
 	</div>
 
 	<div class="grid gap-4">
-		{#each notifications as notification}
+		{#each notifications || [] as notification (notification.id)}
 			{@const iconData = getNotificationIcon(notification.type)}
 			<Card
 				class={`transition-all duration-200 ${notification.is_read ? 'opacity-70 grayscale-[0.2]' : 'border-l-4 border-l-primary shadow-sm'}`}

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -32,7 +31,6 @@
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import * as Select from '$lib/components/ui/select';
 
 	interface Props {
 		data: { token?: string };
@@ -300,7 +298,7 @@
 								bind:value={newClass.courseId}
 							>
 								<option value="" disabled>Pilih Mata Kuliah</option>
-								{#each courses as course}
+								{#each courses as course (course.id)}
 									<option value={course.id}
 										>{course.code} - {course.name} ({course.credits} SKS)</option
 									>
@@ -333,7 +331,7 @@
 								bind:value={newClass.lecturerId}
 							>
 								<option value="">-- Belum Ditentukan --</option>
-								{#each lecturers as lecturer}
+								{#each lecturers as lecturer (lecturer.id)}
 									<option value={lecturer.id}>{lecturer.name}</option>
 								{/each}
 							</select>
@@ -392,7 +390,7 @@
 								bind:value={editingClass.lecturerId}
 							>
 								<option value="">-- Belum Ditentukan --</option>
-								{#each lecturers as lecturer}
+								{#each lecturers as lecturer (lecturer.id)}
 									<option value={lecturer.id}>{lecturer.name}</option>
 								{/each}
 							</select>
@@ -459,7 +457,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each classes as cls}
+							{#each classes as cls (cls.id)}
 								<TableRow>
 									<TableCell>
 										<div class="font-medium">{cls.course_name}</div>

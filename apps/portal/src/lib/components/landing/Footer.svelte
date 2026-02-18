@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		Facebook,
-		Twitter,
-		Instagram,
-		Linkedin,
-		Mail,
-		Phone,
-		MapPin,
-		Youtube
-	} from 'lucide-svelte';
+	import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Youtube } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { settings = {}, links = [] } = $props();
@@ -76,7 +67,7 @@
 					{m.footer_info()}
 				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
-					{#each links as link}
+					{#each links as link (link.url)}
 						<li><a href={link.url} class="hover:text-white">{link.title}</a></li>
 					{:else}
 						<li><a href="/" class="hover:text-white">Pengumuman</a></li>

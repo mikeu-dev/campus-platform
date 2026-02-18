@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -20,7 +19,6 @@
 		DialogTrigger,
 		DialogFooter
 	} from '$lib/components/ui/dialog';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Search, Loader2, FileEdit, Trash2, Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
@@ -351,7 +349,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each courses as course}
+							{#each courses as course (course.id)}
 								<TableRow>
 									<TableCell class="font-medium">{course.code}</TableCell>
 									<TableCell>{course.name}</TableCell>

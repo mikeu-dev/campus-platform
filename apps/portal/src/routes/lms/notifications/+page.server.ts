@@ -34,7 +34,7 @@ export const actions: Actions = {
 				}
 			);
 			return { success: true };
-		} catch (error: any) {
+		} catch (_error: any) {
 			return fail(500, { message: 'Failed to mark as read' });
 		}
 	}

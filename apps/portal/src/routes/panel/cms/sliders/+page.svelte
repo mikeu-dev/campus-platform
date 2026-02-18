@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		Plus,
-		Pencil,
-		Trash2,
-		ExternalLink,
-		GripVertical,
-		Image as ImageIcon,
-		Check,
-		X
-	} from 'lucide-svelte';
+	import { Plus, Pencil, Trash2 } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -27,20 +18,12 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
-	import { toast } from 'svelte-sonner';
+	import { Card, CardContent } from '$lib/components/ui/card';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	const { sliders } = $derived(data);
 
 	let isDialogOpen = $state(false);
@@ -162,7 +145,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each sliders as slider}
+					{#each sliders as slider (slider.id)}
 						<TableRow>
 							<TableCell>
 								<div class="h-10 w-16 overflow-hidden rounded-md border bg-muted">

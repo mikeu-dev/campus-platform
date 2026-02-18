@@ -14,14 +14,7 @@
 		Loader2,
 		Plus
 	} from 'lucide-svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription,
-		CardFooter
-	} from '$lib/components/ui/card';
+	import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
@@ -35,20 +28,17 @@
 		DialogFooter
 	} from '$lib/components/ui/dialog';
 	import { cn } from '$lib/utils';
-	import * as m from '$lib/paraglide/messages.js';
 	import { enhance } from '$app/forms';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	const assignments = $derived(data.assignments);
 	const quizzes = $derived(data.quizzes);
 	const discussions = $derived(data.discussions);
-	const classId = $derived(data.classId);
 	const isLecturer = $derived(data.isLecturer);
 	const classInfo = $derived(data.classInfo); // Added based on usage
 	const attendances = $derived(data.attendances); // Added based on usage
 	const materials = $derived(data.materials); // Added based on usage
 	const attendanceSummary = $derived(data.attendanceSummary); // Added based on usage
-	const studentId = $derived(data.studentId); // Added based on usage
 	const user = $derived(data.user); // Added based on usage
 
 	let activeMeeting = $state(1);
@@ -64,9 +54,7 @@
 	const filteredMaterials = $derived(
 		(materials || []).filter((mat: any) => mat.meeting_number === activeMeeting)
 	);
-	const filteredAssignments = $derived((assign: any) =>
-		(assignments || []).filter((a: any) => a.meeting_number === activeMeeting)
-	);
+
 	const filteredQuizzes = $derived(
 		(quizzes || []).filter((q: any) => q.meeting_number === activeMeeting)
 	);
@@ -104,7 +92,7 @@
 			</CardHeader>
 			<CardContent class="px-2 pb-2">
 				<div class="grid grid-cols-4 gap-2 lg:grid-cols-2">
-					{#each meetings as item}
+					{#each meetings as item (item)}
 						<button
 							onclick={() => (activeMeeting = item)}
 							class={cn(
@@ -268,7 +256,7 @@
 							Materi Belajar
 						</h4>
 						<div class="grid gap-3">
-							{#each filteredMaterials as mat}
+							{#each filteredMaterials as mat (mat.id || mat.title)}
 								<div
 									class="flex items-center justify-between rounded-xl border bg-card p-4 transition-all hover:border-primary"
 								>
@@ -309,7 +297,7 @@
 						</CardTitle>
 					</CardHeader>
 					<CardContent class="flex-1 space-y-6 pt-6">
-						{#each (assignments || []).filter((a: any) => a.meeting_number === activeMeeting) as task}
+						{#each (assignments || []).filter((a: any) => a.meeting_number === activeMeeting) as task (task.id)}
 							<div class="space-y-4">
 								<div class="flex flex-col gap-1">
 									<h3 class="text-xl font-bold">{task.title}</h3>
@@ -389,7 +377,7 @@
 						</CardTitle>
 					</CardHeader>
 					<CardContent class="flex-1 space-y-6 pt-6">
-						{#each filteredQuizzes as quiz}
+						{#each filteredQuizzes as quiz (quiz.id)}
 							<div class="space-y-4">
 								<div class="flex flex-col gap-1">
 									<h3 class="text-xl font-bold">{quiz.title}</h3>
@@ -489,7 +477,7 @@
 
 					<!-- Comments List -->
 					<div class="space-y-6">
-						{#each filteredDiscussions as disc}
+						{#each filteredDiscussions as disc (disc.id)}
 							<div class="flex gap-4">
 								<div
 									class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold"

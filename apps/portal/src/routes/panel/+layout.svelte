@@ -1,3 +1,4 @@
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
 <script lang="ts">
 	import { page } from '$app/state';
 	import {
@@ -7,7 +8,6 @@
 		GraduationCap,
 		User,
 		Menu,
-		MessageSquare,
 		Image,
 		FileText,
 		Video,
@@ -27,7 +27,7 @@
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Sheet, SheetContent, SheetTrigger } from '$lib/components/ui/sheet';
-	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
+	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
 	import { cn } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages.js';
@@ -52,7 +52,7 @@
 		</div>
 		<div class="flex-1 overflow-auto py-2">
 			<nav class="grid items-start px-4 text-sm font-medium">
-				{#each coreNavItems as item}
+				{#each coreNavItems as item (item.href)}
 					<a
 						href={item.href}
 						class={cn(

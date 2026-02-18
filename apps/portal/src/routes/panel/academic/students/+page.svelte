@@ -1,7 +1,4 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -23,7 +20,7 @@
 		DialogFooter
 	} from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Search, Loader2, Eye, FileEdit, Trash2, Plus } from 'lucide-svelte';
+	import { Search, Loader2, FileEdit, Trash2, Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -300,7 +297,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each students as student}
+							{#each students as student (student.id)}
 								<TableRow>
 									<TableCell class="font-medium">{student.platform_student_number || '-'}</TableCell
 									>

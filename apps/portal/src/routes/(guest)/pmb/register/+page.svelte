@@ -1,10 +1,5 @@
 <script lang="ts">
 	import {
-		User,
-		Mail,
-		Phone,
-		MapPin,
-		School,
 		GraduationCap,
 		ChevronRight,
 		ChevronLeft,
@@ -85,7 +80,7 @@
 									<SelectValue placeholder="Pilih Gelombang" />
 								</SelectTrigger>
 								<SelectContent>
-									{#each periods as p}
+									{#each periods as p (p.id)}
 										<SelectItem value={p.id}>{p.name}</SelectItem>
 									{/each}
 								</SelectContent>
@@ -197,7 +192,7 @@
 									<SelectValue placeholder="Pilih Program Studi" />
 								</SelectTrigger>
 								<SelectContent>
-									{#each prodis as p}
+									{#each prodis as p (p.id)}
 										<SelectItem value={p.id}>{p.name}</SelectItem>
 									{/each}
 								</SelectContent>
@@ -210,7 +205,7 @@
 									<SelectValue placeholder="Pilih Program Studi" />
 								</SelectTrigger>
 								<SelectContent>
-									{#each prodis as p}
+									{#each prodis as p (p.id)}
 										<SelectItem value={p.id}>{p.name}</SelectItem>
 									{/each}
 								</SelectContent>

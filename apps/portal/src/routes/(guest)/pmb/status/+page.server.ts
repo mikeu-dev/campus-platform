@@ -15,8 +15,8 @@ export const load = async ({ url }: any) => {
 				params: { registration_number: registrationNumber, email }
 			});
 			applicant = res.data.data;
-		} catch (error: any) {
-			console.error('Status check error:', error.response?.data || error.message);
+		} catch (_error: any) {
+			console.error('Status check error:', _error.response?.data || _error.message);
 		}
 	}
 
@@ -42,7 +42,7 @@ export const actions = {
 				file_url: fileUrl
 			});
 			return { success: true };
-		} catch (error: any) {
+		} catch (_error: any) {
 			return fail(400, { message: 'Gagal mengunggah dokumen.' });
 		}
 	}

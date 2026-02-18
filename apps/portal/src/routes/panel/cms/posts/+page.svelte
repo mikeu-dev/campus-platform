@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, Eye, Pin, FileText, Check, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Pin } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -19,20 +19,12 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
-	import { toast } from 'svelte-sonner';
+	import { Card, CardContent } from '$lib/components/ui/card';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	const { posts = [] } = $derived(data);
 
 	let isDialogOpen = $state(false);
@@ -175,7 +167,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each posts as post}
+					{#each posts as post (post.id)}
 						<TableRow>
 							<TableCell>
 								<div class="flex items-center gap-2 font-medium">

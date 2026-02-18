@@ -3,18 +3,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import {
-		Calendar,
-		Clock,
-		MapPin,
-		User,
-		QrCode,
-		Hand,
-		ChevronLeft,
-		ChevronRight,
-		BookOpen,
-		ArrowRight
-	} from 'lucide-svelte';
+	import { Calendar, Clock, MapPin, User, QrCode, Hand, BookOpen, ArrowRight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 
 	let { data } = $props();
@@ -54,7 +43,7 @@
 
 	<!-- Day Picker -->
 	<div class="scrollbar-hide flex items-center gap-2 overflow-x-auto pb-4">
-		{#each days as day, i}
+		{#each days as day, i (day)}
 			<Button
 				variant={selectedDayIndex === i ? 'default' : 'outline'}
 				class={cn(
@@ -72,7 +61,7 @@
 	<!-- Schedule List -->
 	<div class="grid gap-6">
 		{#if filteredSchedules.length > 0}
-			{#each filteredSchedules as item}
+			{#each filteredSchedules as item (item.id || item)}
 				<Card class="group overflow-hidden border-none shadow-md transition-all hover:shadow-xl">
 					<div class="flex flex-col lg:flex-row">
 						<!-- Left Section: Time & Info -->

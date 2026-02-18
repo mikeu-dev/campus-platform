@@ -86,7 +86,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					{#each byPeriod as period}
+					{#each byPeriod as period (period.name)}
 						<div class="space-y-2">
 							<div class="flex items-center justify-between text-sm">
 								<div class="flex items-center gap-2">

@@ -18,7 +18,6 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Calendar, Clock, MapPin, FileText, ChevronRight } from 'lucide-svelte';
-	import { cn } from '$lib/utils';
 
 	let { data } = $props();
 	const exams = $derived(data.exams);
@@ -73,7 +72,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each exams as exam}
+					{#each exams as exam (exam.id || exam)}
 						<TableRow class="transition-colors hover:bg-muted/30">
 							<TableCell>
 								<div class="font-bold">{exam.course_name}</div>

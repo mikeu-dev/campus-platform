@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Menu, X, LogIn, ChevronDown, GraduationCap } from 'lucide-svelte';
-	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let { pages = [], settings = {} } = $props();
@@ -72,7 +71,7 @@
 				PMB 2026
 			</a>
 
-			{#each categories as cat}
+			{#each categories as cat (cat.key)}
 				<div class="group relative">
 					<button
 						class="flex items-center gap-1 text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600 focus:outline-none"
@@ -91,7 +90,7 @@
 							onmouseenter={() => (openDropdown = cat.key)}
 							onmouseleave={() => (openDropdown = null)}
 						>
-							{#each getPagesByCategory(cat.key) as p}
+							{#each getPagesByCategory(cat.key) as p (p.slug)}
 								<a
 									href={`/pages/${p.slug}`}
 									class="block rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
@@ -160,7 +159,7 @@
 					{m.nav_home()}
 				</a>
 
-				{#each categories as cat}
+				{#each categories as cat (cat.key)}
 					<div class="space-y-1">
 						<button
 							class="flex w-full items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
@@ -174,7 +173,7 @@
 
 						{#if openDropdown === cat.key}
 							<div class="space-y-1 pl-6">
-								{#each getPagesByCategory(cat.key) as p}
+								{#each getPagesByCategory(cat.key) as p (p.slug)}
 									<a
 										href={`/pages/${p.slug}`}
 										class="block rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600"

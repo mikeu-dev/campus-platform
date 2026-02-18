@@ -46,7 +46,7 @@
 			});
 			const response = await res.json();
 			if (response.status === 'success') requests = response.data;
-		} catch (error) {
+		} catch {
 			toast.error('Gagal memuat data permohonan');
 		} finally {
 			loading = false;

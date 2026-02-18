@@ -4,7 +4,6 @@
 		GraduationCap,
 		BookOpen,
 		Calendar,
-		TrendingUp,
 		UserCheck,
 		UserX,
 		Clock,

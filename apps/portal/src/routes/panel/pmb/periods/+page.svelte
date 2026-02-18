@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, Calendar, Check, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2 } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -19,8 +19,7 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Badge } from '$lib/components/ui/badge';
 
@@ -73,7 +72,7 @@
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{#each periods as period}
+				{#each periods as period (period.id)}
 					<TableRow>
 						<TableCell>
 							<div class="font-medium">{period.name}</div>

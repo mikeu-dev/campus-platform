@@ -2,16 +2,11 @@
 	import {
 		ArrowLeft,
 		CheckCircle2,
-		XCircle,
 		FileText,
-		User,
 		MapPin,
 		Phone,
 		Mail,
 		School,
-		Calendar,
-		Download,
-		ShieldCheck,
 		Eye
 	} from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -23,7 +18,6 @@
 		CardDescription
 	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -184,7 +178,7 @@
 					</CardHeader>
 					<CardContent>
 						<div class="space-y-4">
-							{#each applicant.documents as doc}
+							{#each applicant.documents as doc (doc.id)}
 								<div class="flex items-center justify-between rounded-lg border p-4">
 									<div class="flex items-center gap-4">
 										<div class="rounded-bg flex h-10 w-10 items-center justify-center bg-muted">

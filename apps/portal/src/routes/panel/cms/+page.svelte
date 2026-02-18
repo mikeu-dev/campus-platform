@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Users, MousePointer2, TrendingUp, Eye, Activity } from 'lucide-svelte';
+	import { Users, TrendingUp, Eye, Activity } from 'lucide-svelte';
 	import {
 		Card,
 		CardContent,
@@ -97,7 +97,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					{#each stats.daily as day}
+					{#each stats.daily as day (day.date)}
 						<div class="flex items-center gap-4">
 							<div class="w-24 text-sm font-medium">
 								{new Date(day.date).toLocaleDateString('id-ID', {
@@ -130,7 +130,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					{#each stats.byRoute.slice(0, 5) as route}
+					{#each stats.byRoute.slice(0, 5) as route (route.route)}
 						<div class="flex flex-col gap-1">
 							<div class="flex justify-between text-sm font-medium">
 								<span class="truncate">{route.route}</span>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Calendar as CalendarIcon, Clock, MapPin, User, BookOpen } from 'lucide-svelte';
+	import { Clock, MapPin, User, BookOpen } from 'lucide-svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import * as m from '$lib/paraglide/messages.js';
@@ -15,7 +15,7 @@
 	</div>
 
 	<div class="grid gap-6">
-		{#each schedule as daySchedule}
+		{#each schedule as daySchedule (daySchedule.day)}
 			<div class="space-y-4">
 				<h3 class="flex items-center gap-2 border-b pb-2 text-xl font-semibold">
 					{daySchedule.day}
@@ -29,7 +29,7 @@
 					</Card>
 				{:else}
 					<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{#each daySchedule.classes as classInfo}
+						{#each daySchedule.classes as classInfo (classInfo.code)}
 							<Card class="overflow-hidden">
 								<div class="h-1.5 w-full bg-primary"></div>
 								<CardHeader class="p-4 pb-2">

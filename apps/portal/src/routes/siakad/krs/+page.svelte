@@ -17,13 +17,13 @@
 		DialogTitle,
 		DialogTrigger
 	} from '$lib/components/ui/dialog';
-	import { Plus, Loader2, Search } from 'lucide-svelte';
+	import { Plus, Loader2, Search, Clock, CheckCircle2, BookOpen, Calendar } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { Input } from '$lib/components/ui/input';
 
 	interface Props {
-		data: { token?: string; user?: any };
+		data: { token?: string };
 	}
 
 	let { data }: Props = $props();
@@ -97,7 +97,7 @@
 			if (response.status === 'success') {
 				studentId = response.data.id;
 			}
-		} catch {
+		} catch (e) {
 			console.error('Failed to get profile', e);
 		}
 	}
@@ -129,7 +129,7 @@
 			} else {
 				toast.error(response.message || 'Gagal mengambil kelas');
 			}
-		} catch (e) {
+		} catch {
 			toast.error('Terjadi kesalahan');
 		} finally {
 			enrollingId = null;

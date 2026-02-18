@@ -43,7 +43,7 @@
 			});
 			const response = await res.json();
 			if (response.status === 'success') proposals = response.data;
-		} catch (error) {
+		} catch {
 			toast.error('Gagal memuat data proposal');
 		} finally {
 			loading = false;

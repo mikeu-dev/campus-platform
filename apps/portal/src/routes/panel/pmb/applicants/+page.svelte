@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		Search,
-		Filter,
-		Eye,
-		CheckCircle2,
-		XCircle,
-		Clock,
-		Download,
-		CalendarDays
-	} from 'lucide-svelte';
+	import { Search, Eye } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -39,6 +30,7 @@
 	let periodFilter = $state(page.url.searchParams.get('period_id') || 'all');
 
 	function applyFilters() {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const params = new URLSearchParams(page.url.searchParams);
 		if (statusFilter !== 'all') params.set('status', statusFilter);
 		else params.delete('status');
@@ -46,7 +38,7 @@
 		if (periodFilter !== 'all') params.set('period_id', periodFilter);
 		else params.delete('period_id');
 
-		goto(`?${params.toString()}`);
+		goto(`?${params.toString()}`, { invalidateAll: true });
 	}
 
 	function getStatusBadge(status: string) {
@@ -100,7 +92,7 @@
 				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value="all">Semua Gelombang</SelectItem>
-					{#each periods as p}
+					{#each periods as p (p.id)}
 						<SelectItem value={p.id}>{p.name}</SelectItem>
 					{/each}
 				</SelectContent>
@@ -150,7 +142,7 @@
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{#each filteredApplicants as applicant}
+				{#each filteredApplicants as applicant (applicant.id)}
 					{@const status = getStatusBadge(applicant.status)}
 					<TableRow>
 						<TableCell class="font-mono text-xs font-semibold">

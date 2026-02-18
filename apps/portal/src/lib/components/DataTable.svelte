@@ -99,7 +99,7 @@
 			<table class="min-w-full divide-y divide-gray-200">
 				<thead class="bg-gray-50">
 					<tr>
-						{#each columns as col}
+						{#each columns as col (col.key)}
 							<th
 								scope="col"
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase {col.class ||
@@ -113,7 +113,7 @@
 				<tbody class="divide-y divide-gray-200 bg-white">
 					{#each data as item (item[key])}
 						<tr>
-							{#each columns as col}
+							{#each columns as col (col.key)}
 								<td class="px-6 py-4 whitespace-nowrap">
 									{@render cell(item, col.key)}
 								</td>

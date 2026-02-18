@@ -5,7 +5,6 @@
 		Clock,
 		AlertTriangle,
 		FileUp,
-		ExternalLink,
 		Eye,
 		XCircle,
 		ArrowLeft
@@ -20,8 +19,6 @@
 		CardTitle,
 		CardDescription
 	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
 
 	let { data } = $props();
 	const { applicant, searchParams } = $derived(data);
@@ -172,7 +169,7 @@
 						</CardHeader>
 						<CardContent>
 							<div class="space-y-4">
-								{#each docTypes as docType}
+								{#each docTypes as docType (docType.id)}
 									{@const existingDoc = applicant.documents.find(
 										(d: any) => d.document_type === docType.id
 									)}

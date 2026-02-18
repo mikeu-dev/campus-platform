@@ -27,7 +27,7 @@ export const actions: Actions = {
 		}
 	},
 
-	uploadAssignment: async ({ request, locals, params }) => {
+	uploadAssignment: async () => {
 		// Placeholder for assignment upload
 		// In a real scenario, this would handle Multipart form data and MinIO upload
 		return { success: true, message: 'Assignment submitted successfully' };

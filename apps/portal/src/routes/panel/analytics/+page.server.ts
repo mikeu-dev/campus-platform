@@ -3,7 +3,6 @@ import axios from 'axios';
 import {
 	PUBLIC_ADMISSION_API_URL,
 	PUBLIC_ACADEMIC_API_URL,
-	PUBLIC_LEARNING_API_URL,
 	PUBLIC_IDENTITY_API_URL
 } from '$env/static/public';
 

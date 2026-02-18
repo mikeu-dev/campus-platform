@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, FileText, ExternalLink, Layers, Check, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, ExternalLink, Layers } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -19,26 +19,12 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger,
-		SelectValue
-	} from '$lib/components/ui/select';
+	import { Card, CardContent } from '$lib/components/ui/card';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	const { pages = [] } = $derived(data);
 
 	let isDialogOpen = $state(false);
@@ -133,7 +119,7 @@
 									class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									value={editingPage?.parent_menu || 'Profil'}
 								>
-									{#each categories as cat}
+									{#each categories as cat (cat)}
 										<option value={cat}>{cat}</option>
 									{/each}
 								</select>
@@ -183,7 +169,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each pages as page}
+					{#each pages as page (page.id)}
 						<TableRow>
 							<TableCell>
 								<div class="font-medium">{page.title}</div>
@@ -204,6 +190,7 @@
 							</TableCell>
 							<TableCell class="text-right">
 								<div class="flex justify-end gap-2">
+									<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 									<a
 										href={`/pages/${page.slug}`}
 										target="_blank"

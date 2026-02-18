@@ -51,7 +51,7 @@
 			});
 			const response = await res.json();
 			if (response.status === 'success') bills = response.data;
-		} catch (error) {
+		} catch {
 			toast.error('Gagal memuat data tagihan');
 		} finally {
 			loading = false;

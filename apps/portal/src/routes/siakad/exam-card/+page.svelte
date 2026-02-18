@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Printer, Download } from 'lucide-svelte';
-	import { Card, CardContent, CardHeader, CardHeader } from '$lib/components/ui/card';
+	import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Table,

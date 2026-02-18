@@ -2,9 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { MessageCircle, Send, ArrowLeft } from 'lucide-svelte';
 	import type { ActionData, PageData } from './$types';
-	import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '$lib/components/ui/card';
+	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
+	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 
 	interface Props {
 		data: PageData;

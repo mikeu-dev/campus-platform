@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Plus, Search, MoreHorizontal } from 'lucide-svelte';
+	import { Plus, MoreHorizontal } from 'lucide-svelte';
 	import {
 		Card,
 		CardContent,

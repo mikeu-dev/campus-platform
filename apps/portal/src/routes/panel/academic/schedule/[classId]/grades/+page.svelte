@@ -11,7 +11,7 @@
 		TableRow
 	} from '$lib/components/ui/table';
 	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+
 	import { ArrowLeft, Save, Loader2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
@@ -86,7 +86,7 @@
 		saving = true;
 		try {
 			const grades = Object.entries(gradeData)
-				.filter(([_, v]) => v.score !== null)
+				.filter((entry) => entry[1].score !== null)
 				.map(([enrollmentId, v]) => ({
 					enrollment_id: enrollmentId,
 					score: v.score,
@@ -188,7 +188,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each students as student, i}
+							{#each students as student, i (student.enrollment_id || i)}
 								<TableRow>
 									<TableCell>{i + 1}</TableCell>
 									<TableCell class="font-mono text-sm">{student.student_number}</TableCell>

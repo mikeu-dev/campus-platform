@@ -1,13 +1,5 @@
 <script lang="ts">
-	import {
-		ChevronRight,
-		GraduationCap,
-		Calendar,
-		FileText,
-		HelpCircle,
-		CheckCircle2,
-		ArrowRight
-	} from 'lucide-svelte';
+	import { GraduationCap, Calendar, FileText, CheckCircle2 } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -76,7 +68,7 @@
 					<CardDescription>Periode pendaftaran yang sedang aktif.</CardDescription>
 				</CardHeader>
 				<CardContent class="grid gap-4">
-					{#each periods as period}
+					{#each periods as period (period.id || period.name)}
 						<div class="rounded-lg border p-3">
 							<div class="mb-1 flex items-center justify-between">
 								<span class="text-sm font-bold">{period.name}</span>
@@ -105,7 +97,7 @@
 					<CardDescription>Tersedia berbagai pilihan jalur masa depan.</CardDescription>
 				</CardHeader>
 				<CardContent class="grid gap-2">
-					{#each prodis.slice(0, 5) as prodi}
+					{#each prodis.slice(0, 5) as prodi (prodi.id || prodi.name)}
 						<div class="flex items-center gap-2 text-sm">
 							<CheckCircle2 class="h-4 w-4 text-green-600" />
 							<span>{prodi.name}</span>

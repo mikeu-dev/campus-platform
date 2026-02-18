@@ -86,7 +86,7 @@
 	</div>
 
 	<div class="grid gap-4">
-		{#each semesterHistory as semester}
+		{#each semesterHistory as semester (semester.semester)}
 			<details
 				class="group overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm"
 			>
@@ -122,7 +122,7 @@
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each semester.courses as course}
+							{#each semester.courses as course (course.code)}
 								<TableRow>
 									<TableCell class="font-mono text-sm">{course.code}</TableCell>
 									<TableCell>{course.name}</TableCell>

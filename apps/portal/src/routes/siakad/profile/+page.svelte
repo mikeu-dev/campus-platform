@@ -11,8 +11,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
-	import * as m from '$lib/paraglide/messages.js';
+
 	import {
 		Dialog,
 		DialogContent,
@@ -23,7 +22,7 @@
 		DialogFooter
 	} from '$lib/components/ui/dialog';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	let profile = $derived(data.profile || {});
 
 	let activeTab = $state('general');

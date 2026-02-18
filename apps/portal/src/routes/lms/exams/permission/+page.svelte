@@ -120,7 +120,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each exams as exam, i}
+					{#each exams as exam, i (i)}
 						<TableRow class="border-b-2 border-black hover:bg-transparent">
 							<TableCell class="border-r-2 border-black text-center">{i + 1}</TableCell>
 							<TableCell class="border-r-2 border-black text-[12px]">
@@ -144,7 +144,7 @@
 						</TableRow>
 					{/each}
 					{#if exams.length < 5}
-						{#each Array(5 - exams.length) as _}
+						{#each Array(5 - exams.length) as _, i (i)}
 							<TableRow class="h-12 border-b-2 border-black hover:bg-transparent">
 								<TableCell class="border-r-2 border-black text-center"></TableCell>
 								<TableCell class="border-r-2 border-black"></TableCell>

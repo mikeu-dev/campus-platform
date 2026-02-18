@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
 	import {
 		Table,
 		TableBody,
@@ -11,9 +9,8 @@
 		TableHeader,
 		TableRow
 	} from '$lib/components/ui/table';
-	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
 	import { Label } from '$lib/components/ui/label';
-	import { ArrowLeft, Save, Loader2, CheckCircle2 } from 'lucide-svelte';
+	import { ArrowLeft, Save, Loader2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -156,7 +153,7 @@
 				bind:value={meetingNumber}
 				onchange={handleMeetingChange}
 			>
-				{#each Array(16) as _, i}
+				{#each Array(16) as _, i (i)}
 					<option value={i + 1}>{i + 1}</option>
 				{/each}
 			</select>
@@ -196,7 +193,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each students as student, i}
+							{#each students as student, i (student.id || i)}
 								<TableRow>
 									<TableCell>{i + 1}</TableCell>
 									<TableCell>{student.student_number}</TableCell>

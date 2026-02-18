@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, Calendar, MapPin, Clock, Pin, Check, X } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, Calendar, MapPin, Clock, Pin } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import {
 		Table,
@@ -19,20 +18,11 @@
 		DialogDescription,
 		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogTrigger
+		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
-	import { toast } from 'svelte-sonner';
-
-	let { data, form } = $props();
+	import { Card, CardContent } from '$lib/components/ui/card';
+	let { data } = $props();
 	const { agendas = [] } = $derived(data);
 
 	let isDialogOpen = $state(false);
@@ -163,7 +153,7 @@
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{#each agendas as agenda}
+					{#each agendas as agenda (agenda.id)}
 						<TableRow>
 							<TableCell>
 								<div class="flex items-center gap-2 font-medium">

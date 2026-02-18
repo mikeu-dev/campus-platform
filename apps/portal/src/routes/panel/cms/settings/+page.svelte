@@ -4,9 +4,6 @@
 		Globe,
 		Share2,
 		UserCircle,
-		MapPin,
-		Phone,
-		Mail,
 		Facebook,
 		Instagram,
 		Twitter,
@@ -25,9 +22,8 @@
 		CardFooter
 	} from '$lib/components/ui/card';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { toast } from 'svelte-sonner';
 
-	let { data, form } = $props();
+	let { data } = $props();
 
 	interface SiteSettings {
 		app_name?: string;

@@ -19,7 +19,6 @@
 		ArrowRight,
 		Megaphone
 	} from 'lucide-svelte';
-	import { cn } from '$lib/utils';
 	import {
 		Sheet,
 		SheetContent,
@@ -142,7 +141,7 @@
 
 			<div class="space-y-4">
 				{#if announcements && announcements.length > 0}
-					{#each announcements as ann}
+					{#each announcements as ann (ann.id)}
 						<button
 							onclick={() => openAnnouncement(ann)}
 							class="flex w-full flex-col gap-2 rounded-xl border bg-card p-5 text-left transition-all hover:border-primary hover:shadow-sm"
@@ -193,7 +192,7 @@
 				</CardHeader>
 				<CardContent class="grid gap-4">
 					{#if deadlines && deadlines.length > 0}
-						{#each deadlines as task}
+						{#each deadlines as task (task.id)}
 							<div class="flex items-center justify-between gap-4 rounded-lg border p-3">
 								<div class="flex flex-col gap-1 overflow-hidden">
 									<h4 class="truncate font-medium">{task.title}</h4>
@@ -237,7 +236,7 @@
 		<Separator class="my-6" />
 		<div class="space-y-4">
 			<div class="prose prose-sm dark:prose-invert">
-				{#each (selectedAnnouncement?.content || '').split('\n') as paragraph}
+				{#each (selectedAnnouncement?.content || '').split('\n') as paragraph, i (i)}
 					<p>{paragraph}</p>
 				{/each}
 			</div>

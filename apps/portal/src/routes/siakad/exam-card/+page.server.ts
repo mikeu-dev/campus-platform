@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 						semester: student.semester || '-'
 					}
 				: null,
-			exams: exams.map((ex: any, i: number) => ({
+			exams: exams.map((ex: any) => ({
 				id: ex.id,
 				code: ex.course_code,
 				name: ex.course_name,

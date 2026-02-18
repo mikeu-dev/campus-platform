@@ -1,7 +1,4 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -389,7 +386,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each lecturers as lecturer}
+							{#each lecturers as lecturer (lecturer.id)}
 								<TableRow>
 									<TableCell class="font-medium"
 										>{lecturer.platform_lecturer_number || '-'}</TableCell

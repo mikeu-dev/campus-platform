@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, Library, CheckCircle2, XCircle } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2 } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -18,7 +18,6 @@
 		DialogTitle,
 		DialogFooter
 	} from '$lib/components/ui/dialog';
-	import { Checkbox } from '$lib/components/ui/checkbox';
 
 	let { data, form } = $props();
 	const { prodis = [] } = $derived(data);
@@ -51,7 +50,7 @@
 	{/if}
 
 	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-		{#each prodis as prodi}
+		{#each prodis as prodi (prodi.id)}
 			<Card class={!prodi.is_active ? 'bg-muted/30 opacity-60' : ''}>
 				<CardHeader class="flex flex-row items-start justify-between space-y-0 pb-2">
 					<div class="space-y-1">

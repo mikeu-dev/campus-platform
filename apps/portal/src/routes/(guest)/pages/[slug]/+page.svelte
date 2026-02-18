@@ -27,6 +27,7 @@
 		<section class="py-16 md:py-24">
 			<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 				<div class="prose prose-lg max-w-none text-gray-700 prose-indigo">
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					{@html pageData.content}
 				</div>
 			</div>

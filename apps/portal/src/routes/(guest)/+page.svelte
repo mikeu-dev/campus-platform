@@ -8,7 +8,6 @@
 		Award,
 		Calendar,
 		ChevronRight,
-		Play,
 		MapPin
 	} from 'lucide-svelte';
 	import { fade, fly } from 'svelte/transition';
@@ -102,7 +101,7 @@
 		<!-- HERO SECTION (Slider) -->
 		<section class="relative h-[600px] w-full overflow-hidden bg-gray-900 text-white lg:h-[700px]">
 			{#if sliders && sliders.length > 0}
-				{#each sliders as slider, i}
+				{#each sliders as slider, i (slider.id || i)}
 					{#if i === currentSliderIndex}
 						<div class="absolute inset-0" transition:fade={{ duration: 1000 }}>
 							<!-- Background Image with Overlay -->
@@ -180,7 +179,7 @@
 		<section class="relative z-10 -mt-20 px-4 sm:px-6 lg:px-8">
 			<div class="mx-auto max-w-7xl rounded-2xl bg-white p-8 shadow-xl lg:p-12">
 				<div class="grid grid-cols-2 gap-8 lg:grid-cols-4 lg:gap-12">
-					{#each stats as stat}
+					{#each stats as stat (stat.label)}
 						<div class="flex flex-col items-center text-center">
 							<div
 								class={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${stat.bg} ${stat.color}`}
@@ -259,7 +258,7 @@
 				</div>
 
 				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-					{#each posts as post}
+					{#each posts as post (post.id || post.slug)}
 						<article
 							class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md"
 						>
@@ -308,7 +307,7 @@
 				</div>
 
 				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-					{#each agendas as agenda}
+					{#each agendas as agenda (agenda.id)}
 						<div
 							class="rounded-2xl border-l-4 border-indigo-600 bg-white p-6 shadow-sm transition-all hover:shadow-md"
 						>
@@ -353,7 +352,7 @@
 				</div>
 
 				<div class="grid gap-8 lg:grid-cols-2">
-					{#each videos as video}
+					{#each videos as video (video.id || video.youtube_id)}
 						<div class="group relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
 							<div class="aspect-video w-full">
 								<iframe
