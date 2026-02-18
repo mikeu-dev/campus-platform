@@ -7,7 +7,7 @@ export const load = async ({ locals }: any) => {
 	let stats = { byRoute: [], daily: [] };
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/stats`, {
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/stats`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		stats = res.data.data;
