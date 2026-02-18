@@ -5,6 +5,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import Editor from '$lib/components/Editor.svelte';
 	import {
 		Table,
 		TableBody,
@@ -115,14 +116,13 @@
 							/>
 						</div>
 						<div class="space-y-2">
-							<Label for="content">Konten Lengkap (HTML didukung)</Label>
-							<Textarea
-								id="content"
-								name="content"
-								value={editingPost?.content || ''}
-								placeholder="Gunakan tag HTML untuk format teks"
-								rows={6}
-								required
+							<Label for="content">Konten Lengkap</Label>
+							<input type="hidden" name="content" value={editingPost?.content || ''} />
+							<Editor
+								content={editingPost?.content || ''}
+								onchange={(html) => {
+									editingPost = { ...editingPost, content: html };
+								}}
 							/>
 						</div>
 						<div class="flex gap-6 pt-2">

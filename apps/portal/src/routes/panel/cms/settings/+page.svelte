@@ -13,6 +13,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import Editor from '$lib/components/Editor.svelte';
 	import {
 		Card,
 		CardContent,
@@ -205,11 +206,18 @@
 						</div>
 						<div class="space-y-2">
 							<Label for="director_message">Pesan Sambutan</Label>
-							<Textarea
-								id="director_message"
+							<input
+								type="hidden"
 								name="director_message"
 								value={settings.director_message || ''}
-								rows={6}
+							/>
+							<Editor
+								content={settings.director_message || ''}
+								onchange={(html) => {
+									if (data.settings) {
+										(data as any).settings.director_message = html;
+									}
+								}}
 							/>
 						</div>
 					</CardContent>
