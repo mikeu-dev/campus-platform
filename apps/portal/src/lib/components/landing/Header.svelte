@@ -17,7 +17,34 @@
 	];
 
 	function getPagesByCategory(category: string) {
-		return pages.filter((p: any) => p.parent_menu === category);
+		let categoryPages = pages.filter((p: any) => p.parent_menu === category);
+
+		// Fallback dummy data if no real pages exist
+		if (categoryPages.length === 0) {
+			const dummyPages = [
+				{ title: 'Visi Misi', slug: 'visi-misi', parent_menu: 'Profil' },
+				{ title: 'Sejarah Singkat', slug: 'sejarah', parent_menu: 'Profil' },
+				{ title: 'Struktur Organisasi', slug: 'struktur-organisasi', parent_menu: 'Profil' },
+
+				{ title: 'Kalender Akademik', slug: 'kalender-akademik', parent_menu: 'Akademik' },
+				{ title: 'Panduan Akademik', slug: 'panduan-akademik', parent_menu: 'Akademik' },
+				{ title: 'Kurikulum', slug: 'kurikulum', parent_menu: 'Akademik' },
+
+				{ title: 'Teknik Informatika', slug: 'teknik-informatika', parent_menu: 'Prodi' },
+				{ title: 'Sistem Informasi', slug: 'sistem-informasi', parent_menu: 'Prodi' },
+				{ title: 'Manajemen', slug: 'manajemen', parent_menu: 'Prodi' },
+
+				{ title: 'Jurnal Ilmiah', slug: 'jurnal', parent_menu: 'Riset' },
+				{ title: 'Pengabdian Masyarakat', slug: 'pengabdian', parent_menu: 'Riset' },
+
+				{ title: 'Jalur Masuk', slug: 'jalur-masuk', parent_menu: 'Penerimaan' },
+				{ title: 'Biaya Kuliah', slug: 'biaya-kuliah', parent_menu: 'Penerimaan' },
+				{ title: 'Beasiswa', slug: 'beasiswa', parent_menu: 'Penerimaan' }
+			];
+			categoryPages = dummyPages.filter((p) => p.parent_menu === category);
+		}
+
+		return categoryPages;
 	}
 
 	function toggleDropdown(key: string) {
