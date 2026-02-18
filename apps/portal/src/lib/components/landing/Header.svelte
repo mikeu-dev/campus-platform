@@ -22,24 +22,35 @@
 		// Fallback dummy data if no real pages exist
 		if (categoryPages.length === 0) {
 			const dummyPages = [
+				{ title: 'Sambutan Direktur', slug: 'sambutan-direktur', parent_menu: 'Profil' },
+				{ title: 'Sejarah', slug: 'sejarah', parent_menu: 'Profil' },
 				{ title: 'Visi Misi', slug: 'visi-misi', parent_menu: 'Profil' },
-				{ title: 'Sejarah Singkat', slug: 'sejarah', parent_menu: 'Profil' },
 				{ title: 'Struktur Organisasi', slug: 'struktur-organisasi', parent_menu: 'Profil' },
+				{ title: 'Fasilitas', slug: 'fasilitas', parent_menu: 'Profil' },
 
-				{ title: 'Kalender Akademik', slug: 'kalender-akademik', parent_menu: 'Akademik' },
-				{ title: 'Panduan Akademik', slug: 'panduan-akademik', parent_menu: 'Akademik' },
 				{ title: 'Kurikulum', slug: 'kurikulum', parent_menu: 'Akademik' },
+				{ title: 'Mata Kuliah', slug: 'mata-kuliah', parent_menu: 'Akademik' },
+				{ title: 'Biaya Kuliah', slug: 'biaya-kuliah', parent_menu: 'Akademik' },
+				{ title: 'Agenda', slug: 'agenda', parent_menu: 'Akademik' },
 
-				{ title: 'Teknik Informatika', slug: 'teknik-informatika', parent_menu: 'Prodi' },
-				{ title: 'Sistem Informasi', slug: 'sistem-informasi', parent_menu: 'Prodi' },
-				{ title: 'Manajemen', slug: 'manajemen', parent_menu: 'Prodi' },
+				{ title: 'Mengenal Prodi', slug: 'mengenal-prodi', parent_menu: 'Prodi' },
+				{ title: 'Staff Pengajar', slug: 'staff-pengajar', parent_menu: 'Prodi' },
 
-				{ title: 'Jurnal Ilmiah', slug: 'jurnal', parent_menu: 'Riset' },
-				{ title: 'Pengabdian Masyarakat', slug: 'pengabdian', parent_menu: 'Riset' },
+				{ title: 'Informasi Riset', slug: 'informasi-riset', parent_menu: 'Riset' },
+				{ title: 'Prosedur Riset', slug: 'prosedur-riset', parent_menu: 'Riset' },
+				{ title: 'Jurnal Riset', slug: 'jurnal-riset', parent_menu: 'Riset' },
 
-				{ title: 'Jalur Masuk', slug: 'jalur-masuk', parent_menu: 'Penerimaan' },
-				{ title: 'Biaya Kuliah', slug: 'biaya-kuliah', parent_menu: 'Penerimaan' },
-				{ title: 'Beasiswa', slug: 'beasiswa', parent_menu: 'Penerimaan' }
+				{
+					title: 'Penerimaan Mahasiswa Baru',
+					slug: 'penerimaan-mahasiswa-baru',
+					parent_menu: 'Penerimaan'
+				},
+				{ title: 'Penerimaan Beasiswa', slug: 'penerimaan-beasiswa', parent_menu: 'Penerimaan' },
+				{
+					title: 'Penerimaan Penghargaan',
+					slug: 'penerimaan-penghargaan',
+					parent_menu: 'Penerimaan'
+				}
 			];
 			categoryPages = dummyPages.filter((p) => p.parent_menu === category);
 		}
