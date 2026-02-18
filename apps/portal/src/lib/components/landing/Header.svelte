@@ -156,19 +156,23 @@
 
 					{#if openDropdown === cat.key}
 						<div
-							class="absolute top-full left-1/2 mt-2 w-60 -translate-x-1/2 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl ring-1 shadow-gray-200/50 ring-black/5 focus:outline-none"
+							class="absolute top-full left-1/2 w-60 -translate-x-1/2 pt-4 focus:outline-none"
 							role="menu"
 							tabindex="-1"
 							transition:fly={{ y: 10, duration: 200 }}
 						>
-							{#each getPagesByCategory(cat.key) as p (p.slug)}
-								<a
-									href={`/pages/${p.slug}`}
-									class="block rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
-								>
-									{p.title}
-								</a>
-							{/each}
+							<div
+								class="rounded-2xl border border-gray-100 bg-white p-2 shadow-xl ring-1 shadow-gray-200/50 ring-black/5"
+							>
+								{#each getPagesByCategory(cat.key) as p (p.slug)}
+									<a
+										href={`/pages/${p.slug}`}
+										class="block rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+									>
+										{p.title}
+									</a>
+								{/each}
+							</div>
 						</div>
 					{/if}
 				</div>
