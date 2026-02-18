@@ -219,14 +219,18 @@
 							>{m.nav_about()}</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							{settings.director_welcome_title || m.about_title()}
+							{data.pages?.find((p: any) => p.slug === 'sambutan-direktur')?.title ||
+								m.about_title()}
 						</h2>
 						<p class="mt-6 text-lg leading-relaxed text-gray-600">
-							{settings.director_welcome_text || m.about_description()}
+							{data.pages
+								?.find((p: any) => p.slug === 'sambutan-direktur')
+								?.content?.replace(/<[^>]*>/g, '')
+								.substring(0, 300) || m.about_description()}...
 						</p>
 						<div class="mt-8">
 							<a
-								href="/profile/welcome"
+								href="/pages/sambutan-direktur"
 								class="inline-flex items-center font-bold text-indigo-600 hover:underline"
 							>
 								Lihat Selengkapnya <ChevronRight class="ml-1 h-5 w-5" />

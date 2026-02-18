@@ -204,21 +204,9 @@
 								placeholder="https://..."
 							/>
 						</div>
-						<div class="space-y-2">
-							<Label for="director_message">Pesan Sambutan</Label>
-							<input
-								type="hidden"
-								name="director_message"
-								value={settings.director_message || ''}
-							/>
-							<Editor
-								content={settings.director_message || ''}
-								onchange={(html) => {
-									if (data.settings) {
-										(data as any).settings.director_message = html;
-									}
-								}}
-							/>
+						<div class="rounded-md bg-muted/50 p-4 text-sm text-muted-foreground italic">
+							Isi pesan sambutan dipindahkan ke menu <b>Halaman Dinamis</b> (dengan slug:
+							<i>sambutan-direktur</i>) untuk pengelolaan konten yang lebih baik.
 						</div>
 					</CardContent>
 					<CardFooter class="flex justify-end border-t p-6">
