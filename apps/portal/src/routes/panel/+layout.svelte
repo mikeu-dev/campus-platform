@@ -30,6 +30,7 @@
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
 	import { cn } from '$lib/utils';
+	import NavGroup from '$lib/components/NavGroup.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	interface Props {
@@ -67,288 +68,299 @@
 
 				{#if page.data.user?.roles?.includes('admin')}
 					<div class="my-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							{m.nav_section_admin()}
-						</p>
+						<Separator class="my-2" />
 					</div>
-					<a
-						href="/panel/users"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/users') && 'bg-muted text-primary'
-						)}
-					>
-						<User class="h-4 w-4" />
-						{m.nav_users()}
-					</a>
-					<a
-						href="/panel/courses"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/courses') && 'bg-muted text-primary'
-						)}
-					>
-						<BookOpen class="h-4 w-4" />
-						{m.nav_courses()}
-					</a>
-					<a
-						href="/panel/classes"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/classes') && 'bg-muted text-primary'
-						)}
-					>
-						<GraduationCap class="h-4 w-4" />
-						{m.nav_classes()}
-					</a>
 
-					<Separator class="mx-4 my-4" />
-					<div class="my-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							Informasi Publik
-						</p>
-					</div>
-					<a
-						href="/panel/cms"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname === '/panel/cms' && 'bg-muted text-primary'
+					<!-- Master Data -->
+					<NavGroup
+						label="Master Data"
+						icon={UsersRound}
+						active={['/panel/users', '/panel/courses', '/panel/classes'].some((path) =>
+							page.url.pathname.includes(path)
 						)}
 					>
-						<LayoutDashboard class="h-4 w-4" />
-						Dasbor CMS
-					</a>
-					<a
-						href="/panel/cms/sliders"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/sliders') && 'bg-muted text-primary'
-						)}
-					>
-						<Image class="h-4 w-4" />
-						Slider Hero
-					</a>
-					<a
-						href="/panel/cms/posts"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/posts') && 'bg-muted text-primary'
-						)}
-					>
-						<Newspaper class="h-4 w-4" />
-						Berita & Info
-					</a>
-					<a
-						href="/panel/cms/agendas"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/agendas') && 'bg-muted text-primary'
-						)}
-					>
-						<CalendarDays class="h-4 w-4" />
-						Agenda Kampus
-					</a>
-					<a
-						href="/panel/cms/videos"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/videos') && 'bg-muted text-primary'
-						)}
-					>
-						<Video class="h-4 w-4" />
-						Kanal Video
-					</a>
-					<a
-						href="/panel/cms/pages"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/pages') && 'bg-muted text-primary'
-						)}
-					>
-						<FileText class="h-4 w-4" />
-						Halaman Dinamis
-					</a>
-					<a
-						href="/panel/cms/links"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/links') && 'bg-muted text-primary'
-						)}
-					>
-						<ExternalLink class="h-4 w-4" />
-						Tautan Terkait
-					</a>
-					<a
-						href="/panel/cms/settings"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/cms/settings') && 'bg-muted text-primary'
-						)}
-					>
-						<Settings2 class="h-4 w-4" />
-						Pengaturan Konten
-					</a>
+						<a
+							href="/panel/users"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/users') && 'bg-muted text-primary'
+							)}
+						>
+							<User class="h-4 w-4" />
+							{m.nav_users()}
+						</a>
+						<a
+							href="/panel/courses"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/courses') && 'bg-muted text-primary'
+							)}
+						>
+							<BookOpen class="h-4 w-4" />
+							{m.nav_courses()}
+						</a>
+						<a
+							href="/panel/classes"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/classes') && 'bg-muted text-primary'
+							)}
+						>
+							<GraduationCap class="h-4 w-4" />
+							{m.nav_classes()}
+						</a>
+					</NavGroup>
 
-					<Separator class="mx-4 my-4" />
-					<div class="my-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							Penerimaan (PMB)
-						</p>
-					</div>
-					<a
-						href="/panel/pmb"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname === '/panel/pmb' && 'bg-muted text-primary'
-						)}
+					<!-- CMS / Informasi Publik -->
+					<NavGroup
+						label="Informasi Publik"
+						icon={Newspaper}
+						active={page.url.pathname.includes('/panel/cms')}
 					>
-						<LayoutDashboard class="h-4 w-4" />
-						Dasbor PMB
-					</a>
-					<a
-						href="/panel/pmb/periods"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/pmb/periods') && 'bg-muted text-primary'
-						)}
-					>
-						<CalendarRange class="h-4 w-4" />
-						Gelombang & Jalur
-					</a>
-					<a
-						href="/panel/pmb/prodis"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/pmb/prodis') && 'bg-muted text-primary'
-						)}
-					>
-						<Library class="h-4 w-4" />
-						Program Studi
-					</a>
-					<a
-						href="/panel/pmb/applicants"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/pmb/applicants') && 'bg-muted text-primary'
-						)}
-					>
-						<UsersRound class="h-4 w-4" />
-						Data Pendaftar
-					</a>
-					<a
-						href="/panel/pmb/verification"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/pmb/verification') && 'bg-muted text-primary'
-						)}
-					>
-						<ClipboardCheck class="h-4 w-4" />
-						Verifikasi Dokumen
-					</a>
+						<a
+							href="/panel/cms"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname === '/panel/cms' && 'bg-muted text-primary'
+							)}
+						>
+							<LayoutDashboard class="h-4 w-4" />
+							Dasbor CMS
+						</a>
+						<a
+							href="/panel/cms/sliders"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/sliders') && 'bg-muted text-primary'
+							)}
+						>
+							<Image class="h-4 w-4" />
+							Slider Hero
+						</a>
+						<a
+							href="/panel/cms/posts"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/posts') && 'bg-muted text-primary'
+							)}
+						>
+							<Newspaper class="h-4 w-4" />
+							Berita & Info
+						</a>
+						<a
+							href="/panel/cms/agendas"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/agendas') && 'bg-muted text-primary'
+							)}
+						>
+							<CalendarDays class="h-4 w-4" />
+							Agenda Kampus
+						</a>
+						<a
+							href="/panel/cms/videos"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/videos') && 'bg-muted text-primary'
+							)}
+						>
+							<Video class="h-4 w-4" />
+							Kanal Video
+						</a>
+						<a
+							href="/panel/cms/pages"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/pages') && 'bg-muted text-primary'
+							)}
+						>
+							<FileText class="h-4 w-4" />
+							Halaman Dinamis
+						</a>
+						<a
+							href="/panel/cms/links"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/links') && 'bg-muted text-primary'
+							)}
+						>
+							<ExternalLink class="h-4 w-4" />
+							Tautan Terkait
+						</a>
+						<a
+							href="/panel/cms/settings"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/cms/settings') && 'bg-muted text-primary'
+							)}
+						>
+							<Settings2 class="h-4 w-4" />
+							Pengaturan Konten
+						</a>
+					</NavGroup>
 
-					<Separator class="mx-4 my-4" />
-					<div class="my-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							Manajemen Akademik
-						</p>
-					</div>
-					<a
-						href="/panel/academic/students"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/students') && 'bg-muted text-primary'
-						)}
+					<!-- PMB -->
+					<NavGroup
+						label="Penerimaan (PMB)"
+						icon={CalendarRange}
+						active={page.url.pathname.includes('/panel/pmb')}
 					>
-						<UsersRound class="h-4 w-4" />
-						Data Mahasiswa
-					</a>
-					<a
-						href="/panel/academic/lecturers"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/lecturers') && 'bg-muted text-primary'
-						)}
-					>
-						<User class="h-4 w-4" />
-						Data Dosen
-					</a>
-					<a
-						href="/panel/academic/courses"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/courses') && 'bg-muted text-primary'
-						)}
-					>
-						<BookOpen class="h-4 w-4" />
-						Mata Kuliah (Master)
-					</a>
-					<a
-						href="/panel/academic/classes"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/classes') && 'bg-muted text-primary'
-						)}
-					>
-						<CalendarDays class="h-4 w-4" />
-						Jadwal & Kelas
-					</a>
-					<a
-						href="/panel/academic/schedule"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/schedule') && 'bg-muted text-primary'
-						)}
-					>
-						<ClipboardCheck class="h-4 w-4" />
-						Jadwal Mengajar
-					</a>
-					<a
-						href="/panel/academic/announcements"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/announcements') && 'bg-muted text-primary'
-						)}
-					>
-						<Megaphone class="h-4 w-4" />
-						Pengumuman
-					</a>
-					<a
-						href="/panel/academic/finance"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/finance') && 'bg-muted text-primary'
-						)}
-					>
-						<CreditCard class="h-4 w-4" />
-						Keuangan
-					</a>
-					<a
-						href="/panel/academic/research"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/research') && 'bg-muted text-primary'
-						)}
-					>
-						<BookOpen class="h-4 w-4" />
-						Proposal Penelitian
-					</a>
-					<a
-						href="/panel/academic/certificates"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/panel/academic/certificates') && 'bg-muted text-primary'
-						)}
-					>
-						<FileCheck class="h-4 w-4" />
-						Permohonan Surat
-					</a>
+						<a
+							href="/panel/pmb"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname === '/panel/pmb' && 'bg-muted text-primary'
+							)}
+						>
+							<LayoutDashboard class="h-4 w-4" />
+							Dasbor PMB
+						</a>
+						<a
+							href="/panel/pmb/periods"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/pmb/periods') && 'bg-muted text-primary'
+							)}
+						>
+							<CalendarRange class="h-4 w-4" />
+							Gelombang & Jalur
+						</a>
+						<a
+							href="/panel/pmb/prodis"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/pmb/prodis') && 'bg-muted text-primary'
+							)}
+						>
+							<Library class="h-4 w-4" />
+							Program Studi
+						</a>
+						<a
+							href="/panel/pmb/applicants"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/pmb/applicants') && 'bg-muted text-primary'
+							)}
+						>
+							<UsersRound class="h-4 w-4" />
+							Data Pendaftar
+						</a>
+						<a
+							href="/panel/pmb/verification"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/pmb/verification') && 'bg-muted text-primary'
+							)}
+						>
+							<ClipboardCheck class="h-4 w-4" />
+							Verifikasi Dokumen
+						</a>
+					</NavGroup>
 
-					<Separator class="mx-4 my-4" />
+					<!-- Akademik -->
+					<NavGroup
+						label="Manajemen Akademik"
+						icon={GraduationCap}
+						active={page.url.pathname.includes('/panel/academic')}
+					>
+						<a
+							href="/panel/academic/students"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/students') && 'bg-muted text-primary'
+							)}
+						>
+							<UsersRound class="h-4 w-4" />
+							Data Mahasiswa
+						</a>
+						<a
+							href="/panel/academic/lecturers"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/lecturers') && 'bg-muted text-primary'
+							)}
+						>
+							<User class="h-4 w-4" />
+							Data Dosen
+						</a>
+						<a
+							href="/panel/academic/courses"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/courses') && 'bg-muted text-primary'
+							)}
+						>
+							<BookOpen class="h-4 w-4" />
+							Mata Kuliah (Master)
+						</a>
+						<a
+							href="/panel/academic/classes"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/classes') && 'bg-muted text-primary'
+							)}
+						>
+							<CalendarDays class="h-4 w-4" />
+							Jadwal & Kelas
+						</a>
+						<a
+							href="/panel/academic/schedule"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/schedule') && 'bg-muted text-primary'
+							)}
+						>
+							<ClipboardCheck class="h-4 w-4" />
+							Jadwal Mengajar
+						</a>
+						<a
+							href="/panel/academic/announcements"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/announcements') &&
+									'bg-muted text-primary'
+							)}
+						>
+							<Megaphone class="h-4 w-4" />
+							Pengumuman
+						</a>
+						<a
+							href="/panel/academic/finance"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/finance') && 'bg-muted text-primary'
+							)}
+						>
+							<CreditCard class="h-4 w-4" />
+							Keuangan
+						</a>
+						<a
+							href="/panel/academic/research"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/research') && 'bg-muted text-primary'
+							)}
+						>
+							<BookOpen class="h-4 w-4" />
+							Proposal Penelitian
+						</a>
+						<a
+							href="/panel/academic/certificates"
+							class={cn(
+								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+								page.url.pathname.includes('/panel/academic/certificates') &&
+									'bg-muted text-primary'
+							)}
+						>
+							<FileCheck class="h-4 w-4" />
+							Permohonan Surat
+						</a>
+					</NavGroup>
+
 					<div class="my-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							Laporan & Analitik
-						</p>
+						<Separator class="my-2" />
 					</div>
+
 					<a
 						href="/panel/analytics"
 						class={cn(
