@@ -5,7 +5,7 @@ import { PUBLIC_PUBLIC_API_URL } from '$env/static/public';
 export const load: PageServerLoad = async () => {
 	// For now, we'll use a placeholder tenant ID.
 	// In a real scenario, this would be determined by the domain or a default setting.
-	const tenantId = '00000000-0000-0000-0000-000000000000'; // Placeholder
+	const tenantId = 'f0015426-1288-4617-be83-3bf153058f89'; // Default Seed Tenant
 
 	let sliders = [];
 	let settings = {};

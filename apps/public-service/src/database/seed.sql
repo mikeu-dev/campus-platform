@@ -33,3 +33,8 @@ ON CONFLICT (tenant_id, slug) DO UPDATE SET
     content = EXCLUDED.content,
     parent_menu = EXCLUDED.parent_menu,
     order_index = EXCLUDED.order_index;
+
+INSERT INTO public_videos (tenant_id, title, youtube_id, order_index) VALUES
+('f0015426-1288-4617-be83-3bf153058f89', 'Profil Kampus 2026', 'dQw4w9WgXcQ', 1),
+('f0015426-1288-4617-be83-3bf153058f89', 'Testimoni Alumni', 'ScMzIvxBSi4', 2)
+ON CONFLICT DO NOTHING;
