@@ -95,7 +95,10 @@
 						<Input
 							id="youtube_url"
 							name="url"
-							value={editingVideo?.url || (editingVideo?.youtube_id ? `https://www.youtube.com/watch?v=${editingVideo.youtube_id}` : '')}
+							value={editingVideo?.url ||
+								(editingVideo?.youtube_id
+									? `https://www.youtube.com/watch?v=${editingVideo.youtube_id}`
+									: '')}
 							placeholder="https://www.youtube.com/watch?v=..."
 							required
 						/>
@@ -140,10 +143,11 @@
 				</TableHeader>
 				<TableBody>
 					{#each videos as video (video.id)}
+						{@const yid = video.youtube_id || getYoutubeEmbed(video.url)}
+						{@const displayUrl = video.url || `https://www.youtube.com/watch?v=${video.youtube_id}`}
 						<TableRow>
 							<TableCell>
 								<div class="group relative h-20 w-32 overflow-hidden rounded-md border bg-muted">
-									{#const yid = video.youtube_id || getYoutubeEmbed(video.url)}
 									{#if yid}
 										<img
 											src={`https://img.youtube.com/vi/${yid}/mqdefault.jpg`}
@@ -164,7 +168,6 @@
 							</TableCell>
 							<TableCell>
 								<div class="font-medium">{video.title}</div>
-								{#const displayUrl = video.url || `https://www.youtube.com/watch?v=${video.youtube_id}`}
 								<a
 									href={displayUrl}
 									target="_blank"
