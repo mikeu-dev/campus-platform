@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Menu, X, LogIn, ChevronDown, GraduationCap } from 'lucide-svelte';
+	import { Menu, X, LogIn, ChevronDown, GraduationCap, Phone, Mail } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { slide, fly } from 'svelte/transition';
 
@@ -29,8 +29,51 @@
 	}
 </script>
 
+<!-- TOP UTILITY BAR -->
+<div class="w-full bg-slate-900 text-xs font-medium text-slate-300">
+	<div class="mx-auto flex h-10 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+		<!-- Left: Contact Info -->
+		<div class="hidden items-center gap-6 sm:flex">
+			{#if settings.phone}
+				<a
+					href={`tel:${settings.phone}`}
+					class="flex items-center gap-2 transition-colors hover:text-white"
+				>
+					<Phone class="h-3.5 w-3.5" />
+					<span>{settings.phone}</span>
+				</a>
+			{/if}
+			{#if settings.email}
+				<a
+					href={`mailto:${settings.email}`}
+					class="flex items-center gap-2 transition-colors hover:text-white"
+				>
+					<Mail class="h-3.5 w-3.5" />
+					<span>{settings.email}</span>
+				</a>
+			{/if}
+		</div>
+
+		<!-- Right: Utility Links -->
+		<div class="ml-auto flex items-center gap-4">
+			<a href="/auth/login" class="transition-colors hover:text-white">
+				{m.nav_login_staff()}
+			</a>
+			<span class="text-slate-700">|</span>
+			<a
+				href="/auth/siakad/login"
+				class="flex items-center gap-1.5 transition-colors hover:text-white"
+			>
+				<LogIn class="h-3.5 w-3.5" />
+				<span>{m.nav_student_portal()}</span>
+			</a>
+		</div>
+	</div>
+</div>
+
+<!-- MAIN NAVIGATION BAR -->
 <header
-	class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-md transition-all duration-300"
+	class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-md transition-all duration-300"
 >
 	<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 		<!-- Logo -->
@@ -66,14 +109,6 @@
 		<nav class="hidden md:flex md:items-center md:gap-x-8">
 			<a href="/" class="text-sm font-medium text-gray-600 transition-colors hover:text-indigo-600">
 				{m.nav_home()}
-			</a>
-
-			<a
-				href="/pmb"
-				class="group inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
-			>
-				<GraduationCap class="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
-				PMB 2026
 			</a>
 
 			{#each categories as cat (cat.key)}
@@ -120,20 +155,14 @@
 			</a>
 		</nav>
 
-		<!-- Desktop CTA -->
+		<!-- Desktop CTA (PMB Only) -->
 		<div class="hidden items-center gap-4 md:flex">
 			<a
-				href="/auth/login"
-				class="text-sm font-semibold text-gray-600 transition-colors hover:text-indigo-600"
-			>
-				{m.nav_login_staff()}
-			</a>
-			<a
-				href="/auth/siakad/login"
+				href="/pmb"
 				class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 			>
-				<LogIn class="h-4 w-4" />
-				{m.nav_student_portal()}
+				<GraduationCap class="h-4 w-4" />
+				PMB 2026
 			</a>
 		</div>
 
@@ -159,7 +188,7 @@
 	<!-- Mobile Menu -->
 	{#if isMenuOpen}
 		<div
-			class="absolute top-20 left-0 w-full border-t border-gray-100 bg-white shadow-lg md:hidden"
+			class="absolute top-20 left-0 h-[calc(100vh-5rem)] w-full overflow-y-auto border-t border-gray-100 bg-white shadow-lg md:hidden"
 			transition:slide={{ duration: 300 }}
 		>
 			<div class="space-y-1 px-4 pt-2 pb-6 sm:px-3">
@@ -201,18 +230,28 @@
 
 				<div class="mt-4 space-y-3 border-t border-gray-100 pt-6">
 					<a
-						href="/auth/login"
-						class="block w-full rounded-lg px-3 py-2.5 text-center text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
-					>
-						{m.nav_login_staff()}
-					</a>
-					<a
-						href="/auth/siakad/login"
+						href="/pmb"
 						class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-3.5 text-base font-semibold text-white shadow-md hover:bg-indigo-500"
+						onclick={() => (isMenuOpen = false)}
 					>
-						<LogIn class="h-4 w-4" />
-						{m.nav_student_portal()}
+						<GraduationCap class="h-4 w-4" />
+						PMB 2026
 					</a>
+					<div class="mt-4 grid grid-cols-2 gap-3">
+						<a
+							href="/auth/login"
+							class="flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 hover:border-indigo-200 hover:bg-gray-50 hover:text-indigo-600"
+						>
+							{m.nav_login_staff()}
+						</a>
+						<a
+							href="/auth/siakad/login"
+							class="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 hover:border-indigo-200 hover:bg-gray-50 hover:text-indigo-600"
+						>
+							<LogIn class="h-4 w-4" />
+							Portal Mhs
+						</a>
+					</div>
 				</div>
 			</div>
 		</div>
