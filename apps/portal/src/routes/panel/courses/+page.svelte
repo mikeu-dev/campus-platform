@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Plus } from 'lucide-svelte';
+	import DataTable from '$lib/components/DataTable.svelte';
+	import * as m from '$lib/paraglide/messages.js';
+
 	let { data, form } = $props();
 
 	let showForm = $state(false);
@@ -8,23 +11,25 @@
 
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
-		<h2 class="text-2xl font-bold text-gray-900">Course Management</h2>
+		<h2 class="text-2xl font-bold text-gray-900">{m.courses_title()}</h2>
 		<button
 			onclick={() => (showForm = !showForm)}
 			class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none"
 		>
 			<Plus class="mr-2 h-5 w-5" />
-			Add Course
+			{m.courses_add_button()}
 		</button>
 	</div>
 
 	{#if showForm}
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-6">
-			<h3 class="mb-4 text-lg font-medium text-gray-900">Create New Course</h3>
+			<h3 class="mb-4 text-lg font-medium text-gray-900">{m.courses_create_title()}</h3>
 			<form method="POST" action="?/create" use:enhance onsubmit={() => (showForm = false)}>
 				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 					<div>
-						<label for="code" class="block text-sm font-medium text-gray-700">Course Code</label>
+						<label for="code" class="block text-sm font-medium text-gray-700"
+							>{m.courses_form_code()}</label
+						>
 						<input
 							type="text"
 							name="code"
@@ -35,7 +40,9 @@
 						/>
 					</div>
 					<div>
-						<label for="name" class="block text-sm font-medium text-gray-700">Course Name</label>
+						<label for="name" class="block text-sm font-medium text-gray-700"
+							>{m.courses_form_name()}</label
+						>
 						<input
 							type="text"
 							name="name"
@@ -46,7 +53,9 @@
 						/>
 					</div>
 					<div>
-						<label for="credits" class="block text-sm font-medium text-gray-700">Credits</label>
+						<label for="credits" class="block text-sm font-medium text-gray-700"
+							>{m.courses_form_credits()}</label
+						>
 						<input
 							type="number"
 							name="credits"
@@ -63,12 +72,12 @@
 						type="button"
 						onclick={() => (showForm = false)}
 						class="mr-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none"
-						>Cancel</button
+						>{m.courses_cancel()}</button
 					>
 					<button
 						type="submit"
 						class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none"
-						>Create Course</button
+						>{m.courses_create_submit()}</button
 					>
 				</div>
 			</form>
@@ -81,58 +90,31 @@
 				<div
 					class="relative mt-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-700"
 				>
-					<span class="block sm:inline">Course created successfully!</span>
+					<span class="block sm:inline">{m.courses_success()}</span>
 				</div>
 			{/if}
 		</div>
 	{/if}
 
 	<div class="flex flex-col">
-		<div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-			<div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-				<div class="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-					<table class="min-w-full divide-y divide-gray-200">
-						<thead class="bg-gray-50">
-							<tr>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Code</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Name</th
-								>
-								<th
-									scope="col"
-									class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-									>Credits</th
-								>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-gray-200 bg-white">
-							{#each data.courses as course (course.id)}
-								<tr>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm font-medium text-indigo-600">{course.code}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-900">{course.name}</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-500">{course.credits}</div>
-									</td>
-								</tr>
-							{:else}
-								<tr>
-									<td colspan="3" class="px-6 py-4 text-center text-gray-500">No courses found.</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
+		<DataTable
+			data={data.courses}
+			meta={data.meta}
+			columns={[
+				{ key: 'code', label: m.courses_table_code() },
+				{ key: 'name', label: m.courses_table_name() },
+				{ key: 'credits', label: m.courses_table_credits() }
+			]}
+		>
+			{#snippet cell(item: any, columnKey: string)}
+				{#if columnKey === 'code'}
+					<div class="text-sm font-medium text-indigo-600">{item.code}</div>
+				{:else if columnKey === 'name'}
+					<div class="text-sm text-gray-900">{item.name}</div>
+				{:else if columnKey === 'credits'}
+					<div class="text-sm text-gray-500">{item.credits}</div>
+				{/if}
+			{/snippet}
+		</DataTable>
 	</div>
 </div>

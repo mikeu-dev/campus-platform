@@ -1,0 +1,22 @@
+const jwt = require('jsonwebtoken');
+
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) return res.status(401).json({ status: 'fail', message: 'No token provided' });
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+
+        if (!req.user.tenant_id) {
+            return res.status(403).json({ status: 'fail', message: 'Token missing tenant context' });
+        }
+
+        next();
+    } catch (err) {
+        return res.status(403).json({ status: 'fail', message: 'Invalid token' });
+    }
+};
+
+module.exports = { verifyToken };

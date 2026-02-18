@@ -30,7 +30,7 @@ export const actions = {
 				maxAge: 60 * 60 * 24 // 1 day
 			});
 
-			throw redirect(302, '/siakad/enrollment');
+			throw redirect(302, '/gate');
 		} catch (error: any) {
 			if (error.status === 302) throw error; // Re-throw redirect
 

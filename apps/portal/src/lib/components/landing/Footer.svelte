@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-svelte';
+	import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Youtube } from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages.js';
+
+	let { settings = {}, links = [] } = $props();
 </script>
 
 <footer class="bg-gray-900 text-white">
@@ -26,70 +29,84 @@
 						</svg>
 					</div>
 					<span class="text-2xl font-bold tracking-tight text-white">
-						Campus<span class="text-indigo-400">App</span>
+						{settings.app_name || m.brand_name()}<span class="text-indigo-400"
+							>{settings.app_suffix || 'App'}</span
+						>
 					</span>
 				</div>
 				<p class="text-sm text-gray-400">
-					Membangun generasi unggul yang siap bersaing di kancah global dengan integritas dan
-					inovasi.
+					{settings.app_description || m.footer_desc()}
 				</p>
 				<div class="flex space-x-4">
-					<a href="/" class="text-gray-400 hover:text-white">
-						<Facebook class="h-5 w-5" />
-					</a>
-					<a href="/" class="text-gray-400 hover:text-white">
-						<Twitter class="h-5 w-5" />
-					</a>
-					<a href="/" class="text-gray-400 hover:text-white">
-						<Instagram class="h-5 w-5" />
-					</a>
-					<a href="/" class="text-gray-400 hover:text-white">
-						<Linkedin class="h-5 w-5" />
-					</a>
+					{#if settings.facebook_url}
+						<a href={settings.facebook_url} target="_blank" class="text-gray-400 hover:text-white">
+							<Facebook class="h-5 w-5" />
+						</a>
+					{/if}
+					{#if settings.twitter_url}
+						<a href={settings.twitter_url} target="_blank" class="text-gray-400 hover:text-white">
+							<Twitter class="h-5 w-5" />
+						</a>
+					{/if}
+					{#if settings.instagram_url}
+						<a href={settings.instagram_url} target="_blank" class="text-gray-400 hover:text-white">
+							<Instagram class="h-5 w-5" />
+						</a>
+					{/if}
+					{#if settings.youtube_url}
+						<a href={settings.youtube_url} target="_blank" class="text-gray-400 hover:text-white">
+							<Youtube class="h-5 w-5" />
+						</a>
+					{/if}
 				</div>
 			</div>
 
-			<!-- Quick Links -->
+			<!-- Quick Links (Dynamic) -->
 			<div>
-				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">Akademik</h3>
+				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
+					{m.footer_info()}
+				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
-					<li><a href="/" class="hover:text-white">Fakultas Teknik</a></li>
-					<li><a href="/" class="hover:text-white">Fakultas Ekonomi</a></li>
-					<li><a href="/" class="hover:text-white">Fakultas Ilmu Komputer</a></li>
-					<li><a href="/" class="hover:text-white">Pascasarjana</a></li>
-					<li><a href="/" class="hover:text-white">Kalender Akademik</a></li>
+					{#each links as link (link.url)}
+						<li><a href={link.url} class="hover:text-white">{link.title}</a></li>
+					{:else}
+						<li><a href="/" class="hover:text-white">Pengumuman</a></li>
+						<li><a href="/" class="hover:text-white">Beasiswa</a></li>
+						<li><a href="/" class="hover:text-white">Karir</a></li>
+					{/each}
 				</ul>
 			</div>
 
-			<!-- Quick Links -->
+			<!-- Static Links / Secondary Info -->
 			<div>
-				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">Informasi</h3>
+				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
+					{m.footer_academic()}
+				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
-					<li><a href="/" class="hover:text-white">Pendaftaran Mahasiswa Baru</a></li>
-					<li><a href="/" class="hover:text-white">Beasiswa</a></li>
-					<li><a href="/" class="hover:text-white">Karir</a></li>
-					<li><a href="/" class="hover:text-white">Pengumuman</a></li>
-					<li><a href="/" class="hover:text-white">Unduh Brosur</a></li>
+					<li><a href="/pages/profil-kampus" class="hover:text-white">Profil Kampus</a></li>
+					<li><a href="/pages/sejarah" class="hover:text-white">Sejarah</a></li>
+					<li><a href="/pages/akademik" class="hover:text-white">Akademik</a></li>
+					<li><a href="/pages/riset" class="hover:text-white">Riset & Inovasi</a></li>
 				</ul>
 			</div>
 
 			<!-- Contact -->
 			<div>
 				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
-					Hubungi Kami
+					{m.footer_contact()}
 				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
 					<li class="flex items-start gap-3">
 						<MapPin class="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
-						<span>Jl. Pendidikan No. 123<br />Kota Pelajar, Indonesia 54321</span>
+						<span>{settings.address || 'Alamat Kampus'}</span>
 					</li>
 					<li class="flex items-center gap-3">
 						<Phone class="h-5 w-5 shrink-0 text-indigo-400" />
-						<span>+62 21 1234 5678</span>
+						<span>{settings.phone || '-'}</span>
 					</li>
 					<li class="flex items-center gap-3">
 						<Mail class="h-5 w-5 shrink-0 text-indigo-400" />
-						<span>info@campusapp.ac.id</span>
+						<span>{settings.email || '-'}</span>
 					</li>
 				</ul>
 			</div>
@@ -97,7 +114,9 @@
 
 		<div class="mt-12 border-t border-gray-800 pt-8 text-center">
 			<p class="text-sm text-gray-400">
-				&copy; {new Date().getFullYear()} CampusApp University. All rights reserved.
+				&copy; {new Date().getFullYear()}
+				{settings.app_name || m.brand_name()}.
+				{m.footer_rights()}
 			</p>
 		</div>
 	</div>

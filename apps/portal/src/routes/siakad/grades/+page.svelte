@@ -1,11 +1,44 @@
 <script lang="ts">
-	import { Award, TrendingUp, BarChart3, CheckCircle } from 'lucide-svelte';
-	let { data } = $props();
+	import {
+		Award,
+		TrendingUp,
+		CheckCircle,
+		BookOpen,
+		GraduationCap,
+		Download,
+		FileText
+	} from 'lucide-svelte';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '$lib/components/ui/card';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '$lib/components/ui/table';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
 
-	function getScoreColor(score: number): string {
-		if (score >= 80) return 'text-green-600 bg-green-100';
-		if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-		return 'text-red-600 bg-red-100';
+	import * as m from '$lib/paraglide/messages.js';
+
+	let { data } = $props();
+	const grades = $derived(data.grades);
+	const stats = $derived(data.stats);
+	const gpaData = $derived(data.gpaData);
+	const academicGrades = $derived(data.academicGrades);
+
+	function getScoreColorClass(score: number): string {
+		if (score >= 80) return 'bg-green-100 text-green-700';
+		if (score >= 60) return 'bg-yellow-100 text-yellow-700';
+		return 'bg-red-100 text-red-700';
 	}
 
 	function getScoreLabel(score: number): string {
@@ -19,132 +52,185 @@
 
 <div class="space-y-8">
 	<!-- Header -->
-	<div>
-		<h2 class="text-2xl font-bold text-gray-900">My Grades</h2>
-		<p class="mt-1 text-gray-500">Track your academic performance</p>
+	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+		<div>
+			<h2 class="text-3xl font-bold tracking-tight">{m.grades_title()}</h2>
+			<p class="text-muted-foreground">{m.grades_desc()}</p>
+		</div>
+		<div class="flex gap-2">
+			<Button variant="outline" size="sm" class="gap-2">
+				<Download class="h-4 w-4" />
+				Unduh KHS
+			</Button>
+		</div>
 	</div>
 
 	<!-- Stats Cards -->
-	{#if data.stats}
-		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-			<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-500">Average Score</p>
-						<p class="mt-2 text-3xl font-bold text-indigo-600">
-							{data.stats.averageScore || '--'}
-						</p>
-					</div>
-					<div class="rounded-xl bg-indigo-100 p-3 text-indigo-600">
-						<TrendingUp class="h-6 w-6" />
-					</div>
-				</div>
-			</div>
+	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+		<Card class="border-primary/20 bg-primary/5">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium">IPK Kumulatif</CardTitle>
+				<GraduationCap class="h-4 w-4 text-primary" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-black text-primary">{gpaData?.gpa?.toFixed(2) || '0.00'}</div>
+				<p class="mt-1 text-[10px] text-muted-foreground">Skala 4.0</p>
+			</CardContent>
+		</Card>
 
-			<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-500">Highest Score</p>
-						<p class="mt-2 text-3xl font-bold text-green-600">
-							{data.stats.highestScore || '--'}
-						</p>
-					</div>
-					<div class="rounded-xl bg-green-100 p-3 text-green-600">
-						<Award class="h-6 w-6" />
-					</div>
-				</div>
-			</div>
+		<Card>
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium">Total SKS</CardTitle>
+				<BookOpen class="h-4 w-4 text-muted-foreground" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-bold">{gpaData?.totalCredits || 0}</div>
+				<p class="mt-1 text-[10px] text-muted-foreground">SKS Tempuh</p>
+			</CardContent>
+		</Card>
 
-			<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-500">Graded</p>
-						<p class="mt-2 text-3xl font-bold text-gray-900">{data.stats.gradedCount}</p>
-					</div>
-					<div class="rounded-xl bg-gray-100 p-3 text-gray-600">
-						<CheckCircle class="h-6 w-6" />
-					</div>
-				</div>
-			</div>
+		<Card>
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium">Rata-rata Tugas</CardTitle>
+				<TrendingUp class="h-4 w-4 text-muted-foreground" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-bold">{stats?.averageScore || '--'}</div>
+				<p class="mt-1 text-[10px] text-muted-foreground">Hanya Tugas LMS</p>
+			</CardContent>
+		</Card>
 
-			<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-500">Submissions</p>
-						<p class="mt-2 text-3xl font-bold text-gray-900">{data.stats.totalSubmissions}</p>
-					</div>
-					<div class="rounded-xl bg-purple-100 p-3 text-purple-600">
-						<BarChart3 class="h-6 w-6" />
-					</div>
-				</div>
-			</div>
-		</div>
-	{/if}
-
-	<!-- Grades Table -->
-	<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-		<div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-			<h3 class="text-lg font-semibold text-gray-900">Grade History</h3>
-		</div>
-		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Assignment</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Score</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Grade</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Feedback</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Date</th
-						>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white">
-					{#each data.grades as grade (grade.submission_id)}
-						<tr class="hover:bg-gray-50">
-							<td class="px-6 py-4 whitespace-nowrap">
-								<p class="text-sm font-medium text-gray-900">{grade.assignment_title}</p>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<span
-									class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold ${getScoreColor(grade.score)}`}
-								>
-									{grade.score}
-								</span>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<span class="text-lg font-bold text-gray-900">{getScoreLabel(grade.score)}</span>
-							</td>
-							<td class="max-w-xs truncate px-6 py-4">
-								<p class="text-sm text-gray-500">{grade.feedback || '-'}</p>
-							</td>
-							<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-								{new Date(grade.submitted_at).toLocaleDateString()}
-							</td>
-						</tr>
-					{:else}
-						<tr>
-							<td colspan="5" class="px-6 py-12 text-center">
-								<BarChart3 class="mx-auto h-12 w-12 text-gray-300" />
-								<p class="mt-2 text-gray-500">No graded assignments yet</p>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
+		<Card>
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-sm font-medium">Tugas Dinilai</CardTitle>
+				<CheckCircle class="h-4 w-4 text-muted-foreground" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-bold">{stats?.gradedCount || 0}</div>
+				<p class="mt-1 text-[10px] text-muted-foreground">
+					Total {stats?.totalSubmissions || 0} Pengumpulan
+				</p>
+			</CardContent>
+		</Card>
 	</div>
+
+	<Tabs value="khs" class="w-full">
+		<TabsList class="mb-6 grid w-full max-w-md grid-cols-2">
+			<TabsTrigger value="khs" class="gap-2">
+				<FileText class="h-4 w-4" />
+				Kartu Hasil Studi
+			</TabsTrigger>
+			<TabsTrigger value="assignments" class="gap-2">
+				<Award class="h-4 w-4" />
+				Detail Tugas LMS
+			</TabsTrigger>
+		</TabsList>
+
+		<TabsContent value="khs" class="space-y-6">
+			<Card>
+				<CardHeader>
+					<CardTitle>Kartu Hasil Studi (KHS)</CardTitle>
+					<CardDescription>Daftar nilai mata kuliah semester ini.</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead class="w-[100px]">Kode</TableHead>
+								<TableHead>Mata Kuliah</TableHead>
+								<TableHead class="text-center">SKS</TableHead>
+								<TableHead class="text-center">Nilai</TableHead>
+								<TableHead class="text-center">Bobot</TableHead>
+								<TableHead class="text-center">Status</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{#each academicGrades as item (item.course_code)}
+								<TableRow>
+									<TableCell class="font-mono text-xs">{item.course_code}</TableCell>
+									<TableCell class="font-medium">{item.course_name}</TableCell>
+									<TableCell class="text-center">{item.credits}</TableCell>
+									<TableCell class="text-center font-bold">
+										{item.grade || 'TBA'}
+									</TableCell>
+									<TableCell class="text-center">
+										{item.grade === 'A'
+											? 4
+											: item.grade === 'B'
+												? 3
+												: item.grade === 'C'
+													? 2
+													: item.grade === 'D'
+														? 1
+														: 0}
+									</TableCell>
+									<TableCell class="text-center">
+										<Badge variant={item.status === 'completed' ? 'default' : 'outline'}>
+											{item.status || 'Aktif'}
+										</Badge>
+									</TableCell>
+								</TableRow>
+							{:else}
+								<TableRow>
+									<TableCell colspan={6} class="h-24 text-center text-muted-foreground">
+										Tidak ada data mata kuliah.
+									</TableCell>
+								</TableRow>
+							{/each}
+						</TableBody>
+					</Table>
+				</CardContent>
+			</Card>
+		</TabsContent>
+
+		<TabsContent value="assignments" class="space-y-6">
+			<Card>
+				<CardHeader>
+					<CardTitle>{m.grades_history_title()}</CardTitle>
+					<CardDescription>Rincian nilai untuk setiap tugas yang dikerjakan di LMS.</CardDescription
+					>
+				</CardHeader>
+				<CardContent>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>{m.grades_assignment()}</TableHead>
+								<TableHead>{m.grades_score()}</TableHead>
+								<TableHead>{m.grades_grade()}</TableHead>
+								<TableHead>{m.grades_feedback()}</TableHead>
+								<TableHead>{m.grades_date()}</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{#each grades as item (item.id)}
+								<TableRow>
+									<TableCell class="font-medium">{item.assignment_title}</TableCell>
+									<TableCell>
+										<div
+											class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${getScoreColorClass(item.score)}`}
+										>
+											{item.score}
+										</div>
+									</TableCell>
+									<TableCell class="font-bold">{getScoreLabel(item.score)}</TableCell>
+									<TableCell class="max-w-xs truncate text-muted-foreground"
+										>{item.feedback || '-'}</TableCell
+									>
+									<TableCell class="text-xs text-muted-foreground">
+										{new Date(item.submitted_at).toLocaleDateString('id-ID')}
+									</TableCell>
+								</TableRow>
+							{:else}
+								<TableRow>
+									<TableCell colspan={5} class="h-24 text-center text-muted-foreground">
+										{m.grades_no_data()}
+									</TableCell>
+								</TableRow>
+							{/each}
+						</TableBody>
+					</Table>
+				</CardContent>
+			</Card>
+		</TabsContent>
+	</Tabs>
 </div>

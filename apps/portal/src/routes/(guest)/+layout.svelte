@@ -1,20 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { locales, localizeHref } from '$lib/paraglide/runtime';
-	import '../layout.css';
-	import favicon from '$lib/assets/favicon.svg';
-
-	let { children } = $props();
+	import Header from '$lib/components/landing/Header.svelte';
+	import Footer from '$lib/components/landing/Footer.svelte';
+	let { data, children } = $props();
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<Header pages={data.pages} settings={data.settings} />
 
 {@render children()}
-<div style="display:none">
-	{#each locales as locale (locale)}
-		<!-- eslint-disable svelte/no-navigation-without-resolve -->
-		<a href={localizeHref(page.url.pathname, { locale })}>
-			{locale}
-		</a>
-	{/each}
-</div>
+
+<Footer settings={data.settings} links={data.links} />

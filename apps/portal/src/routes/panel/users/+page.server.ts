@@ -3,25 +3,33 @@ import { fail } from '@sveltejs/kit';
 import axios from 'axios';
 import { PUBLIC_IDENTITY_API_URL } from '$env/static/public';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const token = locals.token;
 
 	if (!locals.user?.roles.includes('admin')) {
 		// Simple redirect or error handling needed in real app
-		return { users: [], isAdmin: false };
+		return { users: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 }, isAdmin: false };
 	}
 
+	const page = Number(url.searchParams.get('page')) || 1;
+	const limit = Number(url.searchParams.get('limit')) || 10;
+	const search = url.searchParams.get('search') || '';
+
 	let users = [];
+	let meta = { page, limit, total: 0, totalPages: 1 };
+
 	try {
 		const res = await axios.get(`${PUBLIC_IDENTITY_API_URL}/auth/users`, {
-			headers: { Authorization: `Bearer ${token}` }
+			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit, search }
 		});
 		users = res.data.data;
+		if (res.data.meta) meta = res.data.meta;
 	} catch (error: any) {
 		console.error('Fetch users failed', error.message);
 	}
 
-	return { users, isAdmin: true };
+	return { users, meta, isAdmin: true };
 };
 
 export const actions = {

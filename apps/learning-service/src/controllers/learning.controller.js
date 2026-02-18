@@ -6,12 +6,14 @@ const materialSchema = z.object({
     title: z.string().min(3),
     content: z.string().optional(),
     type: z.enum(['text', 'video', 'link', 'file']).default('text'),
+    meeting_number: z.number().int().min(1).max(16).optional(),
 });
 
 const assignmentSchema = z.object({
     title: z.string().min(3),
     description: z.string().optional(),
     deadline: z.string().datetime(), // ISO 8601
+    meeting_number: z.number().int().min(1).max(16).optional(),
 });
 
 const submissionSchema = z.object({
@@ -25,6 +27,22 @@ const submissionSchema = z.object({
 const gradeSchema = z.object({
     score: z.number().min(0).max(100),
     feedback: z.string().optional(),
+});
+
+const quizSchema = z.object({
+    title: z.string().min(3),
+    meeting_number: z.number().int().min(1).max(16).optional(),
+});
+
+const quizQuestionSchema = z.object({
+    questions: z.array(z.object({
+        question_text: z.string().min(3),
+        question_type: z.enum(['multiple_choice', 'essay']).default('multiple_choice'),
+        options: z.array(z.object({
+            option_text: z.string().min(1),
+            is_correct: z.boolean().default(false)
+        })).optional()
+    }))
 });
 
 class LearningController {
@@ -43,12 +61,12 @@ class LearningController {
     async addMaterial(req, res, next) {
         try {
             const { classId } = req.params;
-            const { title, content, type } = materialSchema.parse(req.body);
+            const { title, content, type, meeting_number } = materialSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
             const result = await db.query(
-                'INSERT INTO materials (tenant_id, class_id, title, content, type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, classId, title, content, type]
+                'INSERT INTO materials (tenant_id, class_id, title, content, type, meeting_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [tenantId, classId, title, content, type, meeting_number]
             );
             res.status(201).json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
@@ -57,11 +75,20 @@ class LearningController {
     async getMaterials(req, res, next) {
         try {
             const { classId } = req.params;
+            const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM materials WHERE tenant_id = $1 AND class_id = $2 ORDER BY created_at DESC',
-                [tenantId, classId]
-            );
+
+            let query = 'SELECT * FROM materials WHERE tenant_id = $1 AND class_id = $2';
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                query += ' AND meeting_number = $3';
+                params.push(meetingNumber);
+            }
+
+            query += ' ORDER BY created_at DESC';
+
+            const result = await db.query(query, params);
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
@@ -70,12 +97,12 @@ class LearningController {
     async createAssignment(req, res, next) {
         try {
             const { classId } = req.params;
-            const { title, description, deadline } = assignmentSchema.parse(req.body);
+            const { title, description, deadline, meeting_number } = assignmentSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
             const result = await db.query(
-                'INSERT INTO assignments (tenant_id, class_id, title, description, deadline) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, classId, title, description, deadline]
+                'INSERT INTO assignments (tenant_id, class_id, title, description, deadline, meeting_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [tenantId, classId, title, description, deadline, meeting_number]
             );
             res.status(201).json({ status: 'success', data: result.rows[0] });
         } catch (err) { next(err); }
@@ -84,11 +111,20 @@ class LearningController {
     async getAssignments(req, res, next) {
         try {
             const { classId } = req.params;
+            const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM assignments WHERE tenant_id = $1 AND class_id = $2 ORDER BY deadline ASC',
-                [tenantId, classId]
-            );
+
+            let query = 'SELECT * FROM assignments WHERE tenant_id = $1 AND class_id = $2';
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                query += ' AND meeting_number = $3';
+                params.push(meetingNumber);
+            }
+
+            query += ' ORDER BY deadline ASC';
+
+            const result = await db.query(query, params);
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }
@@ -393,6 +429,218 @@ class LearningController {
                  LIMIT 100`,
                 [tenantId, myId, partnerId]
             );
+
+            // Mark incoming messages as read
+            await db.query(
+                'UPDATE messages SET is_read = TRUE WHERE tenant_id = $1 AND sender_id = $2 AND receiver_id = $3 AND is_read = FALSE',
+                [tenantId, partnerId, myId]
+            );
+
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async markMessagesRead(req, res, next) {
+        try {
+            const { partnerId } = req.body;
+            const myId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            await db.query(
+                'UPDATE messages SET is_read = TRUE WHERE tenant_id = $1 AND sender_id = $2 AND receiver_id = $3 AND is_read = FALSE',
+                [tenantId, partnerId, myId]
+            );
+            res.json({ status: 'success', message: 'Messages marked as read' });
+        } catch (err) { next(err); }
+    }
+
+    // --- Quizzes ---
+    async createQuiz(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const { title, meeting_number } = quizSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'INSERT INTO quizzes (tenant_id, class_id, title, meeting_number) VALUES ($1, $2, $3, $4) RETURNING *',
+                [tenantId, classId, title, meeting_number]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async addQuizQuestions(req, res, next) {
+        try {
+            const { quizId } = req.params;
+            const { questions } = quizQuestionSchema.parse(req.body);
+            const tenantId = req.user.tenant_id;
+
+            // Simple batch insert for MVP (using a transaction)
+            await db.query('BEGIN');
+            try {
+                for (let i = 0; i < questions.length; i++) {
+                    const q = questions[i];
+                    const qResult = await db.query(
+                        'INSERT INTO quiz_questions (quiz_id, question_text, question_type, order_number) VALUES ($1, $2, $3, $4) RETURNING id',
+                        [quizId, q.question_text, q.question_type, i + 1]
+                    );
+                    const questionId = qResult.rows[0].id;
+
+                    if (q.options && q.options.length > 0) {
+                        for (const opt of q.options) {
+                            await db.query(
+                                'INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)',
+                                [questionId, opt.option_text, opt.is_correct]
+                            );
+                        }
+                    }
+                }
+                await db.query('COMMIT');
+                res.status(201).json({ status: 'success', message: 'Questions added' });
+            } catch (err) {
+                await db.query('ROLLBACK');
+                throw err;
+            }
+        } catch (err) { next(err); }
+    }
+
+    async getQuizzes(req, res, next) {
+        try {
+            const { classId } = req.params;
+            const { meetingNumber } = req.query;
+            const tenantId = req.user.tenant_id;
+
+            let query = 'SELECT * FROM quizzes WHERE tenant_id = $1 AND class_id = $2';
+            const params = [tenantId, classId];
+
+            if (meetingNumber) {
+                query += ' AND meeting_number = $3';
+                params.push(meetingNumber);
+            }
+
+            const result = await db.query(query, params);
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getQuizDetail(req, res, next) {
+        try {
+            const { quizId } = req.params;
+            const tenantId = req.user.tenant_id;
+
+            // Verify quiz exists and tenant matches
+            const quizRes = await db.query('SELECT * FROM quizzes WHERE id = $1 AND tenant_id = $2', [quizId, tenantId]);
+            if (quizRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Quiz not found' });
+
+            const questionsRes = await db.query(
+                'SELECT * FROM quiz_questions WHERE quiz_id = $1 ORDER BY order_number ASC',
+                [quizId]
+            );
+
+            const questions = questionsRes.rows;
+            for (const q of questions) {
+                const optionsRes = await db.query('SELECT id, option_text, is_correct FROM quiz_options WHERE question_id = $1', [q.id]);
+                // For students, we'd normally hide is_correct. But for now, returning all.
+                q.options = optionsRes.rows;
+            }
+
+            res.json({ status: 'success', data: { ...quizRes.rows[0], questions } });
+        } catch (err) { next(err); }
+    }
+
+    async submitQuizAttempt(req, res, next) {
+        try {
+            const { quizId } = req.params;
+            const { studentId, score, finished_at } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `INSERT INTO quiz_attempts (tenant_id, quiz_id, student_id, score, finished_at)
+                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                [tenantId, quizId, studentId, score, finished_at || new Date()]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    // --- Notifications ---
+    async createNotification(req, res, next) {
+        try {
+            const { user_id, type, title, message, link } = req.body;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                `INSERT INTO notifications (tenant_id, user_id, type, title, message, link)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [tenantId, user_id, type || 'general', title, message, link]
+            );
+            res.status(201).json({ status: 'success', data: result.rows[0] });
+        } catch (err) { next(err); }
+    }
+
+    async getNotifications(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT * FROM notifications WHERE tenant_id = $1 AND user_id = $2 ORDER BY created_at DESC LIMIT 50',
+                [tenantId, userId]
+            );
+            res.json({ status: 'success', data: result.rows });
+        } catch (err) { next(err); }
+    }
+
+    async getUnreadCount(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            const result = await db.query(
+                'SELECT COUNT(id) FROM notifications WHERE tenant_id = $1 AND user_id = $2 AND is_read = FALSE',
+                [tenantId, userId]
+            );
+            res.json({ status: 'success', data: { count: parseInt(result.rows[0].count) } });
+        } catch (err) { next(err); }
+    }
+
+    async markNotificationRead(req, res, next) {
+        try {
+            const { notificationId } = req.params;
+            const userId = req.user.sub;
+
+            await db.query(
+                'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2',
+                [notificationId, userId]
+            );
+            res.json({ status: 'success', message: 'Notification marked as read' });
+        } catch (err) { next(err); }
+    }
+
+    // --- Student Deadlines ---
+    async getStudentDeadlines(req, res, next) {
+        try {
+            const userId = req.user.sub;
+            const tenantId = req.user.tenant_id;
+
+            // Fetch assignments that are not yet submitted and deadline is in the future
+            // First get student ID from user ID (in a real scenario we'd have this in the token or a table)
+            // For now, assume assignments table has student_id or we join via classes
+            const query = `
+                SELECT a.*, c.semester, c.year, co.name as course_name
+                FROM assignments a
+                JOIN classes c ON a.class_id = c.id
+                JOIN courses co ON c.course_id = co.id
+                JOIN enrollments e ON e.class_id = c.id
+                JOIN students s ON e.student_id = s.id
+                LEFT JOIN assignment_submissions sub ON sub.assignment_id = a.id AND sub.student_id = s.id
+                WHERE s.user_id = $1 AND a.tenant_id = $2 
+                AND sub.id IS NULL
+                AND a.deadline > CURRENT_TIMESTAMP
+                ORDER BY a.deadline ASC
+                LIMIT 5
+            `;
+            const result = await db.query(query, [userId, tenantId]);
             res.json({ status: 'success', data: result.rows });
         } catch (err) { next(err); }
     }

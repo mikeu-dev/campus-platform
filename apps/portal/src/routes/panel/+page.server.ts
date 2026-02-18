@@ -1,13 +1,13 @@
 import type { PageServerLoad } from './$types';
 import axios from 'axios';
-import { PUBLIC_ACADEMIC_API_URL, PUBLIC_LEARNING_API_URL } from '$env/static/public';
+import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
 	await parent();
 	const token = locals.token;
 	let studentProfile = null;
 	let enrollmentsCount = 0;
-	let pendingAssignments = 0;
+	const pendingAssignments = 0;
 	let recentClasses: any[] = [];
 
 	if (token) {
@@ -28,7 +28,6 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 			// TODO: Fetch pending assignments count (requires new API or aggregation)
 			// For now, we'll show a placeholder
-
 		} catch (error: any) {
 			console.error('Dashboard data fetch error', error.response?.data || error.message);
 		}

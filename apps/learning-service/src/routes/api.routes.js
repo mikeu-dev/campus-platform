@@ -38,9 +38,17 @@ router.get('/students/:studentId/deadlines', learningController.getStudentDeadli
 router.post('/classes/:classId/discussions', learningController.createDiscussion);
 router.get('/classes/:classId/discussions', learningController.getDiscussions);
 
+// Quizzes
+router.post('/classes/:classId/quizzes', learningController.createQuiz);
+router.get('/classes/:classId/quizzes', learningController.getQuizzes);
+router.post('/quizzes/:quizId/questions', learningController.addQuizQuestions);
+router.get('/quizzes/:quizId', learningController.getQuizDetail);
+router.post('/quizzes/:quizId/submit', learningController.submitQuizAttempt);
+
 // Messaging
 router.post('/messages', learningController.sendMessage);
 router.get('/messages/conversations', learningController.getConversations);
 router.get('/messages/:userId', learningController.getMessages);
+router.patch('/messages/mark-read', learningController.markMessagesRead);
 
 module.exports = router;

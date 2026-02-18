@@ -1,12 +1,21 @@
 {
     "name": "campus-platform",
+    "version": "1.0.0",
+    "description": "Sistem Informasi Akademik Kampus - PMB, SIAKAD, LMS, dan Admin CRM",
+    "author": "mikeu-dev",
+    "license": "MIT",
     "private": true,
     "workspaces": [
         "apps/*",
         "packages/*"
     ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "scripts": {
-        "dev": "concurrently \"npm run dev -w academic-service\" \"npm run dev -w identity-service\" \"npm run dev -w learning-service\" \"npm run dev -w portal\"",
+        "dev": "concurrently \"npm run dev -w academic-service\" \"npm run dev -w identity-service\" \"npm run dev -w learning-service\" \"npm run dev -w public-service\" \"npm run dev -w admission-service\" \"npm run dev -w portal\"",
+        "dev:services": "concurrently \"npm run dev -w academic-service\" \"npm run dev -w identity-service\" \"npm run dev -w learning-service\" \"npm run dev -w public-service\" \"npm run dev -w admission-service\"",
+        "dev:portal": "npm run dev -w portal",
         "build": "npm run build --workspaces --if-present",
         "preview": "npm run preview --workspaces --if-present",
         "check": "npm run check --workspaces --if-present",
@@ -18,5 +27,17 @@
     },
     "devDependencies": {
         "concurrently": "^9.2.1"
-    }
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mikeu-dev/campus-platform.git"
+    },
+    "keywords": [
+        "siakad",
+        "lms",
+        "pmb",
+        "academic",
+        "university",
+        "monorepo"
+    ]
 }

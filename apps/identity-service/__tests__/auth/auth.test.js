@@ -7,10 +7,20 @@ describe('Auth Endpoints', () => {
     const testPassword = 'TestPass123!';
     let authToken = '';
 
+    beforeAll(async () => {
+        // Seed Tenant
+        await db.query(`
+            INSERT INTO tenants (name, slug, domain, status)
+            VALUES ('University A', 'univ-a', 'univ-a.local', 'active')
+            ON CONFLICT (slug) DO NOTHING;
+        `);
+    });
+
     afterAll(async () => {
-        // Clean up test user
+        // Clean up test user and tenant
         try {
             await db.query('DELETE FROM users WHERE email = $1', [testEmail]);
+            await db.query('DELETE FROM tenants WHERE slug = $1', ['univ-a']);
         } catch (e) {
             // Ignore cleanup errors
         }

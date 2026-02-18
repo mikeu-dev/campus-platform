@@ -1,126 +1,161 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import {
-		LayoutDashboard,
-		BookOpen,
 		LogOut,
 		GraduationCap,
-		User,
 		Menu,
-		X,
-		MessageSquare
+		MessageSquare,
+		Home,
+		Calendar,
+		FileText,
+		ClipboardCheck,
+		ChevronDown
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Sheet, SheetContent, SheetTrigger } from '$lib/components/ui/sheet';
+	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
+	import { cn } from '$lib/utils';
+	import * as m from '$lib/paraglide/messages.js';
+
 	interface Props {
 		children?: import('svelte').Snippet;
 		data: { token?: string };
 	}
 
 	let { children, data }: Props = $props();
-	let sidebarOpen = $state(false);
+
+	// Navigation Items
+	const navItems = [
+		{ href: '/lms', label: m.nav_lms_home(), icon: Home },
+		{ href: '/lms/schedule', label: m.nav_lms_schedule(), icon: Calendar },
+		{ href: '/lms/classes', label: m.nav_classes(), icon: GraduationCap },
+		{ href: '/lms/chat', label: m.nav_messages(), icon: MessageSquare }
+	];
+
+	const examGroup = [
+		{ href: '/lms/exams', label: m.nav_lms_exams(), icon: FileText },
+		{ href: '/lms/exams/permission', label: m.nav_lms_exam_permission(), icon: ClipboardCheck }
+	];
+
+	let isExamsOpen = $state(false);
 </script>
 
-<!-- eslint-disable svelte/no-navigation-without-resolve -->
-<div class="flex min-h-screen bg-gray-100">
-	<!-- Mobile Overlay -->
-	{#if sidebarOpen}
-		<button
-			class="fixed inset-0 z-30 bg-black/50 lg:hidden"
-			onclick={() => (sidebarOpen = false)}
-			aria-label="Close menu"
-		></button>
-	{/if}
-
-	<!-- Sidebar -->
-	<aside
-		class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-300 lg:static lg:translate-x-0 {sidebarOpen
-			? 'translate-x-0'
-			: '-translate-x-full'}"
-	>
-		<div class="flex items-center justify-between p-6">
-			<div>
-				<h1 class="text-2xl font-bold text-indigo-600">
-					Campus<span class="text-gray-900">App</span>
-				</h1>
-				<p class="mt-1 text-sm text-gray-500">{page.data.user?.tenant_slug || 'SaaS Platform'}</p>
-			</div>
-			<button
-				class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
-				onclick={() => (sidebarOpen = false)}
-			>
-				<X class="h-5 w-5" />
-			</button>
+{#snippet SidebarContent()}
+	<div class="flex h-full flex-col gap-2">
+		<div class="flex h-14 items-center border-b px-6">
+			<a href="/" class="flex items-center gap-2 font-semibold">
+				<span class="text-xl font-bold text-primary">{m.brand_name()}</span>
+			</a>
 		</div>
+		<div class="flex-1 overflow-auto py-2">
+			<nav class="grid items-start gap-1 px-4 text-sm font-medium">
+				{#each navItems as item (item.href)}
+					<a
+						href={item.href}
+						class={cn(
+							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+							(item.href === '/lms'
+								? page.url.pathname === '/lms'
+								: page.url.pathname.startsWith(item.href)) && 'bg-muted text-primary'
+						)}
+					>
+						<item.icon class="h-4 w-4" />
+						{item.label}
+					</a>
+				{/each}
 
-		<nav class="mt-2 flex-1 space-y-1 overflow-y-auto px-4">
-			<a
-				href="/lms/classes"
-				onclick={() => (sidebarOpen = false)}
-				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-					'/classes'
-				)
-					? 'bg-indigo-50 text-indigo-600'
-					: ''}"
-			>
-				<GraduationCap class="mr-3 h-5 w-5" />
-				My Classes
-			</a>
-
-			<a
-				href="/lms/chat"
-				onclick={() => (sidebarOpen = false)}
-				class="group flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600 {page.url.pathname.includes(
-					'/chat'
-				)
-					? 'bg-indigo-50 text-indigo-600'
-					: ''}"
-			>
-				<MessageSquare class="mr-3 h-5 w-5" />
-				Messages
-			</a>
-		</nav>
-
-		<div class="border-t border-gray-200 p-4">
-			<div class="mb-4 flex items-center px-2">
-				<User class="mr-2 h-8 w-8 rounded-full bg-gray-200 p-1 text-gray-600" />
-				<div class="min-w-0 flex-1 overflow-hidden">
-					<p class="truncate text-sm font-medium text-gray-900">{page.data.user?.email}</p>
-					<p class="text-xs text-gray-500 capitalize">{page.data.user?.roles?.[0]}</p>
+				<div class="space-y-1">
+					<button
+						onclick={() => (isExamsOpen = !isExamsOpen)}
+						class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+					>
+						<div class="flex items-center gap-3">
+							<FileText class="h-4 w-4" />
+							{m.nav_lms_exams_group()}
+						</div>
+						<ChevronDown class={cn('h-4 w-4 transition-transform', isExamsOpen && 'rotate-180')} />
+					</button>
+					{#if isExamsOpen}
+						<div class="ml-4 flex flex-col gap-1 border-l pl-4">
+							{#each examGroup as item (item.href)}
+								<a
+									href={item.href}
+									class={cn(
+										'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+										page.url.pathname.startsWith(item.href) && 'text-primary'
+									)}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
 				</div>
-			</div>
-			<form action="/logout" method="POST">
-				<button
-					type="submit"
-					class="flex w-full items-center rounded-lg px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
-				>
-					<LogOut class="mr-3 h-4 w-4" />
-					Sign Out
-				</button>
-			</form>
+			</nav>
 		</div>
-	</aside>
-
-	<!-- Main Content -->
-	<main class="flex-1 overflow-auto lg:ml-0">
-		<!-- Top Bar -->
-		<div
-			class="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:px-8"
-		>
-			<button
-				class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
-				onclick={() => (sidebarOpen = true)}
+		<div class="mt-auto p-4">
+			<div
+				class="flex items-center gap-4 rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
 			>
-				<Menu class="h-6 w-6" />
-			</button>
-			<div class="lg:hidden">
-				<h1 class="text-lg font-bold text-indigo-600">CampusApp</h1>
-			</div>
-			<div class="flex items-center gap-4">
-				<NotificationBell token={data.token || ''} />
+				<Avatar>
+					<AvatarFallback class="uppercase">
+						{page.data.user?.email?.substring(0, 2) || 'US'}
+					</AvatarFallback>
+				</Avatar>
+				<div class="flex-1 overflow-hidden">
+					<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
+					<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
+				</div>
+				<form action="/logout" method="POST">
+					<Button
+						variant="ghost"
+						size="icon"
+						type="submit"
+						class="h-8 w-8 text-destructive hover:text-destructive"
+					>
+						<LogOut class="h-4 w-4" />
+						<span class="sr-only">{m.auth_sign_out()}</span>
+					</Button>
+				</form>
 			</div>
 		</div>
-		<div class="p-4 lg:p-8">
+	</div>
+{/snippet}
+
+<div class="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+	<!-- Desktop Sidebar -->
+	<div class="hidden border-r bg-muted/40 md:block">
+		{@render SidebarContent()}
+	</div>
+
+	<!-- Main Content Info -->
+	<div class="flex flex-col">
+		<header class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+			<!-- Mobile Sidebar Trigger -->
+			<Sheet>
+				<SheetTrigger>
+					{#snippet child({ props })}
+						<Button variant="outline" size="icon" class="shrink-0 md:hidden" {...props}>
+							<Menu class="h-5 w-5" />
+							<span class="sr-only">{m.menu_toggle()}</span>
+						</Button>
+					{/snippet}
+				</SheetTrigger>
+				<SheetContent side="left" class="flex w-72 flex-col p-0">
+					{@render SidebarContent()}
+				</SheetContent>
+			</Sheet>
+
+			<div class="w-full flex-1">
+				<h1 class="text-lg font-semibold text-primary capitalize md:text-xl">
+					{page.url.pathname.split('/').pop()?.replace('-', ' ') || m.nav_dashboard()}
+				</h1>
+			</div>
+			<NotificationBell token={data.token || ''} />
+		</header>
+		<main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			{@render children?.()}
-		</div>
-	</main>
+		</main>
+	</div>
 </div>

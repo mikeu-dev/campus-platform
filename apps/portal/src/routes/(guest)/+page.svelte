@@ -1,6 +1,5 @@
 <script lang="ts">
-	import Header from '$lib/components/landing/Header.svelte';
-	import Footer from '$lib/components/landing/Footer.svelte';
+	import { onMount } from 'svelte';
 	import {
 		ArrowRight,
 		GraduationCap,
@@ -8,35 +7,66 @@
 		BookOpen,
 		Award,
 		Calendar,
-		ChevronRight
+		ChevronRight,
+		MapPin
 	} from 'lucide-svelte';
 	import { fade, fly } from 'svelte/transition';
+	import * as m from '$lib/paraglide/messages.js';
+	import { PUBLIC_PUBLIC_API_URL } from '$env/static/public';
 
-	// Stats Data
+	let { data } = $props();
+
+	interface SiteSettings {
+		app_name?: string;
+		app_suffix?: string;
+		address?: string;
+		phone?: string;
+		email?: string;
+		facebook_url?: string;
+		instagram_url?: string;
+		twitter_url?: string;
+		youtube_url?: string;
+		director_name?: string;
+		director_title?: string;
+		director_image?: string; // Note: error log mentioned director_photo, let's check which one it is
+		director_message?: string;
+		director_welcome_title?: string;
+		director_welcome_text?: string;
+	}
+
+	const { sliders, settings, posts, agendas, videos } = $derived(data) as {
+		sliders: any[];
+		settings: SiteSettings;
+		posts: any[];
+		agendas: any[];
+		videos: any[];
+	};
+
+	// Stats Data (keep hardcoded or move to settings later)
 	const stats = [
 		{
-			label: 'Mahasiswa Aktif',
+			label: m.stats_active_students(),
 			value: '15.000+',
 			icon: Users,
 			color: 'text-blue-600',
 			bg: 'bg-blue-100'
 		},
 		{
-			label: 'Dosen & Staf',
+			label: m.stats_lecturers(),
 			value: '750+',
 			icon: GraduationCap,
 			color: 'text-indigo-600',
 			bg: 'bg-indigo-100'
 		},
 		{
-			label: 'Program Studi',
+			label: m.stats_study_programs(),
 			value: '45+',
 			icon: BookOpen,
 			color: 'text-purple-600',
 			bg: 'bg-purple-100'
 		},
 		{
-			label: 'Akreditasi A',
+			label: m.stats_accreditation(),
 			value: '90%',
 			icon: Award,
 			color: 'text-green-600',
@@ -44,121 +74,112 @@
 		}
 	];
 
-	// Faculties Data
-	const faculties = [
-		{
-			name: 'Fakultas Teknik',
-			desc: 'Mencetak insinyur handal dengan teknologi terkini.',
-			color: 'from-blue-500 to-cyan-500'
-		},
-		{
-			name: 'Fakultas Ekonomi & Bisnis',
-			desc: 'Pusat pengembangan pemimpin bisnis masa depan.',
-			color: 'from-emerald-500 to-teal-500'
-		},
-		{
-			name: 'Fakultas Ilmu Komputer',
-			desc: 'Inovasi digital dan pengembangan perangkat lunak.',
-			color: 'from-indigo-500 to-purple-500'
-		},
-		{
-			name: 'Fakultas Kedokteran',
-			desc: 'Dedikasi untuk kesehatan dan kemanusiaan.',
-			color: 'from-rose-500 to-pink-500'
-		},
-		{
-			name: 'Fakultas Hukum',
-			desc: 'Menegakkan keadilan dengan integritas tinggi.',
-			color: 'from-amber-500 to-orange-500'
-		},
-		{
-			name: 'Fakultas Sastra & Budaya',
-			desc: 'Melestarikan budaya dan mengembangkan bahasa.',
-			color: 'from-fuchsia-500 to-pink-500'
+	// Slider logic
+	let currentSliderIndex = $state(0);
+	onMount(() => {
+		if (sliders.length > 1) {
+			const interval = setInterval(() => {
+				currentSliderIndex = (currentSliderIndex + 1) % sliders.length;
+			}, 5000);
+			return () => clearInterval(interval);
 		}
-	];
 
-	// News Data
-	const news = [
-		{
-			title: 'Mahasiswa FIK Juara 1 Hackathon Nasional 2026',
-			date: '12 Agustus 2026',
-			cat: 'Prestasi',
-			img: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400'
-		},
-		{
-			title: 'Visiting Professor dari Harvard University',
-			date: '10 Agustus 2026',
-			cat: 'Akademik',
-			img: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b955?auto=format&fit=crop&q=80&w=400'
-		},
-		{
-			title: 'Penerimaan Mahasiswa Baru Gelombang 3 Dibuka',
-			date: '05 Agustus 2026',
-			cat: 'Pendaftaran',
-			img: 'https://images.unsplash.com/photo-1627556592933-ffe99c1cd9eb?auto=format&fit=crop&q=80&w=400'
-		}
-	];
+		// Track Visitor
+		fetch(`${PUBLIC_PUBLIC_API_URL}/public/track`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				tenantId: '00000000-0000-0000-0000-000000000000',
+				route: '/'
+			})
+		}).catch(console.error);
+	});
 </script>
 
 <div class="min-h-screen bg-gray-50 font-sans text-gray-900">
-	<Header />
-
 	<main>
-		<!-- HERO SECTION -->
+		<!-- HERO SECTION (Slider) -->
 		<section class="relative h-[600px] w-full overflow-hidden bg-gray-900 text-white lg:h-[700px]">
-			<!-- Background Image with Overlay -->
-			<div class="absolute inset-0">
-				<img
-					src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920"
-					alt="Campus Atmosphere"
-					class="h-full w-full object-cover opacity-60"
-				/>
-				<div
-					class="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent"
-				></div>
-			</div>
+			{#if sliders && sliders.length > 0}
+				{#each sliders as slider, i (slider.id || i)}
+					{#if i === currentSliderIndex}
+						<div class="absolute inset-0" transition:fade={{ duration: 1000 }}>
+							<!-- Background Image with Overlay -->
+							<img
+								src={slider.image_url}
+								alt={slider.title}
+								class="h-full w-full object-cover opacity-60"
+							/>
+							<div
+								class="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent"
+							></div>
 
-			<div
-				class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8"
-			>
-				<div class="max-w-3xl" in:fly={{ y: 50, duration: 1000 }}>
-					<span
-						class="mb-4 inline-block rounded-full bg-indigo-600/90 px-4 py-1 text-sm font-semibold tracking-wide text-white backdrop-blur-sm"
-					>
-						Pendaftaran Mahasiswa Baru 2026/2027 Telah Dibuka
-					</span>
-					<h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl">
-						Membangun Masa Depan Gemilang Bersama Kami
-					</h1>
-					<p class="mt-6 text-lg text-gray-200 sm:text-xl lg:max-w-2xl">
-						Bergabunglah dengan komunitas akademik terbaik yang berdedikasi menciptakan pemimpin
-						masa depan melalui inovasi, integritas, dan keunggulan.
-					</p>
-					<div class="mt-8 flex flex-col gap-4 sm:flex-row">
-						<a
-							href="/auth/siakad/login"
-							class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-3 text-base font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
-						>
-							Daftar Sekarang
-							<ArrowRight class="ml-2 h-5 w-5" />
-						</a>
-						<a
-							href="#academic"
-							class="inline-flex items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-8 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-						>
-							Jelajahi Program Studi
-						</a>
+							<div
+								class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8"
+							>
+								<div class="max-w-3xl" in:fly={{ y: 50, duration: 1000 }}>
+									<span
+										class="mb-4 inline-block rounded-full bg-indigo-600/90 px-4 py-1 text-sm font-semibold tracking-wide text-white backdrop-blur-sm"
+									>
+										{m.hero_badge()}
+									</span>
+									<h1
+										class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl"
+									>
+										{slider.title || m.hero_title()}
+									</h1>
+									<p class="mt-6 text-lg text-gray-200 sm:text-xl lg:max-w-2xl">
+										{slider.description || m.hero_description()}
+									</p>
+									<div class="mt-8 flex flex-col gap-4 sm:flex-row">
+										<a
+											href="/auth/siakad/login"
+											class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-3 text-base font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
+										>
+											{m.hero_cta_register()}
+											<ArrowRight class="ml-2 h-5 w-5" />
+										</a>
+										<a
+											href="#academic"
+											class="inline-flex items-center justify-center rounded-full border-2 border-white/30 bg-white/10 px-8 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+										>
+											{m.hero_cta_explore()}
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					{/if}
+				{/each}
+			{:else}
+				<!-- Fallback static hero -->
+				<div class="absolute inset-0">
+					<img
+						src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920"
+						alt="Campus Atmosphere"
+						class="h-full w-full object-cover opacity-60"
+					/>
+					<div
+						class="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent"
+					></div>
+				</div>
+				<div
+					class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8"
+				>
+					<div class="max-w-3xl" in:fly={{ y: 50, duration: 1000 }}>
+						<h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl">
+							{m.hero_title()}
+						</h1>
 					</div>
 				</div>
-			</div>
+			{/if}
 		</section>
 
 		<!-- STATS SECTION -->
 		<section class="relative z-10 -mt-20 px-4 sm:px-6 lg:px-8">
 			<div class="mx-auto max-w-7xl rounded-2xl bg-white p-8 shadow-xl lg:p-12">
 				<div class="grid grid-cols-2 gap-8 lg:grid-cols-4 lg:gap-12">
-					{#each stats as stat}
+					{#each stats as stat (stat.label)}
 						<div class="flex flex-col items-center text-center">
 							<div
 								class={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${stat.bg} ${stat.color}`}
@@ -175,7 +196,7 @@
 			</div>
 		</section>
 
-		<!-- ABOUT / WELCOME SECTION -->
+		<!-- ABOUT / WELCOME SECTION (Director Welcome) -->
 		<section id="about" class="py-20 lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
@@ -184,99 +205,133 @@
 						<div
 							class="absolute -right-4 -bottom-4 h-72 w-72 rounded-full bg-purple-50 blur-3xl"
 						></div>
-						<div class="relative overflow-hidden rounded-2xl shadow-2xl">
+						<div class="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg">
 							<img
-								src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"
-								alt="University Rector"
+								src={settings.director_image ||
+									'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800'}
+								alt={settings.director_name}
 								class="h-full w-full object-cover"
 							/>
-						</div>
-						<!-- Badge -->
-						<div class="absolute -bottom-6 -left-6 rounded-xl bg-white p-6 shadow-xl">
-							<p class="text-sm font-semibold text-gray-500">Berdiri Sejak</p>
-							<p class="text-3xl font-bold text-indigo-600">1985</p>
 						</div>
 					</div>
 					<div>
 						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
-							>Tentang Kampus</span
+							>{m.nav_about()}</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							Menjadi Pusat Keunggulan Pendidikan & Riset
+							{settings.director_welcome_title || m.about_title()}
 						</h2>
 						<p class="mt-6 text-lg leading-relaxed text-gray-600">
-							CampusApp University berkomitmen untuk menyelenggarakan pendidikan berkualitas tinggi
-							yang relevan dengan tantangan global. Kami memadukan kurikulum berbasis industri
-							dengan nilai-nilai etika untuk mencetak lulusan yang tidak hanya cerdas secara
-							intelektual, tetapi juga matang secara emosional dan spiritual.
+							{settings.director_welcome_text || m.about_description()}
 						</p>
-						<div class="mt-8 space-y-4">
-							<div class="flex gap-4">
-								<div
-									class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"
-								>
-									<Award class="h-6 w-6" />
-								</div>
-								<div>
-									<h4 class="text-lg font-bold text-gray-900">Terakreditasi Unggul</h4>
-									<p class="text-gray-600">
-										Diakui secara nasional dengan standar pendidikan tertinggi.
-									</p>
-								</div>
-							</div>
-							<div class="flex gap-4">
-								<div
-									class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"
-								>
-									<Users class="h-6 w-6" />
-								</div>
-								<div>
-									<h4 class="text-lg font-bold text-gray-900">Jaringan Alumni Luas</h4>
-									<p class="text-gray-600">
-										Terhubung dengan ribuan alumni sukses di berbagai industri global.
-									</p>
-								</div>
-							</div>
+						<div class="mt-8">
+							<a
+								href="/profile/welcome"
+								class="inline-flex items-center font-bold text-indigo-600 hover:underline"
+							>
+								Lihat Selengkapnya <ChevronRight class="ml-1 h-5 w-5" />
+							</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- ACADEMIC FACULTIES -->
-		<section id="academic" class="bg-gray-900 py-20 text-white lg:py-28">
+		<!-- NEWS/POSTS SECTION -->
+		<section id="news" class="bg-white py-20 lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="mb-16 text-center">
-					<span class="font-semibold tracking-wider text-indigo-400 uppercase">Akademik</span>
-					<h2 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-						Fakultas & Program Studi
-					</h2>
-					<p class="mx-auto mt-4 max-w-2xl text-xl text-gray-400">
-						Pilih jalur pendidikan yang sesuai dengan minat dan bakat Anda di berbagai fakultas
-						unggulan kami.
-					</p>
+				<div class="mb-12 flex items-end justify-between">
+					<div>
+						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
+							>Informasi Kampus Kita</span
+						>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+							Berita Terkini
+						</h2>
+					</div>
+					<a
+						href="/posts"
+						class="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block"
+					>
+						Semua Berita &rarr;
+					</a>
 				</div>
 
-				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-					{#each faculties as faculty}
-						<div
-							class="group hover:bg-gray-750 relative overflow-hidden rounded-2xl bg-gray-800 p-8 transition-all"
+				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+					{#each posts as post (post.id || post.slug)}
+						<article
+							class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md"
 						>
-							<div
-								class={`absolute top-0 right-0 h-32 w-32 rounded-bl-full bg-linear-to-br ${faculty.color} opacity-10 transition-opacity group-hover:opacity-20`}
-							></div>
-							<div
-								class={`mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-br ${faculty.color} text-white shadow-lg`}
-							>
-								<BookOpen class="h-7 w-7" />
+							<div class="relative h-48 w-full overflow-hidden">
+								<img
+									src={post.image_url ||
+										'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400'}
+									alt={post.title}
+									class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+								/>
 							</div>
-							<h3 class="text-xl font-bold text-white">{faculty.name}</h3>
-							<p class="mt-4 text-gray-400">{faculty.desc}</p>
+							<div class="flex flex-1 flex-col p-6">
+								<div class="flex items-center gap-2 text-xs text-gray-500">
+									<Calendar class="h-3 w-3" />
+									<time>{new Date(post.created_at).toLocaleDateString('id-ID')}</time>
+								</div>
+								<h3 class="mt-3 text-lg leading-snug font-bold text-gray-900">
+									<a href={`/posts/${post.slug}`} class="line-clamp-2 hover:text-indigo-600"
+										>{post.title}</a
+									>
+								</h3>
+								<div class="mt-auto pt-4">
+									<a
+										href={`/posts/${post.slug}`}
+										class="text-xs font-semibold text-indigo-600 hover:text-indigo-500"
+									>
+										{m.news_read_more()}
+									</a>
+								</div>
+							</div>
+						</article>
+					{/each}
+				</div>
+			</div>
+		</section>
+
+		<!-- AGENDA SECTION -->
+		<section id="agenda" class="bg-gray-50 py-20 lg:py-28">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div class="mb-12">
+					<span class="font-semibold tracking-wider text-indigo-600 uppercase">Agenda Terdekat</span
+					>
+					<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+						Jangan Lewatkan
+					</h2>
+				</div>
+
+				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+					{#each agendas as agenda (agenda.id)}
+						<div
+							class="rounded-2xl border-l-4 border-indigo-600 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+						>
+							<div class="mb-3 flex items-center gap-2 font-bold text-indigo-600">
+								<Calendar class="h-5 w-5" />
+								<span
+									>{new Date(agenda.date).toLocaleDateString('id-ID', {
+										day: 'numeric',
+										month: 'long',
+										year: 'numeric'
+									})}</span
+								>
+							</div>
+							<h3 class="mb-2 text-xl font-bold text-gray-900">{agenda.title}</h3>
+							<div class="mb-4 flex items-center gap-2 text-sm text-gray-500">
+								<MapPin class="h-4 w-4" />
+								<span>{agenda.location || 'Kampus'}</span>
+							</div>
+							<p class="mb-4 line-clamp-3 text-sm text-gray-600">{agenda.description}</p>
 							<a
-								href="/"
-								class="mt-6 inline-flex items-center text-sm font-semibold text-indigo-400 transition-colors group-hover:text-indigo-300"
+								href={`/agenda/${agenda.id}`}
+								class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:underline"
 							>
-								Selengkapnya <ChevronRight class="ml-1 h-4 w-4" />
+								Detail Agenda <ChevronRight class="ml-1 h-4 w-4" />
 							</a>
 						</div>
 					{/each}
@@ -284,65 +339,40 @@
 			</div>
 		</section>
 
-		<!-- NEWS SECTION -->
-		<section id="news" class="py-20 lg:py-28">
+		<!-- VIDEO SECTION -->
+		<section id="videos" class="bg-gray-900 py-20 text-white lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="mb-12 flex items-end justify-between">
-					<div>
-						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
-							>Berita Terbaru</span
-						>
-						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							Kabar Kampus
-						</h2>
-					</div>
-					<a
-						href="/"
-						class="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block"
+				<div class="mb-12 text-center">
+					<span class="font-semibold tracking-wider text-indigo-400 uppercase"
+						>Kanal Video Kampus</span
 					>
-						Lihat Semua Berita &rarr;
-					</a>
+					<h2 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+						Video Terbaru
+					</h2>
 				</div>
 
-				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-					{#each news as item}
-						<article
-							class="flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-shadow hover:shadow-xl"
-						>
-							<div class="relative h-48 w-full overflow-hidden">
-								<img
-									src={item.img}
-									alt={item.title}
-									class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-								/>
-								<div
-									class="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-indigo-600 backdrop-blur-sm"
+				<div class="grid gap-8 lg:grid-cols-2">
+					{#each videos as video (video.id || video.youtube_id)}
+						<div class="group relative overflow-hidden rounded-2xl bg-gray-800 shadow-2xl">
+							<div class="aspect-video w-full">
+								<iframe
+									class="h-full w-full"
+									src={`https://www.youtube.com/embed/${video.youtube_id}`}
+									title={video.title}
+									frameborder="0"
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+									allowfullscreen
+								></iframe>
+							</div>
+							<div class="p-6">
+								<h3
+									class="text-xl font-bold text-white transition-colors group-hover:text-indigo-400"
 								>
-									{item.cat}
-								</div>
-							</div>
-							<div class="flex flex-1 flex-col p-6">
-								<div class="flex items-center gap-2 text-sm text-gray-500">
-									<Calendar class="h-4 w-4" />
-									<time>{item.date}</time>
-								</div>
-								<h3 class="mt-3 text-xl leading-snug font-bold text-gray-900">
-									<a href="/" class="hover:text-indigo-600">{item.title}</a>
+									{video.title}
 								</h3>
-								<div class="mt-auto pt-6">
-									<a href="/" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-										Baca Selengkapnya
-									</a>
-								</div>
 							</div>
-						</article>
+						</div>
 					{/each}
-				</div>
-
-				<div class="mt-8 text-center sm:hidden">
-					<a href="/" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-						Lihat Semua Berita &rarr;
-					</a>
 				</div>
 			</div>
 		</section>
@@ -351,29 +381,26 @@
 		<section class="bg-indigo-600 py-16">
 			<div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
 				<h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-					Siap Memulai Perjalanan Anda?
+					{m.cta_title()}
 				</h2>
 				<p class="mx-auto mt-4 max-w-2xl text-lg text-indigo-100">
-					Jangan ragu untuk menghubungi kami jika Anda memiliki pertanyaan mengenai pendaftaran atau
-					program studi.
+					{m.cta_desc()}
 				</p>
 				<div class="mt-8 flex justify-center gap-4">
 					<a
 						href="/auth/siakad/login"
 						class="rounded-full bg-white px-8 py-3 text-base font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50"
 					>
-						Daftar Sekarang
+						{m.cta_register()}
 					</a>
 					<a
 						href="/contact"
 						class="rounded-full border border-white px-8 py-3 text-base font-semibold text-white hover:bg-white/10"
 					>
-						Hubungi Kami
+						{m.cta_contact()}
 					</a>
 				</div>
 			</div>
 		</section>
 	</main>
-
-	<Footer />
 </div>

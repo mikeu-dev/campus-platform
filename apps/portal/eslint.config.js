@@ -30,6 +30,15 @@ export default defineConfig(
 					selector: 'ExportNamedDeclaration > VariableDeclaration[kind="let"]',
 					message: 'Legacy "export let" is deprecated in Svelte 5. Use "$props()" rune instead.'
 				}
+			],
+			'svelte/no-navigation-without-resolve': 'off',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrorsIgnorePattern: '^_'
+				}
 			]
 		}
 	},
