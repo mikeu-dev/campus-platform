@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Menu, X, LogIn, ChevronDown, GraduationCap } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
+	import { slide, fly } from 'svelte/transition';
 
 	let { pages = [], settings = {} } = $props();
 
@@ -28,11 +29,15 @@
 	}
 </script>
 
-<header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
-	<div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+<header
+	class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-md transition-all duration-300"
+>
+	<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 		<!-- Logo -->
-		<a href="/" class="flex items-center gap-2">
-			<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white">
+		<a href="/" class="group flex items-center gap-3">
+			<div
+				class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 transition-transform duration-300 group-hover:scale-105"
+			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					viewBox="0 0 24 24"
@@ -47,53 +52,57 @@
 					<path d="M6 12v5c3 3 9 3 12 0v-5" />
 				</svg>
 			</div>
-			<span class="text-xl font-bold tracking-tight text-gray-900">
-				{settings.app_name || m.brand_name()}<span class="text-indigo-600">
-					{settings.app_suffix || 'App'}</span
-				>
-			</span>
+			<div class="flex flex-col">
+				<span class="text-xl leading-tight font-bold tracking-tight text-gray-900">
+					{settings.app_name || m.brand_name()}
+				</span>
+				<span class="-mt-1 text-sm font-medium text-indigo-600">
+					{settings.app_suffix || 'App'}
+				</span>
+			</div>
 		</a>
 
 		<!-- Desktop Navigation -->
-		<nav class="hidden md:flex md:gap-x-6">
-			<a
-				href="/"
-				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
-			>
+		<nav class="hidden md:flex md:items-center md:gap-x-8">
+			<a href="/" class="text-sm font-medium text-gray-600 transition-colors hover:text-indigo-600">
 				{m.nav_home()}
 			</a>
 
 			<a
 				href="/pmb"
-				class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 transition-colors hover:text-indigo-700"
+				class="group inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
 			>
-				<GraduationCap class="h-4 w-4" />
+				<GraduationCap class="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
 				PMB 2026
 			</a>
 
 			{#each categories as cat (cat.key)}
-				<div class="group relative">
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="group relative h-full"
+					onmouseenter={() => (openDropdown = cat.key)}
+					onmouseleave={() => (openDropdown = null)}
+				>
 					<button
-						class="flex items-center gap-1 text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600 focus:outline-none"
-						onmouseenter={() => (openDropdown = cat.key)}
-						onmouseleave={() => (openDropdown = null)}
+						class="flex items-center gap-1 py-2 text-sm font-medium text-gray-600 transition-colors group-hover:text-indigo-600 focus:outline-none"
 					>
 						{cat.name}
-						<ChevronDown class="h-4 w-4" />
+						<ChevronDown
+							class={`h-3.5 w-3.5 transition-transform duration-200 ${openDropdown === cat.key ? 'rotate-180' : ''}`}
+						/>
 					</button>
 
 					{#if openDropdown === cat.key}
 						<div
-							class="absolute left-0 mt-0 w-56 rounded-xl border border-gray-100 bg-white p-2 shadow-xl ring-1 ring-black/5 focus:outline-none"
+							class="absolute top-full left-1/2 mt-2 w-60 -translate-x-1/2 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl ring-1 shadow-gray-200/50 ring-black/5 focus:outline-none"
 							role="menu"
 							tabindex="-1"
-							onmouseenter={() => (openDropdown = cat.key)}
-							onmouseleave={() => (openDropdown = null)}
+							transition:fly={{ y: 10, duration: 200 }}
 						>
 							{#each getPagesByCategory(cat.key) as p (p.slug)}
 								<a
 									href={`/pages/${p.slug}`}
-									class="block rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+									class="block rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
 								>
 									{p.title}
 								</a>
@@ -105,7 +114,7 @@
 
 			<a
 				href="/#news"
-				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
+				class="text-sm font-medium text-gray-600 transition-colors hover:text-indigo-600"
 			>
 				{m.nav_news()}
 			</a>
@@ -115,13 +124,13 @@
 		<div class="hidden items-center gap-4 md:flex">
 			<a
 				href="/auth/login"
-				class="text-sm font-semibold text-gray-700 transition-colors hover:text-indigo-600"
+				class="text-sm font-semibold text-gray-600 transition-colors hover:text-indigo-600"
 			>
 				{m.nav_login_staff()}
 			</a>
 			<a
 				href="/auth/siakad/login"
-				class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+				class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 			>
 				<LogIn class="h-4 w-4" />
 				{m.nav_student_portal()}
@@ -149,11 +158,14 @@
 
 	<!-- Mobile Menu -->
 	{#if isMenuOpen}
-		<div class="border-t border-gray-100 bg-white md:hidden">
+		<div
+			class="absolute top-20 left-0 w-full border-t border-gray-100 bg-white shadow-lg md:hidden"
+			transition:slide={{ duration: 300 }}
+		>
 			<div class="space-y-1 px-4 pt-2 pb-6 sm:px-3">
 				<a
 					href="/"
-					class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+					class="block rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
 					onclick={() => (isMenuOpen = false)}
 				>
 					{m.nav_home()}
@@ -162,21 +174,21 @@
 				{#each categories as cat (cat.key)}
 					<div class="space-y-1">
 						<button
-							class="flex w-full items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+							class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
 							onclick={() => toggleDropdown(cat.key)}
 						>
 							{cat.name}
 							<ChevronDown
-								class={`h-4 w-4 transition-transform ${openDropdown === cat.key ? 'rotate-180' : ''}`}
+								class={`h-4 w-4 transition-transform duration-200 ${openDropdown === cat.key ? 'rotate-180' : ''}`}
 							/>
 						</button>
 
 						{#if openDropdown === cat.key}
-							<div class="space-y-1 pl-6">
+							<div class="space-y-1 pl-4" transition:slide={{ duration: 200 }}>
 								{#each getPagesByCategory(cat.key) as p (p.slug)}
 									<a
 										href={`/pages/${p.slug}`}
-										class="block rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-indigo-600"
+										class="block rounded-lg border-l-2 border-transparent px-3 py-2 text-sm font-medium text-gray-500 hover:border-indigo-600 hover:bg-gray-50 hover:text-indigo-600"
 										onclick={() => (isMenuOpen = false)}
 									>
 										{p.title}
@@ -187,16 +199,16 @@
 					</div>
 				{/each}
 
-				<div class="mt-4 space-y-2 border-t border-gray-100 pt-4">
+				<div class="mt-4 space-y-3 border-t border-gray-100 pt-6">
 					<a
 						href="/auth/login"
-						class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+						class="block w-full rounded-lg px-3 py-2.5 text-center text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
 					>
 						{m.nav_login_staff()}
 					</a>
 					<a
 						href="/auth/siakad/login"
-						class="flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-3 py-4 text-base font-semibold text-white hover:bg-indigo-500"
+						class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-3.5 text-base font-semibold text-white shadow-md hover:bg-indigo-500"
 					>
 						<LogIn class="h-4 w-4" />
 						{m.nav_student_portal()}
