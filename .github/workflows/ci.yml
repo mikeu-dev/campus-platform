@@ -114,6 +114,162 @@ jobs:
             - name: Run Tests
               run: npm test
 
+    test-admission-service:
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:15
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgrespassword
+                    POSTGRES_DB: campus_admission_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        defaults:
+            run:
+                working-directory: apps/admission-service
+
+        env:
+            DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_admission_db
+            JWT_SECRET: test-secret-key-123
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+                  cache-dependency-path: apps/admission-service/package-lock.json
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: Wait for PostgreSQL
+              run: |
+                  until pg_isready -h localhost -p 5432 -U postgres; do
+                    echo "Waiting for postgres..."
+                    sleep 1
+                  done
+
+            - name: Initialize Database
+              run: |
+                  PGPASSWORD=postgrespassword psql -h localhost -U postgres -d campus_admission_db -f ../../infra/db/init/03_admission_schema.sql
+
+            - name: Run Tests
+              run: npm test
+
+    test-learning-service:
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:15
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgrespassword
+                    POSTGRES_DB: campus_learning_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        defaults:
+            run:
+                working-directory: apps/learning-service
+
+        env:
+            DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_learning_db
+            JWT_SECRET: test-secret-key-123
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+                  cache-dependency-path: apps/learning-service/package-lock.json
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: Wait for PostgreSQL
+              run: |
+                  until pg_isready -h localhost -p 5432 -U postgres; do
+                    echo "Waiting for postgres..."
+                    sleep 1
+                  done
+
+            - name: Initialize Database
+              run: |
+                  PGPASSWORD=postgrespassword psql -h localhost -U postgres -d campus_learning_db -f ../../infra/db/init/04_learning_schema.sql
+
+            - name: Run Tests
+              run: npm test
+
+    test-public-service:
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:15
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgrespassword
+                    POSTGRES_DB: campus_public_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        defaults:
+            run:
+                working-directory: apps/public-service
+
+        env:
+            DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_public_db
+            JWT_SECRET: test-secret-key-123
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+                  cache-dependency-path: apps/public-service/package-lock.json
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: Wait for PostgreSQL
+              run: |
+                  until pg_isready -h localhost -p 5432 -U postgres; do
+                    echo "Waiting for postgres..."
+                    sleep 1
+                  done
+
+            - name: Initialize Database
+              run: |
+                  PGPASSWORD=postgrespassword psql -h localhost -U postgres -d campus_public_db -f ../../infra/db/init/05_public_schema.sql
+
+            - name: Run Tests
+              run: npm test
+
     lint-portal:
         runs-on: ubuntu-latest
 
