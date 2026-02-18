@@ -60,8 +60,8 @@
 				Tambah Agenda
 			</Button>
 		</div>
-		<Dialog bind:open={isDialogOpen}>
-			<DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
+		<Dialog bind:open={isDialogOpen} class="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
+			<DialogContent>
 				<form method="POST" action={editingAgenda ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>
 						<DialogTitle>{editingAgenda ? 'Edit Agenda' : 'Tambah Agenda Baru'}</DialogTitle>

@@ -68,8 +68,8 @@
 				Buat Halaman
 			</Button>
 		</div>
-		<Dialog bind:open={isDialogOpen}>
-			<DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
+		<Dialog bind:open={isDialogOpen} class="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
+			<DialogContent>
 				<form method="POST" action={editingPage ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>
 						<DialogTitle>{editingPage ? 'Edit Halaman' : 'Buat Halaman Baru'}</DialogTitle>
