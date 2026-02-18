@@ -167,7 +167,7 @@
 
 					{#if openDropdown === cat.key}
 						<div
-							class="absolute top-full left-1/2 w-60 -translate-x-1/2 pt-4 focus:outline-none"
+							class="absolute top-full left-1/2 w-72 -translate-x-1/2 pt-4 focus:outline-none"
 							role="menu"
 							tabindex="-1"
 							transition:fly={{ y: 10, duration: 200 }}
