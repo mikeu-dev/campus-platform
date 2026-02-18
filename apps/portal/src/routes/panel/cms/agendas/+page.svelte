@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
+	import Editor from '$lib/components/Editor.svelte';
 	import {
 		Table,
 		TableBody,
@@ -61,7 +61,7 @@
 			</Button>
 		</div>
 		<Dialog bind:open={isDialogOpen}>
-			<DialogContent class="sm:max-w-[600px]">
+			<DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
 				<form method="POST" action={editingAgenda ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>
 						<DialogTitle>{editingAgenda ? 'Edit Agenda' : 'Tambah Agenda Baru'}</DialogTitle>
@@ -114,13 +114,13 @@
 							/>
 						</div>
 						<div class="space-y-2">
-							<Label for="description">Deskripsi Singkat</Label>
-							<Textarea
-								id="description"
-								name="description"
-								value={editingAgenda?.description || ''}
-								placeholder="Penjelasan tentang acara"
-								rows={3}
+							<Label for="description">Deskripsi Kegiatan</Label>
+							<input type="hidden" name="description" value={editingAgenda?.description || ''} />
+							<Editor
+								content={editingAgenda?.description || ''}
+								onchange={(html) => {
+									editingAgenda = { ...editingAgenda, description: html };
+								}}
 							/>
 						</div>
 						<div class="flex items-center space-x-2 pt-2">
