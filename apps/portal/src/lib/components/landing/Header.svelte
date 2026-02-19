@@ -159,17 +159,6 @@
 			</a>
 		</nav>
 
-		<!-- Desktop CTA (PMB Only) -->
-		<div class="hidden items-center gap-4 md:flex">
-			<a
-				href="/pmb"
-				class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-			>
-				<GraduationCap class="h-4 w-4" />
-				PMB 2026
-			</a>
-		</div>
-
 		<!-- Mobile Menu Button -->
 		<div class="flex md:hidden">
 			<button
@@ -233,14 +222,6 @@
 				{/each}
 
 				<div class="mt-4 space-y-3 border-t border-gray-100 pt-6">
-					<a
-						href="/pmb"
-						class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-3.5 text-base font-semibold text-white shadow-md hover:bg-indigo-500"
-						onclick={() => (isMenuOpen = false)}
-					>
-						<GraduationCap class="h-4 w-4" />
-						PMB 2026
-					</a>
 					<div class="mt-4 grid grid-cols-2 gap-3">
 						<a
 							href="/auth/login"
