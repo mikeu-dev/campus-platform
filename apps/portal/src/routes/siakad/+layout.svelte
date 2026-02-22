@@ -81,7 +81,11 @@
 		{
 			label: m.nav_section_lecturer(),
 			roles: ['lecturer'],
-			items: [{ href: '/siakad/teaching', label: m.nav_teaching(), icon: BookOpen }]
+			items: [
+				{ href: '/siakad/teaching', label: m.nav_teaching(), icon: BookOpen },
+				{ href: '/siakad/advising', label: m.nav_advising(), icon: Users },
+				{ href: '/siakad/research-service', label: m.nav_research_service(), icon: BookOpen }
+			]
 		},
 		{
 			label: 'Administrator',
