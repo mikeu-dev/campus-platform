@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import axios from 'axios';
 import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';

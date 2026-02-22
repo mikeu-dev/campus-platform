@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		if (isLecturer) {
 			// Lecturer-specific data
-			let lecturerProfile = null;
+			let lecturerProfile: any = null;
 			let classes: any[] = [];
 
 			try {
