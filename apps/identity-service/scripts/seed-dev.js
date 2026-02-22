@@ -3,10 +3,19 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const seedDev = async () => {
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+    const schemaMatch = connectionString.match(/[?&]schema=([^&]+)/);
+    let queryOptions = '';
+    if (schemaMatch && schemaMatch[1]) {
+        queryOptions = `-c search_path="${schemaMatch[1]}",public`;
+    }
+    const client = new Client({ connectionString, options: queryOptions });
 
     try {
         await client.connect();
+        if (schemaMatch && schemaMatch[1]) {
+            await client.query(`SET search_path TO "${schemaMatch[1]}", public`);
+        }
         console.log('Connected to database for seeding...');
 
         // 1. Create Tenant

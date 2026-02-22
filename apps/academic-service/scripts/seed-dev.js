@@ -3,15 +3,34 @@ require('dotenv').config();
 
 const seedDev = async () => {
     // Connection strings
-    const identityDbUrl = process.env.IDENTITY_DB_URL || 'postgres://postgres:postgrespassword@localhost:5435/campus_identity_db';
-    const academicDbUrl = process.env.DATABASE_URL || 'postgres://postgres:postgrespassword@localhost:5435/campus_academic_db';
+    const identityDbUrl = process.env.IDENTITY_DIRECT_URL || process.env.IDENTITY_DB_URL || 'postgres://postgres:postgrespassword@localhost:5435/campus_identity_db?schema=identity';
+    const academicDbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || 'postgres://postgres:postgrespassword@localhost:5435/campus_academic_db?schema=academic';
 
-    const identityClient = new Client({ connectionString: identityDbUrl });
-    const academicClient = new Client({ connectionString: academicDbUrl });
+    const identitySchemaMatch = identityDbUrl.match(/[?&]schema=([^&]+)/);
+    let identityOptions = '';
+    if (identitySchemaMatch && identitySchemaMatch[1]) {
+        identityOptions = `-c search_path="${identitySchemaMatch[1]}",public`;
+    }
+    const identityClient = new Client({ connectionString: identityDbUrl, options: identityOptions });
+
+    const academicSchemaMatch = academicDbUrl.match(/[?&]schema=([^&]+)/);
+    let academicOptions = '';
+    if (academicSchemaMatch && academicSchemaMatch[1]) {
+        academicOptions = `-c search_path="${academicSchemaMatch[1]}",public`;
+    }
+    const academicClient = new Client({ connectionString: academicDbUrl, options: academicOptions });
 
     try {
         await identityClient.connect();
+        if (identitySchemaMatch && identitySchemaMatch[1]) {
+            await identityClient.query(`SET search_path TO "${identitySchemaMatch[1]}", public`);
+        }
+
         await academicClient.connect();
+        if (academicSchemaMatch && academicSchemaMatch[1]) {
+            await academicClient.query(`SET search_path TO "${academicSchemaMatch[1]}", public`);
+        }
+
         console.log('Connected to databases...');
 
         // 1. Fetch Tenant & Users from Identity Service

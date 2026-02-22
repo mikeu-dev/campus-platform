@@ -8,7 +8,7 @@ datasource db {
 }
 
 model assignments {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String        @db.Uuid
   class_id    String        @db.Uuid
   title       String        @db.VarChar(255)
@@ -30,7 +30,7 @@ model discussions {
 }
 
 model materials {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   class_id   String    @db.Uuid
   title      String    @db.VarChar(255)
@@ -64,7 +64,7 @@ model notifications {
 }
 
 model quiz_attempts {
-  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String    @db.Uuid
   quiz_id     String    @db.Uuid
   student_id  String    @db.Uuid
@@ -75,7 +75,7 @@ model quiz_attempts {
 }
 
 model quizzes {
-  id            String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id     String          @db.Uuid
   class_id      String          @db.Uuid
   title         String          @db.VarChar(255)
@@ -84,7 +84,7 @@ model quizzes {
 }
 
 model submissions {
-  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id     String      @db.Uuid
   assignment_id String      @db.Uuid
   student_id    String      @db.Uuid

@@ -8,7 +8,7 @@ datasource db {
 }
 
 model roles {
-  id         String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String       @db.Uuid
   name       String       @db.VarChar(255)
   tenants    tenants      @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -18,7 +18,7 @@ model roles {
 }
 
 model tenants {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String    @db.VarChar(255)
   slug       String    @unique @db.VarChar(255)
   domain     String?   @db.VarChar(255)
@@ -30,7 +30,7 @@ model tenants {
 }
 
 model user_roles {
-  id      String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id String @db.Uuid
   role_id String @db.Uuid
   roles   roles  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -40,7 +40,7 @@ model user_roles {
 }
 
 model users {
-  id            String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id     String       @db.Uuid
   email         String       @unique @db.VarChar(255)
   password_hash String       @db.VarChar(255)

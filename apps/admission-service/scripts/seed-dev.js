@@ -1,8 +1,15 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const schemaMatch = connectionString.match(/[?&]schema=([^&]+)/);
+let queryOptions = '';
+if (schemaMatch && schemaMatch[1]) {
+    queryOptions = `-c search_path="${schemaMatch[1]}",public`;
+}
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString,
+    options: queryOptions
 });
 
 const tenantId = '00000000-0000-0000-0000-000000000000';
@@ -11,6 +18,9 @@ async function seed() {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+        if (schemaMatch && schemaMatch[1]) {
+            await client.query(`SET search_path TO "${schemaMatch[1]}", public`);
+        }
 
         console.log('Seeding PMB Periods...');
         const periods = [
