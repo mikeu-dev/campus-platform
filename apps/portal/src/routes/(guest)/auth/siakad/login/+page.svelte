@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { GraduationCap, Mail, Lock, LogIn } from 'lucide-svelte';
 	import type { ActionData } from './$types';
+	import * as m from '$lib/paraglide/messages.js';
 
 	interface Props {
 		form: ActionData;
@@ -11,36 +12,36 @@
 	let isLoading = $state(false);
 </script>
 
-<div class="gradient-bg flex min-h-screen items-center justify-center p-4">
-	<!-- Floating shapes for visual interest -->
+<div
+	class="flex min-h-screen items-center justify-center bg-linear-to-br from-teal-500 via-emerald-500 to-sky-500 p-4"
+>
+	<!-- Background sparkles -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden">
 		<div
-			class="animate-blob absolute -top-40 -left-40 h-80 w-80 rounded-full bg-purple-300 opacity-30 mix-blend-multiply blur-xl"
+			class="absolute top-1/4 left-1/3 h-64 w-64 animate-pulse rounded-full bg-white/20 blur-3xl"
 		></div>
 		<div
-			class="animate-blob animation-delay-2000 absolute -right-40 -bottom-40 h-80 w-80 rounded-full bg-yellow-300 opacity-30 mix-blend-multiply blur-xl"
-		></div>
-		<div
-			class="animate-blob animation-delay-4000 absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-300 opacity-30 mix-blend-multiply blur-xl"
+			class="animation-delay-2000 absolute right-1/4 bottom-1/3 h-64 w-64 animate-pulse rounded-full bg-sky-200/20 blur-3xl"
 		></div>
 	</div>
 
 	<!-- Login Card -->
-	<div class="glass-card relative z-10 w-full max-w-md rounded-2xl p-8 shadow-2xl">
+	<div
+		class="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-sm lg:p-10"
+	>
 		<!-- Logo & Header -->
 		<div class="mb-8 text-center">
 			<div
-				class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 shadow-lg"
+				class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-emerald-600 text-white shadow-lg"
 			>
-				<GraduationCap class="h-8 w-8 text-white" />
+				<GraduationCap class="h-9 w-9" />
 			</div>
-			<h1 class="text-2xl font-bold text-gray-900">
-				Campus<span
-					class="bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
-					>App</span
-				>
+			<h1 class="text-3xl font-extrabold text-gray-900">
+				Halo, <span class="text-emerald-600">Selamat Datang!</span>
 			</h1>
-			<p class="mt-2 text-sm text-gray-500">Welcome back! Please sign in to continue.</p>
+			<p class="mt-2 text-sm font-medium text-gray-500">
+				Silakan masuk ke akun SIAKAD Bapak/Ibu atau Akun Mahasiswa.
+			</p>
 		</div>
 
 		<!-- Error Message -->
@@ -69,16 +70,16 @@
 					isLoading = false;
 				};
 			}}
-			class="space-y-5"
+			class="space-y-6"
 		>
 			<!-- Email Input -->
-			<div class="relative">
-				<label for="email" class="mb-1.5 block text-sm font-medium text-gray-700"
-					>Email Address</label
+			<div class="space-y-2">
+				<label for="email" class="pl-1 text-sm font-semibold text-gray-700"
+					>{m.auth_email_label()}</label
 				>
 				<div class="relative">
-					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-						<Mail class="h-5 w-5 text-gray-400" />
+					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+						<Mail class="h-5 w-5 text-teal-500" />
 					</div>
 					<input
 						id="email"
@@ -86,19 +87,20 @@
 						type="email"
 						autocomplete="email"
 						required
-						placeholder="you@university.edu"
-						class="input-modern w-full rounded-xl py-3 pr-4 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none"
+						placeholder="nama@email.com"
+						class="w-full rounded-2xl border-2 border-gray-100 bg-gray-50/50 py-3.5 pr-4 pl-12 text-gray-900 placeholder-gray-400 transition-all outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
 					/>
 				</div>
 			</div>
 
 			<!-- Password Input -->
-			<div class="relative">
-				<label for="password" class="mb-1.5 block text-sm font-medium text-gray-700">Password</label
+			<div class="space-y-2">
+				<label for="password" class="pl-1 text-sm font-semibold text-gray-700"
+					>{m.auth_password_label()}</label
 				>
 				<div class="relative">
-					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-						<Lock class="h-5 w-5 text-gray-400" />
+					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+						<Lock class="h-5 w-5 text-teal-500" />
 					</div>
 					<input
 						id="password"
@@ -107,7 +109,7 @@
 						autocomplete="current-password"
 						required
 						placeholder="••••••••"
-						class="input-modern w-full rounded-xl py-3 pr-4 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none"
+						class="w-full rounded-2xl border-2 border-gray-100 bg-gray-50/50 py-3.5 pr-4 pl-12 text-gray-900 placeholder-gray-400 transition-all outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
 					/>
 				</div>
 			</div>
@@ -116,7 +118,7 @@
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="btn-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+				class="group relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-linear-to-r from-teal-600 to-emerald-600 p-4 text-sm font-bold text-white shadow-xl transition-all hover:scale-[1.02] hover:shadow-emerald-500/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
 			>
 				{#if isLoading}
 					<svg class="mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -128,43 +130,25 @@
 							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 						></path>
 					</svg>
-					Signing in...
+					Sedang Masuk...
 				{:else}
-					<LogIn class="mr-2 h-5 w-5" />
-					Sign In
+					<LogIn class="mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+					{m.auth_signin_button()}
 				{/if}
 			</button>
 		</form>
 
 		<!-- Footer -->
 		<div class="mt-8 text-center">
-			<p class="text-xs text-gray-500">
-				Powered by <span class="font-medium text-indigo-600">CampusApp</span> • Multi-Tenant LMS
+			<p class="text-xs font-medium text-gray-400">
+				Dikembangkan oleh <span class="text-teal-600">AMIK-YPAT PURWAKARTA</span>
 			</p>
 		</div>
 	</div>
 </div>
 
 <style>
-	@keyframes blob {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
-		}
-		33% {
-			transform: translate(30px, -50px) scale(1.1);
-		}
-		66% {
-			transform: translate(-20px, 20px) scale(0.9);
-		}
-	}
-	.animate-blob {
-		animation: blob 7s infinite;
-	}
 	.animation-delay-2000 {
 		animation-delay: 2s;
-	}
-	.animation-delay-4000 {
-		animation-delay: 4s;
 	}
 </style>

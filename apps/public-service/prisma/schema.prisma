@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model public_agendas {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String    @db.Uuid
+  title       String    @db.VarChar(255)
+  description String?
+  date        DateTime  @db.Date
+  location    String?   @db.VarChar(255)
+  is_pinned   Boolean?  @default(false)
+  is_active   Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model public_links {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String    @db.Uuid
+  title       String    @db.VarChar(255)
+  url         String
+  order_index Int?      @default(0)
+  is_active   Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model public_pages {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String    @db.Uuid
+  title       String    @db.VarChar(255)
+  slug        String    @db.VarChar(255)
+  content     String?
+  parent_menu String?   @db.VarChar(50)
+  order_index Int?      @default(0)
+  is_active   Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([tenant_id, slug])
+}
+
+model public_posts {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  title      String    @db.VarChar(255)
+  slug       String    @db.VarChar(255)
+  content    String?
+  image_url  String?
+  category   String?   @db.VarChar(50)
+  is_pinned  Boolean?  @default(false)
+  is_active  Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([tenant_id, slug])
+}
+
+model public_settings {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  key        String    @db.VarChar(100)
+  value      String?
+  category   String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([tenant_id, key])
+}
+
+model public_sliders {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String    @db.Uuid
+  title       String?   @db.VarChar(255)
+  description String?
+  image_url   String
+  order_index Int?      @default(0)
+  is_active   Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model public_videos {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String    @db.Uuid
+  title       String?   @db.VarChar(255)
+  youtube_id  String    @db.VarChar(50)
+  order_index Int?      @default(0)
+  is_active   Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model public_visitors {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  ip_address String?   @db.VarChar(45)
+  user_agent String?
+  route      String?   @db.VarChar(255)
+  visited_at DateTime? @default(now()) @db.Timestamp(6)
+}

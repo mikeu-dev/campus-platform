@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
 // Schemas
@@ -6,22 +6,19 @@ const materialSchema = z.object({
     title: z.string().min(3),
     content: z.string().optional(),
     type: z.enum(['text', 'video', 'link', 'file']).default('text'),
-    meeting_number: z.number().int().min(1).max(16).optional(),
+    meeting_number: z.number().int().min(1).max(16).optional().nullable(),
 });
 
 const assignmentSchema = z.object({
     title: z.string().min(3),
     description: z.string().optional(),
     deadline: z.string().datetime(), // ISO 8601
-    meeting_number: z.number().int().min(1).max(16).optional(),
+    meeting_number: z.number().int().min(1).max(16).optional().nullable(),
 });
 
 const submissionSchema = z.object({
     content: z.string().min(1),
-    student_id: z.string().uuid(), // Ideally extracted from token via lookup, but for MVP we trust client or token if extended.
-    // Actually, Identity Token doesn't have student_id (only user_id).
-    // So client must send student_id, and we should verify ownership?
-    // For MVP, we'll accept student_id from body but verify tenant.
+    student_id: z.string().uuid(),
 });
 
 const gradeSchema = z.object({
@@ -31,7 +28,7 @@ const gradeSchema = z.object({
 
 const quizSchema = z.object({
     title: z.string().min(3),
-    meeting_number: z.number().int().min(1).max(16).optional(),
+    meeting_number: z.number().int().min(1).max(16).optional().nullable(),
 });
 
 const quizQuestionSchema = z.object({
@@ -61,14 +58,17 @@ class LearningController {
     async addMaterial(req, res, next) {
         try {
             const { classId } = req.params;
-            const { title, content, type, meeting_number } = materialSchema.parse(req.body);
+            const data = materialSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO materials (tenant_id, class_id, title, content, type, meeting_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [tenantId, classId, title, content, type, meeting_number]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.materials.create({
+                data: {
+                    ...data,
+                    tenant_id: tenantId,
+                    class_id: classId
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -78,18 +78,16 @@ class LearningController {
             const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
 
-            let query = 'SELECT * FROM materials WHERE tenant_id = $1 AND class_id = $2';
-            const params = [tenantId, classId];
-
+            const where = { tenant_id: tenantId, class_id: classId };
             if (meetingNumber) {
-                query += ' AND meeting_number = $3';
-                params.push(meetingNumber);
+                where.meeting_number = parseInt(meetingNumber);
             }
 
-            query += ' ORDER BY created_at DESC';
-
-            const result = await db.query(query, params);
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.materials.findMany({
+                where,
+                orderBy: { created_at: 'desc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -97,14 +95,18 @@ class LearningController {
     async createAssignment(req, res, next) {
         try {
             const { classId } = req.params;
-            const { title, description, deadline, meeting_number } = assignmentSchema.parse(req.body);
+            const data = assignmentSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO assignments (tenant_id, class_id, title, description, deadline, meeting_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [tenantId, classId, title, description, deadline, meeting_number]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.assignments.create({
+                data: {
+                    ...data,
+                    deadline: new Date(data.deadline),
+                    tenant_id: tenantId,
+                    class_id: classId
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -114,18 +116,16 @@ class LearningController {
             const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
 
-            let query = 'SELECT * FROM assignments WHERE tenant_id = $1 AND class_id = $2';
-            const params = [tenantId, classId];
-
+            const where = { tenant_id: tenantId, class_id: classId };
             if (meetingNumber) {
-                query += ' AND meeting_number = $3';
-                params.push(meetingNumber);
+                where.meeting_number = parseInt(meetingNumber);
             }
 
-            query += ' ORDER BY deadline ASC';
-
-            const result = await db.query(query, params);
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.assignments.findMany({
+                where,
+                orderBy: { deadline: 'asc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -136,34 +136,45 @@ class LearningController {
             const { content, student_id } = submissionSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            // Upsert submission (allow resubmission)
-            const result = await db.query(
-                `INSERT INTO submissions (tenant_id, assignment_id, student_id, content, submitted_at)
-         VALUES ($1, $2, $3, $4, NOW())
-         ON CONFLICT (assignment_id, student_id) 
-         DO UPDATE SET content = EXCLUDED.content, submitted_at = NOW()
-         RETURNING *`,
-                [tenantId, assignmentId, student_id, content]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.submissions.upsert({
+                where: {
+                    assignment_id_student_id: {
+                        assignment_id: assignmentId,
+                        student_id: student_id
+                    }
+                },
+                update: {
+                    content,
+                    submitted_at: new Date()
+                },
+                create: {
+                    tenant_id: tenantId,
+                    assignment_id: assignmentId,
+                    student_id: student_id,
+                    content
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
     async getMySubmission(req, res, next) {
         try {
             const { assignmentId } = req.params;
-            const { studentId } = req.query; // Pass student_id as query param for simplicity
+            const { studentId } = req.query;
             const tenantId = req.user.tenant_id;
 
             if (!studentId) return res.status(400).json({ status: 'fail', message: 'studentId required' });
 
-            const result = await db.query(
-                'SELECT * FROM submissions WHERE tenant_id = $1 AND assignment_id = $2 AND student_id = $3',
-                [tenantId, assignmentId, studentId]
-            );
+            const result = await prisma.submissions.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    assignment_id: assignmentId,
+                    student_id: studentId
+                }
+            });
 
-            if (result.rows.length === 0) return res.json({ status: 'success', data: null });
-            res.json({ status: 'success', data: result.rows[0] });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -172,14 +183,14 @@ class LearningController {
             const { assignmentId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            // Should verify if user is lecturer of the class?
-            // For MVP, just verify tenant. Authorization is broad.
-
-            const result = await db.query(
-                'SELECT * FROM submissions WHERE tenant_id = $1 AND assignment_id = $2 ORDER BY submitted_at DESC',
-                [tenantId, assignmentId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.submissions.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    assignment_id: assignmentId
+                },
+                orderBy: { submitted_at: 'desc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -189,16 +200,19 @@ class LearningController {
             const { score, feedback } = gradeSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `UPDATE submissions SET score = $1, feedback = $2 
-                 WHERE id = $3 AND tenant_id = $4 RETURNING *`,
-                [score, feedback, submissionId, tenantId]
-            );
+            const result = await prisma.submissions.update({
+                where: { id: submissionId, tenant_id: tenantId },
+                data: {
+                    score,
+                    feedback
+                }
+            });
 
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Submission not found' });
-
-            res.json({ status: 'success', data: result.rows[0] });
-        } catch (err) { next(err); }
+            res.json({ status: 'success', data: result });
+        } catch (err) {
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Submission not found' });
+            next(err);
+        }
     }
 
     // --- Notifications ---
@@ -207,11 +221,17 @@ class LearningController {
             const { user_id, type, title, message, link } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO notifications (tenant_id, user_id, type, title, message, link) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [tenantId, user_id, type, title, message, link]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.notifications.create({
+                data: {
+                    tenant_id: tenantId,
+                    user_id,
+                    type: type || 'general',
+                    title,
+                    message,
+                    link
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -220,11 +240,15 @@ class LearningController {
             const userId = req.user.sub;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'SELECT * FROM notifications WHERE tenant_id = $1 AND user_id = $2 ORDER BY created_at DESC LIMIT 20',
-                [tenantId, userId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.notifications.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    user_id: userId
+                },
+                orderBy: { created_at: 'desc' },
+                take: 50
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -234,14 +258,16 @@ class LearningController {
             const userId = req.user.sub;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2 AND tenant_id = $3 RETURNING *',
-                [notificationId, userId, tenantId]
-            );
+            const result = await prisma.notifications.update({
+                where: { id: notificationId, user_id: userId, tenant_id: tenantId },
+                data: { is_read: true }
+            });
 
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Notification not found' });
-            res.json({ status: 'success', data: result.rows[0] });
-        } catch (err) { next(err); }
+            res.json({ status: 'success', data: result });
+        } catch (err) {
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Notification not found' });
+            next(err);
+        }
     }
 
     async getUnreadCount(req, res, next) {
@@ -249,11 +275,14 @@ class LearningController {
             const userId = req.user.sub;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'SELECT COUNT(*) as count FROM notifications WHERE tenant_id = $1 AND user_id = $2 AND is_read = FALSE',
-                [tenantId, userId]
-            );
-            res.json({ status: 'success', data: { count: parseInt(result.rows[0].count) } });
+            const count = await prisma.notifications.count({
+                where: {
+                    tenant_id: tenantId,
+                    user_id: userId,
+                    is_read: false
+                }
+            });
+            res.json({ status: 'success', data: { count } });
         } catch (err) { next(err); }
     }
 
@@ -263,16 +292,34 @@ class LearningController {
             const { studentId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `SELECT s.id as submission_id, s.score, s.feedback, s.submitted_at,
-                        a.title as assignment_title, a.class_id
-                 FROM submissions s
-                 JOIN assignments a ON s.assignment_id = a.id
-                 WHERE s.student_id = $1 AND s.tenant_id = $2 AND s.score IS NOT NULL
-                 ORDER BY s.submitted_at DESC`,
-                [studentId, tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.submissions.findMany({
+                where: {
+                    student_id: studentId,
+                    tenant_id: tenantId,
+                    score: { not: null }
+                },
+                include: {
+                    assignments: {
+                        select: {
+                            title: true,
+                            class_id: true
+                        }
+                    }
+                },
+                orderBy: { submitted_at: 'desc' }
+            });
+
+            // Re-format to match expected output if necessary
+            const formatted = result.map(s => ({
+                submission_id: s.id,
+                score: s.score,
+                feedback: s.feedback,
+                submitted_at: s.submitted_at,
+                assignment_title: s.assignments.title,
+                class_id: s.assignments.class_id
+            }));
+
+            res.json({ status: 'success', data: formatted });
         } catch (err) { next(err); }
     }
 
@@ -281,28 +328,22 @@ class LearningController {
             const { studentId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            // Get submission stats
-            const statsResult = await db.query(
-                `SELECT 
-                    COUNT(*) as total_submissions,
-                    COUNT(CASE WHEN score IS NOT NULL THEN 1 END) as graded_count,
-                    AVG(score) as average_score,
-                    MAX(score) as highest_score,
-                    MIN(score) as lowest_score
-                 FROM submissions
-                 WHERE student_id = $1 AND tenant_id = $2`,
-                [studentId, tenantId]
-            );
+            const aggregate = await prisma.submissions.aggregate({
+                where: { student_id: studentId, tenant_id: tenantId },
+                _count: { _all: true, score: true },
+                _avg: { score: true },
+                _max: { score: true },
+                _min: { score: true }
+            });
 
-            const stats = statsResult.rows[0];
             res.json({
                 status: 'success',
                 data: {
-                    totalSubmissions: parseInt(stats.total_submissions),
-                    gradedCount: parseInt(stats.graded_count),
-                    averageScore: stats.average_score ? parseFloat(stats.average_score).toFixed(2) : null,
-                    highestScore: stats.highest_score,
-                    lowestScore: stats.lowest_score
+                    totalSubmissions: aggregate._count._all,
+                    gradedCount: aggregate._count.score,
+                    averageScore: aggregate._avg.score ? aggregate._avg.score.toFixed(2) : null,
+                    highestScore: aggregate._max.score,
+                    lowestScore: aggregate._min.score
                 }
             });
         } catch (err) { next(err); }
@@ -313,18 +354,31 @@ class LearningController {
             const { studentId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            // Get all assignments from classes the student has submissions in (as proxy for enrollment)
-            const result = await db.query(
-                `SELECT DISTINCT a.id, a.title, a.description, a.deadline, a.class_id,
-                        CASE WHEN s.id IS NOT NULL THEN true ELSE false END as is_submitted
-                 FROM assignments a
-                 LEFT JOIN submissions s ON a.id = s.assignment_id AND s.student_id = $1
-                 WHERE a.tenant_id = $2 AND a.deadline >= NOW()
-                 ORDER BY a.deadline ASC
-                 LIMIT 20`,
-                [studentId, tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.assignments.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    deadline: { gte: new Date() }
+                },
+                include: {
+                    submissions: {
+                        where: { student_id: studentId },
+                        select: { id: true }
+                    }
+                },
+                orderBy: { deadline: 'asc' },
+                take: 20
+            });
+
+            const formatted = result.map(a => ({
+                id: a.id,
+                title: a.title,
+                description: a.description,
+                deadline: a.deadline,
+                class_id: a.class_id,
+                is_submitted: a.submissions.length > 0
+            }));
+
+            res.json({ status: 'success', data: formatted });
         } catch (err) { next(err); }
     }
 
@@ -341,11 +395,16 @@ class LearningController {
                 return res.status(400).json({ status: 'fail', message: 'Content is required' });
             }
 
-            const result = await db.query(
-                'INSERT INTO discussions (tenant_id, class_id, user_id, user_email, content) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, classId, userId, userEmail, content]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.discussions.create({
+                data: {
+                    tenant_id: tenantId,
+                    class_id: classId,
+                    user_id: userId,
+                    user_email: userEmail,
+                    content
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -354,11 +413,12 @@ class LearningController {
             const { classId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'SELECT * FROM discussions WHERE tenant_id = $1 AND class_id = $2 ORDER BY created_at DESC LIMIT 50',
-                [tenantId, classId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.discussions.findMany({
+                where: { tenant_id: tenantId, class_id: classId },
+                orderBy: { created_at: 'desc' },
+                take: 50
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -374,11 +434,16 @@ class LearningController {
                 return res.status(400).json({ status: 'fail', message: 'Content is required' });
             }
 
-            const result = await db.query(
-                'INSERT INTO messages (tenant_id, sender_id, sender_email, receiver_id, content) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, senderId, senderEmail, receiver_id, content]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.messages.create({
+                data: {
+                    tenant_id: tenantId,
+                    sender_id: senderId,
+                    sender_email: senderEmail,
+                    receiver_id,
+                    content
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -387,31 +452,25 @@ class LearningController {
             const userId = req.user.sub;
             const tenantId = req.user.tenant_id;
 
-            // Get list of users involved in chats with current user
-            // This is complex in SQL without a separate conversations table
-            // We'll approximate by finding unique users from message history
-            // and getting the latest message for each.
-
-            const result = await db.query(
-                `SELECT DISTINCT ON (partner_id)
+            // Complex logic kept with $queryRaw for performance and consistency with PostgreSQL-specific DISTINCT ON
+            const result = await prisma.$queryRaw`
+                SELECT DISTINCT ON (partner_id)
                     CASE 
-                        WHEN sender_id = $1 THEN receiver_id 
+                        WHEN sender_id = ${userId}::uuid THEN receiver_id 
                         ELSE sender_id 
                     END as partner_id,
                     content as last_message,
                     created_at,
                     sender_email
-                 FROM messages
-                 WHERE (sender_id = $1 OR receiver_id = $1) AND tenant_id = $2
-                 ORDER BY partner_id, created_at DESC`,
-                [userId, tenantId]
-            );
+                FROM messages
+                WHERE (sender_id = ${userId}::uuid OR receiver_id = ${userId}::uuid) AND tenant_id = ${tenantId}::uuid
+                ORDER BY partner_id, created_at DESC
+            `;
 
-            // Note: sender_email in the result is inconsistent (it's the sender of the last message)
-            // Ideally we'd join with Identity Service users table, but services are decoupled.
-            // For MVP, the frontend can fetch user details or we rely on what we have.
-
-            res.json({ status: 'success', data: result.rows.sort((a, b) => b.created_at - a.created_at) });
+            res.json({
+                status: 'success',
+                data: result.sort((a, b) => b.created_at - a.created_at)
+            });
         } catch (err) { next(err); }
     }
 
@@ -421,22 +480,30 @@ class LearningController {
             const myId = req.user.sub;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `SELECT * FROM messages 
-                 WHERE tenant_id = $1 
-                 AND ((sender_id = $2 AND receiver_id = $3) OR (sender_id = $3 AND receiver_id = $2))
-                 ORDER BY created_at ASC 
-                 LIMIT 100`,
-                [tenantId, myId, partnerId]
-            );
+            const result = await prisma.messages.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    OR: [
+                        { sender_id: myId, receiver_id: partnerId },
+                        { sender_id: partnerId, receiver_id: myId }
+                    ]
+                },
+                orderBy: { created_at: 'asc' },
+                take: 100
+            });
 
             // Mark incoming messages as read
-            await db.query(
-                'UPDATE messages SET is_read = TRUE WHERE tenant_id = $1 AND sender_id = $2 AND receiver_id = $3 AND is_read = FALSE',
-                [tenantId, partnerId, myId]
-            );
+            await prisma.messages.updateMany({
+                where: {
+                    tenant_id: tenantId,
+                    sender_id: partnerId,
+                    receiver_id: myId,
+                    is_read: false
+                },
+                data: { is_read: true }
+            });
 
-            res.json({ status: 'success', data: result.rows });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -446,10 +513,15 @@ class LearningController {
             const myId = req.user.sub;
             const tenantId = req.user.tenant_id;
 
-            await db.query(
-                'UPDATE messages SET is_read = TRUE WHERE tenant_id = $1 AND sender_id = $2 AND receiver_id = $3 AND is_read = FALSE',
-                [tenantId, partnerId, myId]
-            );
+            await prisma.messages.updateMany({
+                where: {
+                    tenant_id: tenantId,
+                    sender_id: partnerId,
+                    receiver_id: myId,
+                    is_read: false
+                },
+                data: { is_read: true }
+            });
             res.json({ status: 'success', message: 'Messages marked as read' });
         } catch (err) { next(err); }
     }
@@ -461,11 +533,15 @@ class LearningController {
             const { title, meeting_number } = quizSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO quizzes (tenant_id, class_id, title, meeting_number) VALUES ($1, $2, $3, $4) RETURNING *',
-                [tenantId, classId, title, meeting_number]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.quizzes.create({
+                data: {
+                    tenant_id: tenantId,
+                    class_id: classId,
+                    title,
+                    meeting_number
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -473,34 +549,36 @@ class LearningController {
         try {
             const { quizId } = req.params;
             const { questions } = quizQuestionSchema.parse(req.body);
-            const tenantId = req.user.tenant_id;
 
-            // Simple batch insert for MVP (using a transaction)
-            await db.query('BEGIN');
-            try {
+            // In a simple Prisma setup without nested relations in schema for questions/options, 
+            // we use a transaction but this part depends on how introspected tables are 
+            // (Note: introspected schema only showed 8 models, quiz_questions/options might be missing Pks)
+            // If they are missing from schema.prisma, this will need $queryRaw or manual additions.
+            // For now, assuming they might be missing or handled via Raw if not in schema.prisma.
+
+            await prisma.$transaction(async (tx) => {
                 for (let i = 0; i < questions.length; i++) {
                     const q = questions[i];
-                    const qResult = await db.query(
-                        'INSERT INTO quiz_questions (quiz_id, question_text, question_type, order_number) VALUES ($1, $2, $3, $4) RETURNING id',
-                        [quizId, q.question_text, q.question_type, i + 1]
-                    );
-                    const questionId = qResult.rows[0].id;
+                    // Using $queryRaw if models are missing from schema.prisma
+                    const qResult = await tx.$queryRaw`
+                        INSERT INTO quiz_questions (quiz_id, question_text, question_type, order_number) 
+                        VALUES (${quizId}::uuid, ${q.question_text}, ${q.question_type}, ${i + 1}) 
+                        RETURNING id
+                    `;
+                    const questionId = qResult[0].id;
 
                     if (q.options && q.options.length > 0) {
                         for (const opt of q.options) {
-                            await db.query(
-                                'INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)',
-                                [questionId, opt.option_text, opt.is_correct]
-                            );
+                            await tx.$queryRaw`
+                                INSERT INTO quiz_options (question_id, option_text, is_correct) 
+                                VALUES (${questionId}::uuid, ${opt.option_text}, ${opt.is_correct})
+                            `;
                         }
                     }
                 }
-                await db.query('COMMIT');
-                res.status(201).json({ status: 'success', message: 'Questions added' });
-            } catch (err) {
-                await db.query('ROLLBACK');
-                throw err;
-            }
+            });
+
+            res.status(201).json({ status: 'success', message: 'Questions added' });
         } catch (err) { next(err); }
     }
 
@@ -510,16 +588,13 @@ class LearningController {
             const { meetingNumber } = req.query;
             const tenantId = req.user.tenant_id;
 
-            let query = 'SELECT * FROM quizzes WHERE tenant_id = $1 AND class_id = $2';
-            const params = [tenantId, classId];
-
+            const where = { tenant_id: tenantId, class_id: classId };
             if (meetingNumber) {
-                query += ' AND meeting_number = $3';
-                params.push(meetingNumber);
+                where.meeting_number = parseInt(meetingNumber);
             }
 
-            const result = await db.query(query, params);
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.quizzes.findMany({ where });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -528,23 +603,23 @@ class LearningController {
             const { quizId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            // Verify quiz exists and tenant matches
-            const quizRes = await db.query('SELECT * FROM quizzes WHERE id = $1 AND tenant_id = $2', [quizId, tenantId]);
-            if (quizRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Quiz not found' });
+            const quiz = await prisma.quizzes.findFirst({
+                where: { id: quizId, tenant_id: tenantId }
+            });
+            if (!quiz) return res.status(404).json({ status: 'fail', message: 'Quiz not found' });
 
-            const questionsRes = await db.query(
-                'SELECT * FROM quiz_questions WHERE quiz_id = $1 ORDER BY order_number ASC',
-                [quizId]
-            );
+            const questions = await prisma.$queryRaw`
+                SELECT * FROM quiz_questions WHERE quiz_id = ${quizId}::uuid ORDER BY order_number ASC
+            `;
 
-            const questions = questionsRes.rows;
             for (const q of questions) {
-                const optionsRes = await db.query('SELECT id, option_text, is_correct FROM quiz_options WHERE question_id = $1', [q.id]);
-                // For students, we'd normally hide is_correct. But for now, returning all.
-                q.options = optionsRes.rows;
+                const options = await prisma.$queryRaw`
+                    SELECT id, option_text, is_correct FROM quiz_options WHERE question_id = ${q.id}::uuid
+                `;
+                q.options = options;
             }
 
-            res.json({ status: 'success', data: { ...quizRes.rows[0], questions } });
+            res.json({ status: 'success', data: { ...quiz, questions } });
         } catch (err) { next(err); }
     }
 
@@ -554,94 +629,16 @@ class LearningController {
             const { studentId, score, finished_at } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `INSERT INTO quiz_attempts (tenant_id, quiz_id, student_id, score, finished_at)
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                [tenantId, quizId, studentId, score, finished_at || new Date()]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
-        } catch (err) { next(err); }
-    }
-
-    // --- Notifications ---
-    async createNotification(req, res, next) {
-        try {
-            const { user_id, type, title, message, link } = req.body;
-            const tenantId = req.user.tenant_id;
-
-            const result = await db.query(
-                `INSERT INTO notifications (tenant_id, user_id, type, title, message, link)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-                [tenantId, user_id, type || 'general', title, message, link]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
-        } catch (err) { next(err); }
-    }
-
-    async getNotifications(req, res, next) {
-        try {
-            const userId = req.user.sub;
-            const tenantId = req.user.tenant_id;
-
-            const result = await db.query(
-                'SELECT * FROM notifications WHERE tenant_id = $1 AND user_id = $2 ORDER BY created_at DESC LIMIT 50',
-                [tenantId, userId]
-            );
-            res.json({ status: 'success', data: result.rows });
-        } catch (err) { next(err); }
-    }
-
-    async getUnreadCount(req, res, next) {
-        try {
-            const userId = req.user.sub;
-            const tenantId = req.user.tenant_id;
-
-            const result = await db.query(
-                'SELECT COUNT(id) FROM notifications WHERE tenant_id = $1 AND user_id = $2 AND is_read = FALSE',
-                [tenantId, userId]
-            );
-            res.json({ status: 'success', data: { count: parseInt(result.rows[0].count) } });
-        } catch (err) { next(err); }
-    }
-
-    async markNotificationRead(req, res, next) {
-        try {
-            const { notificationId } = req.params;
-            const userId = req.user.sub;
-
-            await db.query(
-                'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2',
-                [notificationId, userId]
-            );
-            res.json({ status: 'success', message: 'Notification marked as read' });
-        } catch (err) { next(err); }
-    }
-
-    // --- Student Deadlines ---
-    async getStudentDeadlines(req, res, next) {
-        try {
-            const userId = req.user.sub;
-            const tenantId = req.user.tenant_id;
-
-            // Fetch assignments that are not yet submitted and deadline is in the future
-            // First get student ID from user ID (in a real scenario we'd have this in the token or a table)
-            // For now, assume assignments table has student_id or we join via classes
-            const query = `
-                SELECT a.*, c.semester, c.year, co.name as course_name
-                FROM assignments a
-                JOIN classes c ON a.class_id = c.id
-                JOIN courses co ON c.course_id = co.id
-                JOIN enrollments e ON e.class_id = c.id
-                JOIN students s ON e.student_id = s.id
-                LEFT JOIN assignment_submissions sub ON sub.assignment_id = a.id AND sub.student_id = s.id
-                WHERE s.user_id = $1 AND a.tenant_id = $2 
-                AND sub.id IS NULL
-                AND a.deadline > CURRENT_TIMESTAMP
-                ORDER BY a.deadline ASC
-                LIMIT 5
-            `;
-            const result = await db.query(query, [userId, tenantId]);
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.quiz_attempts.create({
+                data: {
+                    tenant_id: tenantId,
+                    quiz_id: quizId,
+                    student_id: studentId,
+                    score: score ? parseFloat(score) : null,
+                    finished_at: finished_at ? new Date(finished_at) : new Date()
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 }

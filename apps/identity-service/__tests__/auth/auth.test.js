@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../../src/app');
-const db = require('../../src/config/db');
+const prisma = require('../../src/lib/prisma');
 
 describe('Auth Endpoints', () => {
     const testEmail = `test_${Date.now()}@example.com`;
@@ -9,22 +9,26 @@ describe('Auth Endpoints', () => {
 
     beforeAll(async () => {
         // Seed Tenant
-        await db.query(`
-            INSERT INTO tenants (name, slug, domain, status)
-            VALUES ('University A', 'univ-a', 'univ-a.local', 'active')
-            ON CONFLICT (slug) DO NOTHING;
-        `);
+        await prisma.tenants.upsert({
+            where: { slug: 'univ-a' },
+            update: {},
+            create: {
+                name: 'University A',
+                slug: 'univ-a',
+                domain: 'univ-a.local',
+                status: 'active'
+            }
+        });
     });
 
     afterAll(async () => {
         // Clean up test user and tenant
         try {
-            await db.query('DELETE FROM users WHERE email = $1', [testEmail]);
-            await db.query('DELETE FROM tenants WHERE slug = $1', ['univ-a']);
+            await prisma.users.deleteMany({ where: { email: testEmail } });
+            await prisma.tenants.deleteMany({ where: { slug: 'univ-a' } });
         } catch (e) {
             // Ignore cleanup errors
         }
-        await db.pool.end();
     });
 
     describe('POST /auth/register', () => {

@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
 const linkSchema = z.object({
@@ -12,22 +12,22 @@ class LinkController {
     async getAll(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM public_links WHERE tenant_id = $1 ORDER BY order_index ASC',
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.public_links.findMany({
+                where: { tenant_id: tenantId },
+                orderBy: { order_index: 'asc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
     async getPublic(req, res, next) {
         try {
             const { tenantId } = req.params;
-            const result = await db.query(
-                'SELECT * FROM public_links WHERE tenant_id = $1 AND is_active = TRUE ORDER BY order_index ASC',
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.public_links.findMany({
+                where: { tenant_id: tenantId, is_active: true },
+                orderBy: { order_index: 'asc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -35,12 +35,10 @@ class LinkController {
         try {
             const data = linkSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `INSERT INTO public_links (tenant_id, title, url, order_index, is_active)
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                [tenantId, data.title, data.url, data.order_index, data.is_active]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.public_links.create({
+                data: { ...data, tenant_id: tenantId }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -49,27 +47,29 @@ class LinkController {
             const { id } = req.params;
             const data = linkSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `UPDATE public_links SET title = $1, url = $2, order_index = $3, is_active = $4, updated_at = NOW()
-                 WHERE id = $5 AND tenant_id = $6 RETURNING *`,
-                [data.title, data.url, data.order_index, data.is_active, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Link not found' });
-            res.json({ status: 'success', data: result.rows[0] });
-        } catch (err) { next(err); }
+            const result = await prisma.public_links.update({
+                where: { id, tenant_id: tenantId },
+                data: { ...data, updated_at: new Date() }
+            });
+            res.json({ status: 'success', data: result });
+        } catch (err) {
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Link not found' });
+            next(err);
+        }
     }
 
     async delete(req, res, next) {
         try {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'DELETE FROM public_links WHERE id = $1 AND tenant_id = $2 RETURNING *',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Link not found' });
+            await prisma.public_links.delete({
+                where: { id, tenant_id: tenantId }
+            });
             res.json({ status: 'success', message: 'Link deleted' });
-        } catch (err) { next(err); }
+        } catch (err) {
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Link not found' });
+            next(err);
+        }
     }
 }
 

@@ -23,13 +23,21 @@ const verifyToken = (req, res, next) => {
 const requireRole = (role) => {
     return (req, res, next) => {
         if (!req.user || !req.user.roles || !req.user.roles.includes(role)) {
-            return res.status(403).json({ status: 'fail', message: 'Forbidden' });
+            return res.status(403).json({ status: 'fail', message: `Role ${role} required` });
         }
         next();
     };
 };
 
+const isAdmin = (req, res, next) => {
+    if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+        return res.status(403).json({ status: 'fail', message: 'Admin access required' });
+    }
+    next();
+};
+
 module.exports = {
     verifyToken,
     requireRole,
+    isAdmin
 };

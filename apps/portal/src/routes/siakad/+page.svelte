@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { User, Wallet, Calendar, GraduationCap, Bell } from 'lucide-svelte';
+	import { User, Wallet, Calendar, GraduationCap, Bell, BookOpen, Users } from 'lucide-svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -8,10 +8,13 @@
 
 	let { data } = $props();
 
+	// Role handling
+	const isLecturer = $derived(data.role === 'lecturer');
+
 	// Use data from load function or fallback to empty/default
 	const userInfo = $derived(
 		data.userInfo || {
-			name: 'Mahasiswa',
+			name: isLecturer ? 'Dosen' : 'Mahasiswa',
 			nim: '-',
 			program: '-',
 			semester: '-',
@@ -23,13 +26,16 @@
 	const gpaData = $derived(data.gpaData || { gpa: 0.0, totalCredits: 0 });
 	const announcements = $derived(data.announcements || []);
 	const schedules = $derived(data.schedules || []);
+	const lecturerStats = $derived(data.lecturerStats || { totalClasses: 0, totalStudents: 0 });
 </script>
 
 <div class="space-y-8">
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div>
 			<h2 class="text-3xl font-bold tracking-tight">{m.siakad_dashboard_title()}</h2>
-			<p class="text-muted-foreground">{m.dashboard_welcome_student()}</p>
+			<p class="text-muted-foreground">
+				{isLecturer ? m.dashboard_welcome_lecturer() : m.dashboard_welcome_student()}
+			</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<Badge variant="outline" class="px-3 py-1">
@@ -54,21 +60,37 @@
 				</div>
 				<div class="flex flex-col">
 					<CardTitle class="text-lg">{userInfo.name}</CardTitle>
-					<span class="text-sm text-muted-foreground"
-						>{userInfo.platform_student_number || userInfo.nim}</span
-					>
+					<span class="text-sm text-muted-foreground">
+						{isLecturer
+							? userInfo.platform_lecturer_number || '-'
+							: userInfo.platform_student_number || userInfo.nim}
+					</span>
 				</div>
 			</CardHeader>
 			<CardContent>
 				<div class="grid gap-2 text-sm">
-					<div class="flex justify-between border-b py-1">
-						<span class="text-muted-foreground">{m.siakad_user_program()}</span>
-						<span class="text-right font-medium">{userInfo.program}</span>
-					</div>
-					<div class="flex justify-between border-b py-1">
-						<span class="text-muted-foreground">{m.siakad_user_semester()}</span>
-						<span class="text-right text-sm font-medium">Semester {userInfo.semester || '-'}</span>
-					</div>
+					{#if !isLecturer}
+						<div class="flex justify-between border-b py-1">
+							<span class="text-muted-foreground">{m.siakad_user_program()}</span>
+							<span class="text-right font-medium"
+								>{userInfo.program || userInfo.study_program}</span
+							>
+						</div>
+						<div class="flex justify-between border-b py-1">
+							<span class="text-muted-foreground">{m.siakad_user_semester()}</span>
+							<span class="text-right text-sm font-medium">Semester {userInfo.semester || '-'}</span
+							>
+						</div>
+					{:else}
+						<div class="flex justify-between border-b py-1">
+							<span class="text-muted-foreground">{m.siakad_lecturer_number()}</span>
+							<span class="text-right font-medium">{userInfo.platform_lecturer_number || '-'}</span>
+						</div>
+						<div class="flex justify-between border-b py-1">
+							<span class="text-muted-foreground">Jabatan Fungsional</span>
+							<span class="text-right text-sm font-medium">Dosen Tetap</span>
+						</div>
+					{/if}
 					<div class="flex justify-between py-1">
 						<span class="text-muted-foreground">{m.siakad_user_status()}</span>
 						<Badge
@@ -81,44 +103,75 @@
 			</CardContent>
 		</Card>
 
-		<!-- Finance Card -->
-		<Card>
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">{m.siakad_finance_title()}</CardTitle>
-				<Wallet class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">
-					{finance.bill === 0
-						? m.siakad_finance_paid()
-						: `Rp ${finance.bill.toLocaleString('id-ID')}`}
-				</div>
-				<p class="text-xs text-muted-foreground">
-					{m.siakad_finance_status()}: {finance.status}
-				</p>
-				{#if finance.bill > 0}
-					<Button size="sm" class="mt-4 w-full">{m.siakad_finance_pay()}</Button>
-				{/if}
-			</CardContent>
-		</Card>
+		{#if !isLecturer}
+			<!-- Student Cards -->
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">{m.siakad_finance_title()}</CardTitle>
+					<Wallet class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">
+						{finance.bill === 0
+							? m.siakad_finance_paid()
+							: `Rp ${finance.bill.toLocaleString('id-ID')}`}
+					</div>
+					<p class="text-xs text-muted-foreground">
+						{m.siakad_finance_status()}: {finance.status}
+					</p>
+					{#if finance.bill > 0}
+						<button
+							class="mt-4 w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+						>
+							{m.siakad_finance_pay()}
+						</button>
+					{/if}
+				</CardContent>
+			</Card>
 
-		<!-- GPA Card -->
-		<Card>
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">{m.siakad_gpa_title()}</CardTitle>
-				<GraduationCap class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">{gpaData.gpa.toFixed(2)}</div>
-				<p class="text-xs text-muted-foreground">{m.siakad_gpa_desc()}</p>
-				<div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-					<div class="h-full bg-primary" style="width: {(gpaData.gpa / 4) * 100}%"></div>
-				</div>
-				<p class="mt-2 text-[10px] text-muted-foreground">
-					Total SKS: {gpaData.totalCredits}
-				</p>
-			</CardContent>
-		</Card>
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">{m.siakad_gpa_title()}</CardTitle>
+					<GraduationCap class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">{gpaData.gpa.toFixed(2)}</div>
+					<p class="text-xs text-muted-foreground">{m.siakad_gpa_desc()}</p>
+					<div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
+						<div class="h-full bg-primary" style="width: {(gpaData.gpa / 4) * 100}%"></div>
+					</div>
+					<p class="mt-2 text-[10px] text-muted-foreground">
+						Total SKS: {gpaData.totalCredits}
+					</p>
+				</CardContent>
+			</Card>
+		{:else}
+			<!-- Lecturer Stats -->
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">{m.siakad_lecturer_classes()}</CardTitle>
+					<BookOpen class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">{lecturerStats.totalClasses}</div>
+					<p class="text-xs text-muted-foreground">Kelas Semester Ini</p>
+					<Button variant="link" size="sm" class="mt-2 h-auto p-0" href="/siakad/teaching">
+						Lihat Semua Kelas
+					</Button>
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">{m.siakad_lecturer_students()}</CardTitle>
+					<Users class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">{lecturerStats.totalStudents}</div>
+					<p class="text-xs text-muted-foreground">Mahasiswa Terdaftar</p>
+				</CardContent>
+			</Card>
+		{/if}
 	</div>
 
 	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
@@ -157,39 +210,46 @@
 			</CardContent>
 		</Card>
 
-		<!-- Schedules -->
+		<!-- Role Based Lists -->
 		<Card class="lg:col-span-3">
 			<CardHeader>
 				<CardTitle class="flex items-center gap-2">
 					<Calendar class="h-5 w-5 text-primary" />
-					Jadwal Kuliah
+					{isLecturer ? m.siakad_lecturer_teaching_schedule() : 'Jadwal Kuliah'}
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					{#each schedules as schedule (schedule.id)}
+					{#each schedules as item (item.id)}
 						<div class="flex items-center justify-between rounded-lg border p-3">
 							<div class="space-y-1">
-								<p class="text-sm font-bold">{schedule.course_name}</p>
+								<p class="text-sm font-bold">
+									{isLecturer ? item.course_name : item.course_name}
+								</p>
 								<div class="flex items-center gap-2 text-[10px] text-muted-foreground">
-									<span>{schedule.day}</span>
+									<span>{item.day || (isLecturer ? 'Reguler' : '-')}</span>
 									<Separator orientation="vertical" class="h-2" />
-									<span
-										>{schedule.start_time.substring(0, 5)} - {schedule.end_time.substring(
-											0,
-											5
-										)}</span
-									>
+									<span>
+										{#if item.start_time}
+											{item.start_time.substring(0, 5)} - {item.end_time.substring(0, 5)}
+										{:else}
+											Sesuai Jadwal
+										{/if}
+									</span>
 								</div>
 							</div>
-							<Badge variant="secondary" class="text-[10px]">{schedule.room || 'TBA'}</Badge>
+							<Badge variant="secondary" class="text-[10px]">{item.room || 'TBA'}</Badge>
 						</div>
 					{:else}
 						<div
 							class="flex flex-col items-center justify-center py-6 text-center text-muted-foreground"
 						>
-							<p class="text-sm">Tidak ada jadwal kuliah.</p>
-							<Button variant="link" size="sm" href="/siakad/krs">Isi KRS Sekarang</Button>
+							<p class="text-sm">
+								{isLecturer ? 'Tidak ada jadwal mengajar.' : 'Tidak ada jadwal kuliah.'}
+							</p>
+							{#if !isLecturer}
+								<Button variant="link" size="sm" href="/siakad/krs">Isi KRS Sekarang</Button>
+							{/if}
 						</div>
 					{/each}
 				</div>

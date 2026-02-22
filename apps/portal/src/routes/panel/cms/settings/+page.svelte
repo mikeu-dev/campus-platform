@@ -203,14 +203,9 @@
 								placeholder="https://..."
 							/>
 						</div>
-						<div class="space-y-2">
-							<Label for="director_message">Pesan Sambutan</Label>
-							<Textarea
-								id="director_message"
-								name="director_message"
-								value={settings.director_message || ''}
-								rows={6}
-							/>
+						<div class="rounded-md bg-muted/50 p-4 text-sm text-muted-foreground italic">
+							Isi pesan sambutan dipindahkan ke menu <b>Halaman Dinamis</b> (dengan slug:
+							<i>sambutan-direktur</i>) untuk pengelolaan konten yang lebih baik.
 						</div>
 					</CardContent>
 					<CardFooter class="flex justify-end border-t p-6">

@@ -8,12 +8,15 @@ export const load = async ({ locals }: any) => {
 	let pages = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/pages`, {
+		const apiUrl = `${PUBLIC_PUBLIC_API_URL}/admin/public/pages`;
+		console.log(`[CMS Pages] Fetching from: ${apiUrl}`);
+		const res = await axios.get(apiUrl, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
+		console.log(`[CMS Pages] Fetch success, count: ${res.data.data?.length || 0}`);
 		pages = res.data.data;
 	} catch (error: any) {
-		console.error('Pages load error:', error.response?.data || error.message);
+		console.error('[CMS Pages] load error:', error.response?.data || error.message);
 	}
 
 	return {

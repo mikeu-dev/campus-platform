@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
 const videoSchema = z.object({
@@ -12,22 +12,22 @@ class VideoController {
     async getAll(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM public_videos WHERE tenant_id = $1 ORDER BY order_index ASC',
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.public_videos.findMany({
+                where: { tenant_id: tenantId },
+                orderBy: { order_index: 'asc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
     async getPublic(req, res, next) {
         try {
             const { tenantId } = req.params;
-            const result = await db.query(
-                'SELECT * FROM public_videos WHERE tenant_id = $1 AND is_active = TRUE ORDER BY order_index ASC',
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.public_videos.findMany({
+                where: { tenant_id: tenantId, is_active: true },
+                orderBy: { order_index: 'asc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -35,12 +35,10 @@ class VideoController {
         try {
             const data = videoSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `INSERT INTO public_videos (tenant_id, title, youtube_id, order_index, is_active)
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                [tenantId, data.title, data.youtube_id, data.order_index, data.is_active]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.public_videos.create({
+                data: { ...data, tenant_id: tenantId }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -49,27 +47,29 @@ class VideoController {
             const { id } = req.params;
             const data = videoSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `UPDATE public_videos SET title = $1, youtube_id = $2, order_index = $3, is_active = $4, updated_at = NOW()
-                 WHERE id = $5 AND tenant_id = $6 RETURNING *`,
-                [data.title, data.youtube_id, data.order_index, data.is_active, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Video not found' });
-            res.json({ status: 'success', data: result.rows[0] });
-        } catch (err) { next(err); }
+            const result = await prisma.public_videos.update({
+                where: { id, tenant_id: tenantId },
+                data: { ...data, updated_at: new Date() }
+            });
+            res.json({ status: 'success', data: result });
+        } catch (err) {
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Video not found' });
+            next(err);
+        }
     }
 
     async delete(req, res, next) {
         try {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'DELETE FROM public_videos WHERE id = $1 AND tenant_id = $2 RETURNING *',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Video not found' });
+            await prisma.public_videos.delete({
+                where: { id, tenant_id: tenantId }
+            });
             res.json({ status: 'success', message: 'Video deleted' });
-        } catch (err) { next(err); }
+        } catch (err) {
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Video not found' });
+            next(err);
+        }
     }
 }
 

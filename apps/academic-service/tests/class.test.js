@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const db = require('../src/config/db');
+const prisma = require('../src/lib/prisma');
 
 // Mock auth middleware
 jest.mock('../src/middlewares/auth.middleware', () => ({
@@ -11,12 +11,26 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
             roles: ['admin']
         };
         next();
+    },
+    isAdmin: (req, res, next) => {
+        if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+            return res.status(403).json({ status: 'fail', message: 'Admin access required' });
+        }
+        next();
     }
 }));
 
-// Mock DB
-jest.mock('../src/config/db', () => ({
-    query: jest.fn(),
+// Mock Prisma
+jest.mock('../src/lib/prisma', () => ({
+    classes: {
+        findMany: jest.fn(),
+        count: jest.fn(),
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+    },
+    $transaction: jest.fn((promises) => Promise.all(promises))
 }));
 
 describe('Class Management API', () => {
@@ -27,15 +41,15 @@ describe('Class Management API', () => {
 
     describe('GET /api/v1/classes', () => {
         it('should return paginated list of classes with course and lecturer info', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] });
-            db.query.mockResolvedValueOnce({
-                rows: [{
+            prisma.classes.findMany.mockResolvedValue([
+                {
                     id: 'cl1',
                     semester: '2023-1',
-                    course_name: 'Intro to CS',
-                    lecturer_name: 'Dr. John'
-                }]
-            });
+                    courses: { name: 'Intro to CS', code: 'CS100', credits: 3 },
+                    lecturers: { name: 'Dr. John' }
+                }
+            ]);
+            prisma.classes.count.mockResolvedValue(1);
 
             const res = await request(app).get('/api/v1/classes');
 
@@ -47,8 +61,8 @@ describe('Class Management API', () => {
 
     describe('POST /api/v1/classes', () => {
         it('should create a new class', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'cl1', course_id: 'c1', semester: '2023-1' }]
+            prisma.classes.create.mockResolvedValue({
+                id: 'cl1', course_id: 'c1', semester: '2023-1'
             });
 
             const res = await request(app)
@@ -65,8 +79,9 @@ describe('Class Management API', () => {
 
     describe('PUT /api/v1/classes/:id', () => {
         it('should update class details', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'cl1', capacity: 50 }]
+            prisma.classes.findFirst.mockResolvedValue({ id: 'cl1' });
+            prisma.classes.update.mockResolvedValue({
+                id: 'cl1', capacity: 50
             });
 
             const res = await request(app)
@@ -82,7 +97,8 @@ describe('Class Management API', () => {
 
     describe('DELETE /api/v1/classes/:id', () => {
         it('should delete a class', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ id: 'cl1' }], rowCount: 1 });
+            prisma.classes.findFirst.mockResolvedValue({ id: 'cl1' });
+            prisma.classes.delete.mockResolvedValue({ id: 'cl1' });
 
             const res = await request(app).delete('/api/v1/classes/cl1');
 
@@ -90,7 +106,7 @@ describe('Class Management API', () => {
         });
 
         it('should return 404 if class not found', async () => {
-            db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+            prisma.classes.findFirst.mockResolvedValue(null);
 
             const res = await request(app).delete('/api/v1/classes/cl999');
 

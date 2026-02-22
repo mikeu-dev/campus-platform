@@ -4,7 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Textarea } from '$lib/components/ui/textarea';
+	import Editor from '$lib/components/Editor.svelte';
 	import {
 		Table,
 		TableBody,
@@ -68,8 +68,8 @@
 				Buat Halaman
 			</Button>
 		</div>
-		<Dialog bind:open={isDialogOpen}>
-			<DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
+		<Dialog bind:open={isDialogOpen} class="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
+			<DialogContent>
 				<form method="POST" action={editingPage ? '?/update' : '?/create'} class="space-y-4">
 					<DialogHeader>
 						<DialogTitle>{editingPage ? 'Edit Halaman' : 'Buat Halaman Baru'}</DialogTitle>
@@ -135,14 +135,13 @@
 						</div>
 
 						<div class="space-y-2">
-							<Label for="content">Konten Halaman (HTML didukung)</Label>
-							<Textarea
-								id="content"
-								name="content"
-								value={editingPage?.content || ''}
-								placeholder="Tulis konten halaman di sini menggunakan HTML..."
-								rows={12}
-								required
+							<Label for="content">Konten Halaman</Label>
+							<input type="hidden" name="content" value={editingPage?.content || ''} />
+							<Editor
+								content={editingPage?.content || ''}
+								onchange={(html) => {
+									editingPage = { ...editingPage, content: html };
+								}}
 							/>
 						</div>
 					</div>

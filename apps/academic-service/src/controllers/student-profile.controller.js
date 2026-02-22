@@ -1,7 +1,7 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
-// Validation Schema for Profile
+// Validation Schema for Profile (Keep as is)
 const studentProfileSchema = z.object({
     // Academic
     study_program: z.string().optional(),
@@ -95,24 +95,24 @@ class StudentProfileController {
             const userId = req.user.sub;
 
             // First get the student ID
-            const studentRes = await db.query(
-                'SELECT * FROM students WHERE tenant_id = $1 AND user_id = $2',
-                [tenantId, userId]
-            );
+            const student = await prisma.students.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    user_id: userId
+                }
+            });
 
-            if (studentRes.rows.length === 0) {
+            if (!student) {
                 return res.status(404).json({ status: 'fail', message: 'Student not found' });
             }
 
-            const student = studentRes.rows[0];
-
             // Get the specific profile details
-            const profileRes = await db.query(
-                'SELECT * FROM student_profiles WHERE tenant_id = $1 AND student_id = $2',
-                [tenantId, student.id]
-            );
-
-            const profileData = profileRes.rows[0] || {};
+            const profileData = await prisma.student_profiles.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    student_id: student.id
+                }
+            }) || {};
 
             // Merge basic student info with detailed profile
             const fullProfile = {
@@ -136,17 +136,19 @@ class StudentProfileController {
             const data = studentProfileSchema.parse(req.body);
 
             // Get student ID
-            const studentRes = await db.query(
-                'SELECT id FROM students WHERE tenant_id = $1 AND user_id = $2',
-                [tenantId, userId]
-            );
+            const student = await prisma.students.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    user_id: userId
+                }
+            });
 
-            if (studentRes.rows.length === 0) {
+            if (!student) {
                 return res.status(404).json({ status: 'fail', message: 'Student not found' });
             }
-            const studentId = studentRes.rows[0].id;
 
-            await updateProfileHelper(tenantId, studentId, data, res);
+            const updatedProfile = await updateProfileHelper(tenantId, student.id, data);
+            res.json({ status: 'success', data: updatedProfile });
 
         } catch (err) {
             next(err);
@@ -161,24 +163,24 @@ class StudentProfileController {
             const studentId = req.params.id;
 
             // First get the student basic info
-            const studentRes = await db.query(
-                'SELECT * FROM students WHERE tenant_id = $1 AND id = $2',
-                [tenantId, studentId]
-            );
+            const student = await prisma.students.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    id: studentId
+                }
+            });
 
-            if (studentRes.rows.length === 0) {
+            if (!student) {
                 return res.status(404).json({ status: 'fail', message: 'Student not found' });
             }
 
-            const student = studentRes.rows[0];
-
             // Get the specific profile details
-            const profileRes = await db.query(
-                'SELECT * FROM student_profiles WHERE tenant_id = $1 AND student_id = $2',
-                [tenantId, studentId]
-            );
-
-            const profileData = profileRes.rows[0] || {};
+            const profileData = await prisma.student_profiles.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    student_id: studentId
+                }
+            }) || {};
 
             // Merge basic student info with detailed profile
             const fullProfile = {
@@ -201,33 +203,28 @@ class StudentProfileController {
             const data = studentProfileSchema.parse(req.body);
 
             // Verify student exists
-            const studentRes = await db.query(
-                'SELECT id FROM students WHERE tenant_id = $1 AND id = $2',
-                [tenantId, studentId]
-            );
+            const student = await prisma.students.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    id: studentId
+                }
+            });
 
-            if (studentRes.rows.length === 0) {
+            if (!student) {
                 return res.status(404).json({ status: 'fail', message: 'Student not found' });
             }
 
-            await updateProfileHelper(tenantId, studentId, data, res);
+            const updatedProfile = await updateProfileHelper(tenantId, studentId, data);
+            res.json({ status: 'success', data: updatedProfile });
 
         } catch (err) {
             next(err);
         }
     }
-
 }
 
-async function updateProfileHelper(tenantId, studentId, data, res) {
+async function updateProfileHelper(tenantId, studentId, data) {
     // Split data into students table fields and student_profiles table fields
-    // For Admin updates, we might want to allow updating more fields in 'students' table later.
-    // For now, consistent with student update, plus maybe academic info if we decide to add it to schema.
-    // But schema currently only has optional academic info.
-    // Wait, schema has study_program, current_semester etc as optional.
-    // Students table has these columns.
-
-    // Let's identify columns that belong to `students` table vs `student_profiles`
     const studentColumnsList = [
         'platform_student_number', 'name', 'photo_url',
         'study_program', 'current_semester', 'class_program',
@@ -248,58 +245,58 @@ async function updateProfileHelper(tenantId, studentId, data, res) {
         }
     });
 
-    // 1. Update students table
-    if (Object.keys(studentData).length > 0) {
-        const cols = Object.keys(studentData);
-        const setClause = cols.map((col, idx) => `${col} = $${idx + 2}`).join(', ');
-        const values = [studentId, ...cols.map(col => studentData[col])];
+    // Transaction to update both tables
+    return await prisma.$transaction(async (tx) => {
+        let updatedStudent = null;
+        let updatedProfile = null;
 
-        await db.query(`UPDATE students SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1`, values);
-    }
-
-    // 2. Update/Insert student_profiles table
-    const profileColumns = Object.keys(profileData);
-    let profileResult = {};
-
-    if (profileColumns.length > 0) {
-        // check if profile exists
-        const checkRes = await db.query('SELECT id FROM student_profiles WHERE student_id = $1', [studentId]);
-        const exists = checkRes.rows.length > 0;
-
-        if (exists) {
-            // Update
-            const setClause = profileColumns.map((col, idx) => `${col} = $${idx + 2}`).join(', ');
-            const values = [studentId, ...profileColumns.map(col => profileData[col])];
-            const query = `UPDATE student_profiles SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE student_id = $1 RETURNING *`;
-            const updateRes = await db.query(query, values);
-            profileResult = updateRes.rows[0];
+        // 1. Update students table
+        if (Object.keys(studentData).length > 0) {
+            updatedStudent = await tx.students.update({
+                where: { id: studentId },
+                data: {
+                    ...studentData,
+                    updated_at: new Date()
+                }
+            });
         } else {
-            // Insert
-            const cols = ['tenant_id', 'student_id', ...profileColumns].join(', ');
-            const placeholders = ['$1', '$2', ...profileColumns.map((_, idx) => `$${idx + 3}`)].join(', ');
-            const values = [tenantId, studentId, ...profileColumns.map(col => profileData[col])];
-
-            const query = `INSERT INTO student_profiles (${cols}) VALUES (${placeholders}) RETURNING *`;
-            const insertRes = await db.query(query, values);
-            profileResult = insertRes.rows[0];
+            updatedStudent = await tx.students.findUnique({ where: { id: studentId } });
         }
-    }
 
-    // Return combined data
-    const freshStudentRes = await db.query('SELECT * FROM students WHERE id = $1', [studentId]);
-    const freshStudent = freshStudentRes.rows[0];
+        // 2. Update/Insert student_profiles table
+        if (Object.keys(profileData).length > 0) {
+            const existingProfile = await tx.student_profiles.findFirst({
+                where: { student_id: studentId }
+            });
 
-    const freshProfileRes = await db.query('SELECT * FROM student_profiles WHERE student_id = $1', [studentId]);
-    const freshProfile = freshProfileRes.rows[0] || {};
+            if (existingProfile) {
+                updatedProfile = await tx.student_profiles.update({
+                    where: { id: existingProfile.id }, // Assuming id exists, or use compound key if supported
+                    data: {
+                        ...profileData,
+                        updated_at: new Date()
+                    }
+                });
+            } else {
+                updatedProfile = await tx.student_profiles.create({
+                    data: {
+                        tenant_id: tenantId,
+                        student_id: studentId,
+                        ...profileData
+                    }
+                });
+            }
+        } else {
+            updatedProfile = await tx.student_profiles.findFirst({ where: { student_id: studentId } }) || {};
+        }
 
-    const fullProfile = {
-        ...freshStudent,
-        ...freshProfile,
-        id: freshStudent.id,
-        profile_id: freshProfile.id
-    };
-
-    res.json({ status: 'success', data: fullProfile });
+        return {
+            ...updatedStudent,
+            ...updatedProfile,
+            id: updatedStudent.id,
+            profile_id: updatedProfile.id
+        };
+    });
 }
 
 module.exports = new StudentProfileController();

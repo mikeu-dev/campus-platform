@@ -21,6 +21,17 @@ export const actions = {
 
 			const { token } = response.data.data;
 
+			// Decode token to check roles (same as hooks.server.ts)
+			const base64Url = token.split('.')[1];
+			const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+			const jsonPayload = decodeURIComponent(
+				atob(base64)
+					.split('')
+					.map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+					.join('')
+			);
+			const user = JSON.parse(jsonPayload);
+
 			// Store cookie
 			cookies.set('jwt', token, {
 				path: '/',
@@ -29,6 +40,11 @@ export const actions = {
 				secure: process.env.NODE_ENV === 'production',
 				maxAge: 60 * 60 * 24 // 1 day
 			});
+
+			// If not admin, redirect to gate instead of panel
+			if (!user.roles?.includes('admin')) {
+				throw redirect(302, '/gate');
+			}
 
 			throw redirect(302, '/panel');
 		} catch (error: any) {

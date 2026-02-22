@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let sliders = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/sliders`, {
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/sliders`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		sliders = res.data.data;
@@ -30,7 +30,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_PUBLIC_API_URL}/admin/sliders`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/public/sliders`,
 				{
 					...data,
 					order_index: parseInt(data.order_index as string) || 0,
@@ -51,7 +51,7 @@ export const actions = {
 
 		try {
 			await axios.put(
-				`${PUBLIC_PUBLIC_API_URL}/admin/sliders/${id}`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/public/sliders/${id}`,
 				{
 					...data,
 					order_index: parseInt(data.order_index as string) || 0,
@@ -70,7 +70,7 @@ export const actions = {
 		const id = formData.get('id');
 
 		try {
-			await axios.delete(`${PUBLIC_PUBLIC_API_URL}/admin/sliders/${id}`, {
+			await axios.delete(`${PUBLIC_PUBLIC_API_URL}/admin/public/sliders/${id}`, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 			return { success: true };

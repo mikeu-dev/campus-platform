@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import axios from 'axios';
 import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
@@ -8,8 +9,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Check if lecturer
 	if (!user?.roles.includes('lecturer')) {
-		// Redirect or show access denied? For now, let's just show empty or distinct message in UI.
-		// Ideally prompt to register as lecturer profile?
+		throw redirect(302, '/siakad');
 	}
 
 	let classes = [];

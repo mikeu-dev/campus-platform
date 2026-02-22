@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middlewares/auth.middleware');
+const { verifyToken, isAdmin } = require('../middlewares/auth.middleware');
 const sliderController = require('../controllers/slider.controller');
 const postController = require('../controllers/post.controller');
 const agendaController = require('../controllers/agenda.controller');
@@ -10,8 +10,8 @@ const linkController = require('../controllers/link.controller');
 const pageController = require('../controllers/page.controller');
 const visitorController = require('../controllers/visitor.controller');
 
-// All admin routes require token
-router.use(verifyToken);
+// All admin routes require token and admin role
+router.use(verifyToken, isAdmin);
 
 // Sliders CRM
 router.get('/sliders', sliderController.getAll);

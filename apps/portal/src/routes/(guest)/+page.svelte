@@ -219,14 +219,18 @@
 							>{m.nav_about()}</span
 						>
 						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-							{settings.director_welcome_title || m.about_title()}
+							{data.pages?.find((p: any) => p.slug === 'sambutan-direktur')?.title ||
+								m.about_title()}
 						</h2>
 						<p class="mt-6 text-lg leading-relaxed text-gray-600">
-							{settings.director_welcome_text || m.about_description()}
+							{data.pages
+								?.find((p: any) => p.slug === 'sambutan-direktur')
+								?.content?.replace(/<[^>]*>/g, '')
+								.substring(0, 300) || m.about_description()}...
 						</p>
 						<div class="mt-8">
 							<a
-								href="/profile/welcome"
+								href="/pages/sambutan-direktur"
 								class="inline-flex items-center font-bold text-indigo-600 hover:underline"
 							>
 								Lihat Selengkapnya <ChevronRight class="ml-1 h-5 w-5" />
@@ -298,12 +302,22 @@
 		<!-- AGENDA SECTION -->
 		<section id="agenda" class="bg-gray-50 py-20 lg:py-28">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div class="mb-12">
-					<span class="font-semibold tracking-wider text-indigo-600 uppercase">Agenda Terdekat</span
+				<div class="mb-12 flex items-end justify-between">
+					<div>
+						<span class="font-semibold tracking-wider text-indigo-600 uppercase"
+							>Agenda Terdekat</span
+						>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+							Jangan Lewatkan
+						</h2>
+					</div>
+					<a
+						href="/agenda"
+						class="hidden items-center gap-1 rounded-full bg-indigo-50 px-5 py-2.5 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-100 sm:inline-flex"
 					>
-					<h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-						Jangan Lewatkan
-					</h2>
+						Lihat Semua Agenda
+						<ChevronRight class="h-4 w-4" />
+					</a>
 				</div>
 
 				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -335,6 +349,17 @@
 							</a>
 						</div>
 					{/each}
+				</div>
+
+				<!-- Mobile: Lihat Semua -->
+				<div class="mt-8 text-center sm:hidden">
+					<a
+						href="/agenda"
+						class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-6 py-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+					>
+						Lihat Semua Agenda
+						<ChevronRight class="h-4 w-4" />
+					</a>
 				</div>
 			</div>
 		</section>

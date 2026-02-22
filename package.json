@@ -10,7 +10,7 @@
         "packages/*"
     ],
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=20.19.0"
     },
     "scripts": {
         "dev": "concurrently \"npm run dev -w academic-service\" \"npm run dev -w identity-service\" \"npm run dev -w learning-service\" \"npm run dev -w public-service\" \"npm run dev -w admission-service\" \"npm run dev -w portal\"",

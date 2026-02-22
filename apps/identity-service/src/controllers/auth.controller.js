@@ -73,7 +73,6 @@ class AuthController {
             const limit = parseInt(req.query.limit) || 10;
             const search = req.query.search || '';
 
-            // TODO: Enforce Admin Role Check here or in middleware
             const result = await authService.getUsers(tenantId, { page, limit, search });
             res.json({ status: 'success', ...result });
         } catch (err) { next(err); }

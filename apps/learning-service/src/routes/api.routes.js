@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const learningController = require('../controllers/learning.controller');
-const { verifyToken } = require('../middlewares/auth.middleware');
+const { verifyToken, isAdmin } = require('../middlewares/auth.middleware');
 const { upload, uploadToMinio } = require('../middlewares/upload.middleware');
 
 router.use(verifyToken);
@@ -10,21 +10,21 @@ router.use(verifyToken);
 router.post('/upload', upload.single('file'), uploadToMinio, learningController.uploadFile);
 
 // Class Resources
-router.post('/classes/:classId/materials', learningController.addMaterial);
+router.post('/classes/:classId/materials', isAdmin, learningController.addMaterial);
 router.get('/classes/:classId/materials', learningController.getMaterials);
 
-router.post('/classes/:classId/assignments', learningController.createAssignment);
+router.post('/classes/:classId/assignments', isAdmin, learningController.createAssignment);
 router.get('/classes/:classId/assignments', learningController.getAssignments);
 
 // Assignment Submissions
 router.post('/assignments/:assignmentId/submit', learningController.submitAssignment);
 router.get('/assignments/:assignmentId/my-submission', learningController.getMySubmission);
-router.get('/assignments/:assignmentId/submissions', learningController.getSubmissions); // Lecturer View
+router.get('/assignments/:assignmentId/submissions', isAdmin, learningController.getSubmissions); // Lecturer/Admin View
 
-router.post('/submissions/:submissionId/grade', learningController.gradeSubmission);
+router.post('/submissions/:submissionId/grade', isAdmin, learningController.gradeSubmission);
 
 // Notifications
-router.post('/notifications', learningController.createNotification);
+router.post('/notifications', isAdmin, learningController.createNotification);
 router.get('/notifications', learningController.getNotifications);
 router.get('/notifications/unread-count', learningController.getUnreadCount);
 router.patch('/notifications/:notificationId/read', learningController.markNotificationRead);
@@ -39,9 +39,9 @@ router.post('/classes/:classId/discussions', learningController.createDiscussion
 router.get('/classes/:classId/discussions', learningController.getDiscussions);
 
 // Quizzes
-router.post('/classes/:classId/quizzes', learningController.createQuiz);
+router.post('/classes/:classId/quizzes', isAdmin, learningController.createQuiz);
 router.get('/classes/:classId/quizzes', learningController.getQuizzes);
-router.post('/quizzes/:quizId/questions', learningController.addQuizQuestions);
+router.post('/quizzes/:quizId/questions', isAdmin, learningController.addQuizQuestions);
 router.get('/quizzes/:quizId', learningController.getQuizDetail);
 router.post('/quizzes/:quizId/submit', learningController.submitQuizAttempt);
 

@@ -3,17 +3,18 @@ import { PUBLIC_PUBLIC_API_URL } from '$env/static/public';
 
 /** @type {import('./$types').LayoutServerLoad} */
 export const load = async () => {
-	const tenantId = '00000000-0000-0000-0000-000000000000';
+	const tenantId = 'f0015426-1288-4617-be83-3bf153058f89';
 
 	let settings: any = {};
 	let pages: any[] = [];
 	let links: any[] = [];
 
 	try {
+		const base = PUBLIC_PUBLIC_API_URL;
 		const [settingsRes, pagesRes, linksRes] = await Promise.all([
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/settings`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/pages`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/links`)
+			axios.get(`${base}/public/${tenantId}/settings`),
+			axios.get(`${base}/public/${tenantId}/pages`),
+			axios.get(`${base}/public/${tenantId}/links`)
 		]);
 
 		settings = settingsRes.data.data;

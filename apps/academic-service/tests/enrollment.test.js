@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const db = require('../src/config/db');
+const prisma = require('../src/lib/prisma');
 
 // Mock auth middleware
 jest.mock('../src/middlewares/auth.middleware', () => ({
@@ -8,16 +8,37 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
         req.user = {
             sub: 'test-user-id',
             tenant_id: 'test-tenant-id',
-            roles: ['student']
+            roles: ['student', 'admin']
         };
+        next();
+    },
+    isAdmin: (req, res, next) => {
+        if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+            return res.status(403).json({ status: 'fail', message: 'Admin access required' });
+        }
         next();
     }
 }));
 
-// Mock DB
-jest.mock('../src/config/db', () => ({
-    query: jest.fn(),
-}));
+// Mock Prisma
+jest.mock('../src/lib/prisma', () => {
+    const mockPrisma = {
+        classes: {
+            findMany: jest.fn(),
+            count: jest.fn(),
+        },
+        enrollments: {
+            create: jest.fn(),
+            findMany: jest.fn(),
+            findFirst: jest.fn(),
+        }
+    };
+    mockPrisma.$transaction = jest.fn((arg) => {
+        if (Array.isArray(arg)) return Promise.all(arg);
+        return arg(mockPrisma);
+    });
+    return mockPrisma;
+});
 
 describe('Enrollment Management API', () => {
 
@@ -27,29 +48,34 @@ describe('Enrollment Management API', () => {
 
     describe('GET /api/v1/classes (Filtering)', () => {
         it('should filter classes by semester and year', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] });
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'cl1', semester: 'GANJIL', year: 2023 }]
-            });
+            prisma.classes.count.mockResolvedValue(1);
+            prisma.classes.findMany.mockResolvedValue([
+                {
+                    id: 'cl1', semester: 'GANJIL', year: 2023,
+                    courses: { name: 'CS101', code: 'CS101', credits: 3 },
+                    lecturers: { name: 'Dr. John' }
+                }
+            ]);
 
             const res = await request(app).get('/api/v1/classes?semester=GANJIL&year=2023');
 
             expect(res.statusCode).toBe(200);
 
-            const countCall = db.query.mock.calls[0];
-            const dataCall = db.query.mock.calls[1];
+            const findManyArgs = prisma.classes.findMany.mock.calls[0][0];
+            const where = findManyArgs.where;
 
-            expect(countCall[1]).toContain('GANJIL');
-            expect(countCall[1]).toContain('2023');
-            expect(dataCall[1]).toContain('GANJIL');
-            expect(dataCall[1]).toContain('2023');
+            expect(where.semester).toBe('GANJIL');
+            expect(String(where.year)).toBe('2023');
         });
     });
 
     describe('POST /api/v1/enrollments', () => {
         it('should enroll a student in a class', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'e1', class_id: 'cl1', student_id: 's1', status: 'enrolled' }]
+            // Mock enrollment existence check
+            prisma.enrollments.findFirst.mockResolvedValue(null);
+            // Mock enrollment create
+            prisma.enrollments.create.mockResolvedValue({
+                id: 'e1', class_id: 'cl1', student_id: 's1', status: 'enrolled'
             });
 
             const res = await request(app)
@@ -64,9 +90,7 @@ describe('Enrollment Management API', () => {
         });
 
         it('should return 400 if already enrolled', async () => {
-            const error = new Error('Duplicate key');
-            error.code = '23505';
-            db.query.mockRejectedValueOnce(error);
+            prisma.enrollments.findFirst.mockResolvedValue({ id: 'e1' });
 
             const res = await request(app)
                 .post('/api/v1/enrollments')
@@ -76,15 +100,21 @@ describe('Enrollment Management API', () => {
                 });
 
             expect(res.statusCode).toBe(400);
-            expect(res.body.message).toBe('Already enrolled');
+            expect(res.body.message).toMatch(/Already enrolled/i);
         });
     });
 
     describe('GET /api/v1/students/me/enrollments', () => {
         it('should return student enrollments', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'e1', course_name: 'CS101' }]
-            });
+            prisma.enrollments.findMany.mockResolvedValue([
+                {
+                    id: 'e1',
+                    classes: {
+                        courses: { name: 'CS101', code: 'CS101', credits: 3 },
+                        class_schedules: []
+                    }
+                }
+            ]);
 
             const res = await request(app).get('/api/v1/enrollments/my');
 

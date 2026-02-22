@@ -18,6 +18,7 @@ router.get('/:tenantId/posts/:slug', postController.getBySlug);
 
 // Agenda
 router.get('/:tenantId/agendas', agendaController.getPublic);
+router.get('/:tenantId/agendas/:id', agendaController.getById);
 
 // Videos
 router.get('/:tenantId/videos', videoController.getPublic);
