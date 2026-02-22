@@ -16,7 +16,7 @@ export const load = async ({ locals, depends }) => {
 		};
 	} catch (e: any) {
 		if (e.response?.status === 401) {
-			throw redirect(302, '/auth/login');
+			throw redirect(302, '/auth/siakad/login');
 		}
 		console.error('Failed to load profile:', e.response?.data || e.message);
 		return {
