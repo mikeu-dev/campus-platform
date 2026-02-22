@@ -21,7 +21,6 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Sheet, SheetContent, SheetTrigger } from '$lib/components/ui/sheet';
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { cn } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -84,7 +83,21 @@
 	function toggleGroup(label: string) {
 		openGroups = { ...openGroups, [label]: !openGroups[label] };
 	}
+
+	/* Profile dropdown state */
+	let profileMenuOpen = $state(false);
+
+	function toggleProfileMenu(e: Event) {
+		e.stopPropagation();
+		profileMenuOpen = !profileMenuOpen;
+	}
+
+	function closeProfileMenu() {
+		profileMenuOpen = false;
+	}
 </script>
+
+<svelte:window onclick={closeProfileMenu} />
 
 {#snippet SidebarContent()}
 	<div class="flex h-full flex-col gap-2">
@@ -188,57 +201,117 @@
 			</nav>
 		</div>
 		<!-- Profile Dropdown Menu -->
-		<div class="mt-auto p-4">
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger class="w-full outline-none">
-					<div
-						class="flex w-full cursor-pointer items-center gap-3 rounded-xl border bg-card p-3 text-card-foreground shadow-sm transition-colors hover:bg-accent"
-					>
-						<Avatar class="h-9 w-9">
-							<AvatarFallback class="text-xs uppercase">
+		<div class="relative mt-auto p-4">
+			<!-- Dropdown Popover -->
+			{#if profileMenuOpen}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<div
+					class="profile-dropdown absolute right-4 bottom-full left-4 z-50 mb-3 overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl"
+					onclick={(e: Event) => e.stopPropagation()}
+				>
+					<!-- Header with avatar -->
+					<div class="flex items-center gap-3 border-b bg-muted/50 p-4">
+						<Avatar class="h-10 w-10 ring-2 ring-primary/20">
+							<AvatarFallback class="bg-primary/10 text-sm font-semibold text-primary uppercase">
 								{page.data.user?.email?.substring(0, 2) || 'US'}
 							</AvatarFallback>
 						</Avatar>
-						<div class="flex-1 overflow-hidden text-left">
-							<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
-							<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
-						</div>
-						<ChevronsUpDown class="h-4 w-4 shrink-0 text-muted-foreground" />
-					</div>
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content class="w-56" side="top" align="start">
-					<DropdownMenu.Label>
-						<div class="flex flex-col space-y-1">
-							<p class="text-sm font-medium">{page.data.user?.email}</p>
-							<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
-						</div>
-					</DropdownMenu.Label>
-					<DropdownMenu.Separator />
-					<a href="/siakad/profile">
-						<DropdownMenu.Item class="cursor-pointer gap-2">
-							<UserCircle class="h-4 w-4" />
-							Profil Saya
-						</DropdownMenu.Item>
-					</a>
-					<a href="/siakad">
-						<DropdownMenu.Item class="cursor-pointer gap-2">
-							<Settings class="h-4 w-4" />
-							SIAKAD
-						</DropdownMenu.Item>
-					</a>
-					<DropdownMenu.Separator />
-					<form action="/logout" method="POST">
-						<button type="submit" class="w-full">
-							<DropdownMenu.Item
-								class="cursor-pointer gap-2 text-destructive focus:text-destructive"
+						<div class="flex-1 overflow-hidden">
+							<p class="truncate text-sm font-semibold">{page.data.user?.email}</p>
+							<span
+								class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium tracking-wider text-primary uppercase"
 							>
-								<LogOut class="h-4 w-4" />
-								{m.auth_sign_out()}
-							</DropdownMenu.Item>
-						</button>
-					</form>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+								{page.data.user?.roles?.[0]}
+							</span>
+						</div>
+					</div>
+
+					<!-- Menu Items -->
+					<div class="p-1.5">
+						<p
+							class="mb-1 px-2 pt-1 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase"
+						>
+							Navigasi
+						</p>
+						<a
+							href="/siakad/profile"
+							class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all hover:bg-accent hover:text-accent-foreground"
+							onclick={closeProfileMenu}
+						>
+							<div
+								class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 transition-colors group-hover:bg-blue-500/20"
+							>
+								<UserCircle class="h-4 w-4 text-blue-600" />
+							</div>
+							<div>
+								<p class="font-medium">Profil Saya</p>
+								<p class="text-[11px] text-muted-foreground">Lihat & edit data diri</p>
+							</div>
+						</a>
+						<a
+							href="/siakad"
+							class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all hover:bg-accent hover:text-accent-foreground"
+							onclick={closeProfileMenu}
+						>
+							<div
+								class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10 transition-colors group-hover:bg-violet-500/20"
+							>
+								<GraduationCap class="h-4 w-4 text-violet-600" />
+							</div>
+							<div>
+								<p class="font-medium">SIAKAD</p>
+								<p class="text-[11px] text-muted-foreground">Sistem Informasi Akademik</p>
+							</div>
+						</a>
+					</div>
+
+					<!-- Logout -->
+					<div class="border-t p-1.5">
+						<form action="/logout" method="POST">
+							<button
+								type="submit"
+								class="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-destructive transition-all hover:bg-destructive/10"
+							>
+								<div
+									class="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 transition-colors group-hover:bg-destructive/20"
+								>
+									<LogOut class="h-4 w-4" />
+								</div>
+								<p class="font-medium">{m.auth_sign_out()}</p>
+							</button>
+						</form>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Trigger Button -->
+			<button
+				type="button"
+				onclick={toggleProfileMenu}
+				class={cn(
+					'flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 shadow-sm transition-all duration-200',
+					profileMenuOpen
+						? 'border-primary/30 bg-accent ring-2 ring-primary/10'
+						: 'bg-card text-card-foreground hover:bg-accent hover:shadow-md'
+				)}
+			>
+				<Avatar class="h-9 w-9">
+					<AvatarFallback class="text-xs uppercase">
+						{page.data.user?.email?.substring(0, 2) || 'US'}
+					</AvatarFallback>
+				</Avatar>
+				<div class="flex-1 overflow-hidden text-left">
+					<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
+					<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
+				</div>
+				<ChevronsUpDown
+					class={cn(
+						'h-4 w-4 shrink-0 text-muted-foreground transition-transform',
+						profileMenuOpen && 'rotate-180'
+					)}
+				/>
+			</button>
 		</div>
 	</div>
 {/snippet}
