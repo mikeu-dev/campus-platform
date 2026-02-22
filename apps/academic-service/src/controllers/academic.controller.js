@@ -463,7 +463,7 @@ class AcademicController {
                 ...(req.query.semester && { semester: req.query.semester }),
                 ...(req.query.year && { year: parseInt(req.query.year) }),
                 ...(search && {
-                    course: {
+                    courses: {
                         OR: [
                             { name: { contains: search, mode: 'insensitive' } },
                             { code: { contains: search, mode: 'insensitive' } }
@@ -479,8 +479,8 @@ class AcademicController {
                     take: limit,
                     orderBy: [{ year: 'desc' }, { semester: 'desc' }],
                     include: {
-                        course: true,
-                        lecturer: true
+                        courses: true,
+                        lecturers: true
                     }
                 }),
                 prisma.classes.count({ where })
@@ -494,10 +494,10 @@ class AcademicController {
                 year: c.year,
                 lecturer_id: c.lecturer_id,
                 capacity: c.capacity,
-                course_name: c.course.name,
-                course_code: c.course.code,
-                credits: c.course.credits,
-                lecturer_name: c.lecturer?.name || null
+                course_name: c.courses.name,
+                course_code: c.courses.code,
+                credits: c.courses.credits,
+                lecturer_name: c.lecturers?.name || null
             }));
 
             res.json({
@@ -599,16 +599,14 @@ class AcademicController {
             const enrollments = await prisma.enrollments.findMany({
                 where: {
                     tenant_id: tenantId,
-                    student: { user_id: userId }
+                    students: { user_id: userId }
                 },
                 include: {
-                    class: {
+                    classes: {
                         include: {
-                            course: true,
-                            lecturer: true,
-                            class_schedules: true // Note: One class can have multiple schedules? Original query joined class_schedules.
-                            // If multiple schedules, original query row multiplication? 
-                            // Original query: JOIN class_schedules cs ON cs.class_id = c.id
+                            courses: true,
+                            lecturers: true,
+                            class_schedules: true
                         }
                     }
                 }
@@ -623,20 +621,20 @@ class AcademicController {
             // IF we want to replicate SQL "row per schedule":
             const data = [];
             for (const e of enrollments) {
-                const schedules = e.class.class_schedules || [];
+                const schedules = e.classes.class_schedules || [];
                 if (schedules.length === 0) {
                     // Still return row with null schedule info? 
                     // Original used LEFT JOIN class_schedules. So yes.
                     data.push({
                         id: e.id,
                         status: e.status,
-                        class_id: e.class.id,
-                        semester: e.class.semester,
-                        year: e.class.year,
-                        course_name: e.class.course.name,
-                        course_code: e.class.course.code,
-                        credits: e.class.course.credits,
-                        lecturer_name: e.class.lecturer?.name || null,
+                        class_id: e.classes.id,
+                        semester: e.classes.semester,
+                        year: e.classes.year,
+                        course_name: e.classes.courses.name,
+                        course_code: e.classes.courses.code,
+                        credits: e.classes.courses.credits,
+                        lecturer_name: e.classes.lecturers?.name || null,
                         day: null, start_time: null, end_time: null, room: null, type: null
                     });
                 } else {
@@ -644,13 +642,13 @@ class AcademicController {
                         data.push({
                             id: e.id,
                             status: e.status,
-                            class_id: e.class.id,
-                            semester: e.class.semester,
-                            year: e.class.year,
-                            course_name: e.class.course.name,
-                            course_code: e.class.course.code,
-                            credits: e.class.course.credits,
-                            lecturer_name: e.class.lecturer?.name || null,
+                            class_id: e.classes.id,
+                            semester: e.classes.semester,
+                            year: e.classes.year,
+                            course_name: e.classes.courses.name,
+                            course_code: e.classes.courses.code,
+                            credits: e.classes.courses.credits,
+                            lecturer_name: e.classes.lecturers?.name || null,
                             day: s.day,
                             start_time: s.start_time,
                             end_time: s.end_time,
@@ -676,19 +674,19 @@ class AcademicController {
             const schedules = await prisma.class_schedules.findMany({
                 where: {
                     tenant_id: tenantId,
-                    class: {
+                    classes: {
                         enrollments: {
                             some: {
-                                student: { user_id: userId }
+                                students: { user_id: userId }
                             }
                         }
                     }
                 },
                 include: {
-                    class: {
+                    classes: {
                         include: {
-                            course: true,
-                            lecturer: true
+                            courses: true,
+                            lecturers: true
                         }
                     }
                 },
@@ -701,11 +699,11 @@ class AcademicController {
             // Map to flat
             const data = schedules.map(s => ({
                 ...s,
-                course_name: s.class.course.name,
-                course_code: s.class.course.code,
-                lecturer_name: s.class.lecturer?.name || null,
-                semester: s.class.semester,
-                year: s.class.year
+                course_name: s.classes.courses.name,
+                course_code: s.classes.courses.code,
+                lecturer_name: s.classes.lecturers?.name || null,
+                semester: s.classes.semester,
+                year: s.classes.year
             }));
 
             res.json({ status: 'success', data });
@@ -720,18 +718,18 @@ class AcademicController {
             const exams = await prisma.exams.findMany({
                 where: {
                     tenant_id: tenantId,
-                    class: {
+                    classes: {
                         enrollments: {
                             some: {
-                                student: { user_id: userId }
+                                students: { user_id: userId }
                             }
                         }
                     }
                 },
                 include: {
-                    class: {
+                    classes: {
                         include: {
-                            course: true
+                            courses: true
                         }
                     }
                 },
@@ -743,8 +741,8 @@ class AcademicController {
 
             const data = exams.map(ex => ({
                 ...ex,
-                course_name: ex.class.course.name,
-                course_code: ex.class.course.code
+                course_name: ex.classes.courses.name,
+                course_code: ex.classes.courses.code
             }));
 
             res.json({ status: 'success', data });
@@ -802,7 +800,7 @@ class AcademicController {
             const requests = await prisma.certificate_requests.findMany({
                 where: {
                     tenant_id: tenantId,
-                    student: { user_id: userId }
+                    students: { user_id: userId }
                 },
                 orderBy: { created_at: 'desc' }
             });
@@ -860,7 +858,7 @@ class AcademicController {
             const bills = await prisma.financial_bills.findMany({
                 where: {
                     tenant_id: tenantId,
-                    student: { user_id: userId }
+                    students: { user_id: userId }
                 },
                 orderBy: { due_date: 'asc' }
             });
@@ -885,16 +883,16 @@ class AcademicController {
             const grades = await prisma.grades.findMany({
                 where: {
                     tenant_id: tenantId,
-                    enrollment: {
-                        student: { user_id: userId }
+                    enrollments: {
+                        students: { user_id: userId }
                     }
                 },
                 include: {
-                    enrollment: {
+                    enrollments: {
                         include: {
-                            class: {
+                            classes: {
                                 include: {
-                                    course: true
+                                    courses: true
                                 }
                             }
                         }
@@ -906,7 +904,7 @@ class AcademicController {
             let totalPoints = 0;
 
             grades.forEach(g => {
-                const credits = g.enrollment.class.course.credits;
+                const credits = g.enrollments.classes.courses.credits;
                 const score = g.score; // Assuming score is number
 
                 let points = 0;
