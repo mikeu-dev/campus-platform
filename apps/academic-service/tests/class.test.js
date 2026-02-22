@@ -11,6 +11,12 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
             roles: ['admin']
         };
         next();
+    },
+    isAdmin: (req, res, next) => {
+        if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+            return res.status(403).json({ status: 'fail', message: 'Admin access required' });
+        }
+        next();
     }
 }));
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
-const { verifyToken } = require('../middlewares/auth.middleware');
+const { verifyToken, isAdmin } = require('../middlewares/auth.middleware');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
@@ -12,7 +12,7 @@ router.get('/me', verifyToken, (req, res) => {
 });
 
 // User Management (Admin)
-router.get('/users', verifyToken, authController.getUsers);
-router.post('/users', verifyToken, authController.createUser);
+router.get('/users', verifyToken, isAdmin, authController.getUsers);
+router.post('/users', verifyToken, isAdmin, authController.createUser);
 
 module.exports = router;
