@@ -288,5 +288,11 @@
 	"siakad_widget_placeholder": "Area Informasi Tambahan",
 	"siakad_form_optional": "Opsional",
 	"siakad_form_submit": "Kirim Pengajuan",
-	"siakad_form_reset": "Reset"
+	"siakad_form_reset": "Reset",
+	"nav_advising": "Bimbingan Akademik",
+	"nav_research_service": "Layanan Penelitian",
+	"siakad_lecturer_number": "NIDN",
+	"siakad_lecturer_classes": "Kelas Diampu",
+	"siakad_lecturer_students": "Total Mahasiswa",
+	"siakad_lecturer_teaching_schedule": "Jadwal Mengajar"
 }

@@ -288,5 +288,11 @@
 	"siakad_widget_placeholder": "Additional Information Area",
 	"siakad_form_optional": "Optional",
 	"siakad_form_submit": "Submit Application",
-	"siakad_form_reset": "Reset"
+	"siakad_form_reset": "Reset",
+	"nav_advising": "Academic Advising",
+	"nav_research_service": "Research Service",
+	"siakad_lecturer_number": "Lecturer ID",
+	"siakad_lecturer_classes": "Classes Taught",
+	"siakad_lecturer_students": "Total Students",
+	"siakad_lecturer_teaching_schedule": "Teaching Schedule"
 }
