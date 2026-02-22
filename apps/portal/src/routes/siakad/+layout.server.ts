@@ -14,14 +14,21 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	}
 
 	// 2. Protect Student-only modules
-	const studentRoutes = ['/siakad/enrollment', '/siakad/grades', '/siakad/krs', '/siakad/finance', '/siakad/certificates', '/siakad/exam-card'];
-	const isStudentRoute = studentRoutes.some(route => url.pathname.startsWith(route));
+	const studentRoutes = [
+		'/siakad/enrollment',
+		'/siakad/grades',
+		'/siakad/krs',
+		'/siakad/finance',
+		'/siakad/certificates',
+		'/siakad/exam-card'
+	];
+	const isStudentRoute = studentRoutes.some((route) => url.pathname.startsWith(route));
 
 	if (isStudentRoute && !roles.includes('student')) {
 		throw redirect(302, '/siakad'); // Redirect lecturers or others trying to access student pages
 	}
 
-	// 3. Teaching area is already protected by siakad/teaching/+layout.server.ts, 
+	// 3. Teaching area is already protected by siakad/teaching/+layout.server.ts,
 	// but we could add a secondary check here for consistency if needed.
 
 	return {
