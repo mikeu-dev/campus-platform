@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const db = require('../src/config/db');
+const prisma = require('../src/lib/prisma');
 
 // Mock auth middleware
 jest.mock('../src/middlewares/auth.middleware', () => ({
@@ -14,11 +14,29 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
     }
 }));
 
-// Mock DB
-jest.mock('../src/config/db', () => ({
-    query: jest.fn(),
-    connect: jest.fn(),
-}));
+// Mock Prisma
+jest.mock('../src/lib/prisma', () => {
+    const mockPrisma = {
+        classes: {
+            findUnique: jest.fn(),
+        },
+        students: {
+            findMany: jest.fn(),
+        },
+        enrollments: {
+            findMany: jest.fn(),
+        },
+        attendances: {
+            findMany: jest.fn(),
+            upsert: jest.fn(),
+        }
+    };
+    mockPrisma.$transaction = jest.fn((arg) => {
+        if (Array.isArray(arg)) return Promise.all(arg);
+        return arg(mockPrisma);
+    });
+    return mockPrisma;
+});
 
 describe('Attendance Management API', () => {
 
@@ -28,9 +46,11 @@ describe('Attendance Management API', () => {
 
     describe('GET /api/v1/classes/:classId/students', () => {
         it('should return list of students in class', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 's1', name: 'John Doe', student_number: '123' }]
-            });
+            prisma.enrollments.findMany.mockResolvedValue([
+                {
+                    students: { id: 's1', name: 'John Doe', platform_student_number: '123' }
+                }
+            ]);
 
             const res = await request(app).get('/api/v1/classes/cl1/students');
 
@@ -41,28 +61,33 @@ describe('Attendance Management API', () => {
 
     describe('GET /api/v1/classes/:classId/attendance', () => {
         it('should return attendance records for class', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'a1', student_name: 'John Doe', status: 'hadir' }]
-            });
+            prisma.attendances.findMany.mockResolvedValue([
+                {
+                    id: 'a1',
+                    status: 'hadir',
+                    students: { name: 'John Doe', platform_student_number: '123' }
+                }
+            ]);
 
             const res = await request(app).get('/api/v1/classes/cl1/attendance?meeting=1');
 
             expect(res.statusCode).toBe(200);
             expect(res.body.data[0].status).toBe('hadir');
 
-            // Verify meeting filter
-            const call = db.query.mock.calls[0];
-            expect(call[0]).toContain('AND a.meeting_number = $');
+            const findManyArgs = prisma.attendances.findMany.mock.calls[0][0];
+            expect(findManyArgs.where.meeting_number).toBeDefined();
         });
     });
 
     describe('POST /api/v1/attendance/batch', () => {
         it('should record batch attendance', async () => {
-            const mockClient = {
-                query: jest.fn(),
-                release: jest.fn()
-            };
-            db.connect.mockResolvedValue(mockClient);
+            // Mock transaction to return something
+            prisma.$transaction.mockImplementation(async (arg) => {
+                if (Array.isArray(arg)) return Promise.all(arg);
+                await arg(prisma);
+                return [{ id: 'a1' }, { id: 'a2' }];
+            });
+            prisma.attendances.upsert.mockResolvedValue({ id: 'a1' });
 
             const res = await request(app)
                 .post('/api/v1/attendance/batch')
@@ -76,18 +101,12 @@ describe('Attendance Management API', () => {
                 });
 
             expect(res.statusCode).toBe(200);
-            expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-            expect(mockClient.query).toHaveBeenCalledTimes(4); // BEGIN, INSERT s1, INSERT s2, COMMIT
-            expect(mockClient.release).toHaveBeenCalled();
+            expect(prisma.$transaction).toHaveBeenCalled();
+            expect(prisma.attendances.upsert).toHaveBeenCalledTimes(2);
         });
 
-        it('should rollback on error', async () => {
-            const mockClient = {
-                query: jest.fn(),
-                release: jest.fn()
-            };
-            db.connect.mockResolvedValue(mockClient);
-            mockClient.query.mockRejectedValueOnce(new Error('DB Error'));
+        it('should handle errors in transaction', async () => {
+            prisma.$transaction.mockRejectedValue(new Error('DB Error'));
 
             const res = await request(app)
                 .post('/api/v1/attendance/batch')
@@ -97,24 +116,7 @@ describe('Attendance Management API', () => {
                     attendances: [{ student_id: 's1', status: 'hadir' }]
                 });
 
-            // Depending on where error happens, it might be 500.
-            // But since we mocked query to fail immediately (on BEGIN likely if it's the first call, or inside loop),
-            // let's adjust mock implementation to fail on second query (INSERT)
-
-            // Re-mock for specific sequence
-            mockClient.query
-                .mockResolvedValueOnce() // BEGIN
-                .mockRejectedValueOnce(new Error('DB Error')); // INSERT
-
-            const res2 = await request(app)
-                .post('/api/v1/attendance/batch')
-                .send({
-                    class_id: 'cl1',
-                    meeting_number: 1,
-                    attendances: [{ student_id: 's1', status: 'hadir' }]
-                });
-
-            expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+            expect(res.statusCode).toBe(500);
         });
     });
 });

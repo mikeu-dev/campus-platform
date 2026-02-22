@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 
 class VisitorController {
     async track(req, res, next) {
@@ -11,11 +11,14 @@ class VisitorController {
                 return res.status(400).json({ status: 'fail', message: 'tenantId is required' });
             }
 
-            await db.query(
-                `INSERT INTO public_visitors (tenant_id, ip_address, user_agent, route)
-                 VALUES ($1, $2, $3, $4)`,
-                [tenantId, ipAddress, userAgent, route || '/']
-            );
+            await prisma.public_visitors.create({
+                data: {
+                    tenant_id: tenantId,
+                    ip_address: ipAddress,
+                    user_agent: userAgent,
+                    route: route || '/'
+                }
+            });
             res.status(204).send();
         } catch (err) { next(err); }
     }
@@ -24,35 +27,35 @@ class VisitorController {
         try {
             const tenantId = req.user.tenant_id;
             const { days = 7 } = req.query;
+            const daysInt = parseInt(days);
 
-            const result = await db.query(
-                `SELECT 
+            // Use $queryRaw for interval and complex grouping
+            const result = await prisma.$queryRaw`
+                SELECT 
                     route, 
-                    COUNT(*) as visit_count,
-                    COUNT(DISTINCT ip_address) as unique_visitors
-                 FROM public_visitors 
-                 WHERE tenant_id = $1 AND visited_at > NOW() - interval '$2 days'
-                 GROUP BY route
-                 ORDER BY visit_count DESC`,
-                [tenantId, days]
-            );
+                    COUNT(*)::int as visit_count,
+                    COUNT(DISTINCT ip_address)::int as unique_visitors
+                FROM public_visitors 
+                WHERE tenant_id = ${tenantId}::uuid AND visited_at > NOW() - (interval '1 day' * ${daysInt})
+                GROUP BY route
+                ORDER BY visit_count DESC
+            `;
 
-            const dailyStats = await db.query(
-                `SELECT 
+            const dailyStats = await prisma.$queryRaw`
+                SELECT 
                     DATE(visited_at) as date,
-                    COUNT(*) as visit_count
-                 FROM public_visitors
-                 WHERE tenant_id = $1 AND visited_at > NOW() - interval '$2 days'
-                 GROUP BY DATE(visited_at)
-                 ORDER BY date ASC`,
-                [tenantId, days]
-            );
+                    COUNT(*)::int as visit_count
+                FROM public_visitors
+                WHERE tenant_id = ${tenantId}::uuid AND visited_at > NOW() - (interval '1 day' * ${daysInt})
+                GROUP BY DATE(visited_at)
+                ORDER BY date ASC
+            `;
 
             res.json({
                 status: 'success',
                 data: {
-                    byRoute: result.rows,
-                    daily: dailyStats.rows
+                    byRoute: result,
+                    daily: dailyStats
                 }
             });
         } catch (err) { next(err); }

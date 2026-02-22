@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const db = require('../src/config/db');
+const prisma = require('../src/lib/prisma');
 
 // Mock auth middleware
 jest.mock('../src/middlewares/auth.middleware', () => ({
@@ -14,10 +14,24 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
     }
 }));
 
-// Mock DB
-jest.mock('../src/config/db', () => ({
-    query: jest.fn(),
-}));
+// Mock Prisma
+jest.mock('../src/lib/prisma', () => {
+    const mockPrisma = {
+        lecturers: {
+            findMany: jest.fn(),
+            count: jest.fn(),
+            findFirst: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        }
+    };
+    mockPrisma.$transaction = jest.fn((arg) => {
+        if (Array.isArray(arg)) return Promise.all(arg);
+        return arg(mockPrisma);
+    });
+    return mockPrisma;
+});
 
 describe('Lecturer Management API', () => {
 
@@ -27,10 +41,10 @@ describe('Lecturer Management API', () => {
 
     describe('GET /api/v1/lecturers', () => {
         it('should return paginated list of lecturers', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] }); // Count query
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'l1', name: 'Lecturer 1', platform_lecturer_number: 'NIDN1' }]
-            }); // Data query
+            prisma.lecturers.count.mockResolvedValue(1);
+            prisma.lecturers.findMany.mockResolvedValue([
+                { id: 'l1', name: 'Lecturer 1', platform_lecturer_number: 'NIDN1' }
+            ]);
 
             const res = await request(app).get('/api/v1/lecturers');
 
@@ -41,25 +55,26 @@ describe('Lecturer Management API', () => {
         });
 
         it('should filter lecturers by search term', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] }); // Count
-            db.query.mockResolvedValueOnce({ rows: [{ id: 'l1', name: 'Lecturer 1' }] }); // Data
+            prisma.lecturers.count.mockResolvedValue(1);
+            prisma.lecturers.findMany.mockResolvedValue([
+                { id: 'l1', name: 'Lecturer 1' }
+            ]);
 
             const res = await request(app).get('/api/v1/lecturers?search=Lecturer');
 
             expect(res.statusCode).toBe(200);
-            const countCall = db.query.mock.calls[0];
-            const dataCall = db.query.mock.calls[1];
 
-            // Check if search parameter was added to query
-            expect(countCall[1]).toContain('%Lecturer%');
-            expect(dataCall[1]).toContain('%Lecturer%');
+            // Verify findMany was called with search term
+            const findManyArgs = prisma.lecturers.findMany.mock.calls[0][0];
+            expect(JSON.stringify(findManyArgs.where)).toContain('contains');
+            expect(JSON.stringify(findManyArgs.where)).toContain('Lecturer');
         });
     });
 
     describe('POST /api/v1/lecturers', () => {
         it('should create a new lecturer', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'l2', name: 'New Lecturer', platform_lecturer_number: 'NIDN2' }]
+            prisma.lecturers.create.mockResolvedValue({
+                id: 'l2', name: 'New Lecturer', platform_lecturer_number: 'NIDN2'
             });
 
             const res = await request(app)
@@ -77,8 +92,9 @@ describe('Lecturer Management API', () => {
 
     describe('PUT /api/v1/lecturers/:id', () => {
         it('should update lecturer details', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'l1', name: 'Updated Name', platform_lecturer_number: 'NIDN1' }]
+            prisma.lecturers.findFirst.mockResolvedValue({ id: 'l1' });
+            prisma.lecturers.update.mockResolvedValue({
+                id: 'l1', name: 'Updated Name', platform_lecturer_number: 'NIDN1'
             });
 
             const res = await request(app)
@@ -92,7 +108,7 @@ describe('Lecturer Management API', () => {
         });
 
         it('should return 404 if lecturer not found', async () => {
-            db.query.mockResolvedValueOnce({ rows: [] });
+            prisma.lecturers.findFirst.mockResolvedValue(null);
 
             const res = await request(app)
                 .put('/api/v1/lecturers/l999')
@@ -104,7 +120,8 @@ describe('Lecturer Management API', () => {
 
     describe('DELETE /api/v1/lecturers/:id', () => {
         it('should delete a lecturer', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ id: 'l1' }], rowCount: 1 });
+            prisma.lecturers.findFirst.mockResolvedValue({ id: 'l1' });
+            prisma.lecturers.delete.mockResolvedValue({ id: 'l1' });
 
             const res = await request(app).delete('/api/v1/lecturers/l1');
 
@@ -113,7 +130,7 @@ describe('Lecturer Management API', () => {
         });
 
         it('should return 404 if lecturer not found', async () => {
-            db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+            prisma.lecturers.findFirst.mockResolvedValue(null);
 
             const res = await request(app).delete('/api/v1/lecturers/l999');
 

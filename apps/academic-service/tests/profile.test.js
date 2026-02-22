@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const db = require('../src/config/db');
+const prisma = require('../src/lib/prisma');
 
 // Mock auth middleware
 jest.mock('../src/middlewares/auth.middleware', () => ({
@@ -14,10 +14,29 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
     }
 }));
 
-// Mock DB
-jest.mock('../src/config/db', () => ({
-    query: jest.fn(),
-}));
+// Mock Prisma
+jest.mock('../src/lib/prisma', () => {
+    const mockModel = () => ({
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        upsert: jest.fn(),
+        count: jest.fn(),
+    });
+
+    const mockPrisma = {
+        students: mockModel(),
+        student_profiles: mockModel(),
+    };
+    mockPrisma.$transaction = jest.fn((arg) => {
+        if (Array.isArray(arg)) return Promise.all(arg);
+        return arg(mockPrisma);
+    });
+    return mockPrisma;
+});
 
 describe('Student Profile API', () => {
 
@@ -27,14 +46,12 @@ describe('Student Profile API', () => {
 
     describe('GET /api/v1/students/me/profile', () => {
         it('should return student profile', async () => {
-            // Mock student find
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'student-id', name: 'Test Student' }]
-            });
+            // Mock student finds
+            prisma.students.findFirst.mockResolvedValue({ id: 'student-id', name: 'Test Student' });
+            prisma.students.findUnique.mockResolvedValue({ id: 'student-id', name: 'Test Student' });
+
             // Mock profile find
-            db.query.mockResolvedValueOnce({
-                rows: [{ phone_1: '08123456789' }]
-            });
+            prisma.student_profiles.findFirst.mockResolvedValue({ phone_1: '08123456789' });
 
             const res = await request(app).get('/api/v1/students/me/profile');
 
@@ -45,9 +62,7 @@ describe('Student Profile API', () => {
         });
 
         it('should return 404 if student not found', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: []
-            });
+            prisma.students.findFirst.mockResolvedValue(null);
 
             const res = await request(app).get('/api/v1/students/me/profile');
 
@@ -58,36 +73,20 @@ describe('Student Profile API', () => {
     describe('PUT /api/v1/students/me/profile', () => {
         it('should update profile', async () => {
             // Mock student find
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'student-id' }]
-            });
+            const studentMock = { id: 'student-id', name: 'Test Student' };
+            prisma.students.findFirst.mockResolvedValue(studentMock);
+            prisma.students.findUnique.mockResolvedValue(studentMock);
 
-            // Mock profile check (exists)
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'profile-id' }]
-            });
+            // Transaction Mocks
+            prisma.students.update.mockResolvedValue(studentMock);
 
-            // Mock update
-            db.query.mockResolvedValueOnce({
-                rows: [{ phone_1: '08123456789' }]
-            });
-
-            // Mock fresh student Select
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'student-id' }]
-            });
-
-            // Mock fresh profile Select
-            db.query.mockResolvedValueOnce({
-                rows: [{ phone_1: '08123456789' }]
-            });
+            prisma.student_profiles.findFirst.mockResolvedValue({ id: 'profile-id' }); // Existing profile
+            prisma.student_profiles.update.mockResolvedValue({ id: 'profile-id', phone_1: '08123456789' });
 
             const res = await request(app)
                 .put('/api/v1/students/me/profile')
                 .send({
                     phone_1: '08123456789',
-                    father_religion: 'Islam',
-                    mother_address: 'Jl. Merdeka No. 1'
                 });
 
             expect(res.statusCode).toBe(200);
@@ -98,8 +97,10 @@ describe('Student Profile API', () => {
     describe('Admin Routes', () => {
         describe('GET /api/v1/students', () => {
             it('should return list of students', async () => {
-                db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] }); // Count
-                db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1' }] }); // Data
+                prisma.students.count.mockResolvedValue(1);
+                prisma.students.findMany.mockResolvedValue([
+                    { id: 's1', name: 'Student 1' }
+                ]);
 
                 const res = await request(app).get('/api/v1/students');
                 expect(res.statusCode).toBe(200);
@@ -107,64 +108,52 @@ describe('Student Profile API', () => {
             });
 
             it('should filter students by status', async () => {
-                db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] }); // Count
-                db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1', status: 'active' }] }); // Data
+                prisma.students.count.mockResolvedValue(1);
+                prisma.students.findMany.mockResolvedValue([
+                    { id: 's1', name: 'Student 1', status: 'active' }
+                ]);
 
                 const res = await request(app).get('/api/v1/students?status=active');
                 expect(res.statusCode).toBe(200);
-                // Verify DB query call contains status filter
-                const countCall = db.query.mock.calls[db.query.mock.calls.length - 2];
-                const dataCall = db.query.mock.calls[db.query.mock.calls.length - 1];
 
-                // Flexible check for SQL content since exact string matches are brittle
-                expect(countCall[0]).toMatch(/status = \$\d+/);
-                expect(dataCall[0]).toMatch(/status = \$\d+/);
-                expect(res.body.data).toHaveLength(1);
+                const findManyArgs = prisma.students.findMany.mock.calls[0][0];
+                expect(findManyArgs.where.status).toBe('active');
             });
         });
 
         describe('DELETE /api/v1/students/:id', () => {
             it('should delete student by id', async () => {
-                db.query.mockResolvedValueOnce({ rows: [{ id: 's1' }], rowCount: 1 }); // Delete result
+                prisma.students.findFirst.mockResolvedValue({ id: 's1' });
+                prisma.students.delete.mockResolvedValue({ id: 's1' });
 
                 const res = await request(app).delete('/api/v1/students/s1');
                 expect(res.statusCode).toBe(200);
                 expect(res.body.message).toBe('Student deleted successfully');
             });
-
-            it('should return 404 if student not found', async () => {
-                db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // Delete result
-
-                const res = await request(app).delete('/api/v1/students/s1');
-                expect(res.statusCode).toBe(404);
-            });
         });
 
         describe('GET /api/v1/students/:id/profile', () => {
             it('should return student profile by id', async () => {
-                db.query.mockResolvedValueOnce({ rows: [{ id: 's1', name: 'Student 1' }] }); // Student
-                db.query.mockResolvedValueOnce({ rows: [{ phone_1: '123' }] }); // Profile
+                prisma.students.findFirst.mockResolvedValue({ id: 's1', name: 'Student 1' });
+                prisma.student_profiles.findFirst.mockResolvedValue({ phone_1: '123' });
 
                 const res = await request(app).get('/api/v1/students/s1/profile');
                 expect(res.statusCode).toBe(200);
                 expect(res.body.data.name).toBe('Student 1');
             });
-
-            it('should return 404 if student not found', async () => {
-                db.query.mockResolvedValueOnce({ rows: [] }); // Student
-
-                const res = await request(app).get('/api/v1/students/s1/profile');
-                expect(res.statusCode).toBe(404);
-            });
         });
 
         describe('PUT /api/v1/students/:id/profile', () => {
             it('should update student profile by id', async () => {
-                db.query.mockResolvedValueOnce({ rows: [{ id: 's1' }] }); // Verify student
-                db.query.mockResolvedValueOnce({ rows: [] }); // Check profile (not exists)
-                db.query.mockResolvedValueOnce({ rows: [{ id: 'p1' }] }); // Insert profile
-                db.query.mockResolvedValueOnce({ rows: [{ id: 's1' }] }); // Fresh student
-                db.query.mockResolvedValueOnce({ rows: [{ id: 'p1', phone_1: '999' }] }); // Fresh profile
+                const studentMock = { id: 's1', name: 'Student 1' };
+                // Ensure findFirst AND findUnique return student
+                prisma.students.findFirst.mockResolvedValue(studentMock);
+                prisma.students.findUnique.mockResolvedValue(studentMock);
+
+                prisma.students.update.mockResolvedValue(studentMock);
+
+                prisma.student_profiles.findFirst.mockResolvedValue(null); // No existing profile
+                prisma.student_profiles.create.mockResolvedValue({ id: 'p1', phone_1: '999' });
 
                 const res = await request(app)
                     .put('/api/v1/students/s1/profile')

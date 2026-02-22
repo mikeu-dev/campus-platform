@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const db = require('../src/config/db');
+const prisma = require('../src/lib/prisma');
 
 // Mock auth middleware
 jest.mock('../src/middlewares/auth.middleware', () => ({
@@ -14,10 +14,24 @@ jest.mock('../src/middlewares/auth.middleware', () => ({
     }
 }));
 
-// Mock DB
-jest.mock('../src/config/db', () => ({
-    query: jest.fn(),
-}));
+// Mock Prisma
+jest.mock('../src/lib/prisma', () => {
+    const mockPrisma = {
+        courses: {
+            findMany: jest.fn(),
+            count: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            findFirst: jest.fn(), // Added findFirst
+        }
+    };
+    mockPrisma.$transaction = jest.fn((arg) => {
+        if (Array.isArray(arg)) return Promise.all(arg);
+        return arg(mockPrisma);
+    });
+    return mockPrisma;
+});
 
 describe('Course Management API', () => {
 
@@ -27,10 +41,10 @@ describe('Course Management API', () => {
 
     describe('GET /api/v1/courses', () => {
         it('should return paginated list of courses', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ count: 1 }] });
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'c1', code: 'CS101', name: 'Intro to CS', credits: 3 }]
-            });
+            prisma.courses.count.mockResolvedValue(1);
+            prisma.courses.findMany.mockResolvedValue([
+                { id: 'c1', code: 'CS101', name: 'Intro to CS', credits: 3 }
+            ]);
 
             const res = await request(app).get('/api/v1/courses');
 
@@ -41,8 +55,8 @@ describe('Course Management API', () => {
 
     describe('POST /api/v1/courses', () => {
         it('should create a new course', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'c2', code: 'CS102', name: 'Data Structures', credits: 4 }]
+            prisma.courses.create.mockResolvedValue({
+                id: 'c2', code: 'CS102', name: 'Data Structures', credits: 4
             });
 
             const res = await request(app)
@@ -60,8 +74,9 @@ describe('Course Management API', () => {
 
     describe('PUT /api/v1/courses/:id', () => {
         it('should update course details', async () => {
-            db.query.mockResolvedValueOnce({
-                rows: [{ id: 'c1', code: 'CS101', name: 'Intro to CS Updated', credits: 3 }]
+            prisma.courses.findFirst.mockResolvedValue({ id: 'c1' }); // Mock verification
+            prisma.courses.update.mockResolvedValue({
+                id: 'c1', code: 'CS101', name: 'Intro to CS Updated', credits: 3
             });
 
             const res = await request(app)
@@ -70,12 +85,13 @@ describe('Course Management API', () => {
                     name: 'Intro to CS Updated'
                 });
 
+            if (res.statusCode !== 200) console.error(res.error);
             expect(res.statusCode).toBe(200);
             expect(res.body.data.name).toBe('Intro to CS Updated');
         });
 
         it('should return 404 if course not found', async () => {
-            db.query.mockResolvedValueOnce({ rows: [] });
+            prisma.courses.findFirst.mockResolvedValue(null);
 
             const res = await request(app)
                 .put('/api/v1/courses/c999')
@@ -87,16 +103,18 @@ describe('Course Management API', () => {
 
     describe('DELETE /api/v1/courses/:id', () => {
         it('should delete a course', async () => {
-            db.query.mockResolvedValueOnce({ rows: [{ id: 'c1' }], rowCount: 1 });
+            prisma.courses.findFirst.mockResolvedValue({ id: 'c1' }); // Mock verification
+            prisma.courses.delete.mockResolvedValue({ id: 'c1' });
 
             const res = await request(app).delete('/api/v1/courses/c1');
 
+            if (res.statusCode !== 200) console.error(res.error);
             expect(res.statusCode).toBe(200);
             expect(res.body.message).toBe('Course deleted successfully');
         });
 
         it('should return 404 if course not found', async () => {
-            db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+            prisma.courses.findFirst.mockResolvedValue(null);
 
             const res = await request(app).delete('/api/v1/courses/c999');
 

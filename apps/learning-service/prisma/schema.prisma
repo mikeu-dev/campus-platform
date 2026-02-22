@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model assignments {
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String        @db.Uuid
+  class_id    String        @db.Uuid
+  title       String        @db.VarChar(255)
+  description String?
+  deadline    DateTime?     @db.Timestamp(6)
+  created_at  DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at  DateTime?     @default(now()) @db.Timestamp(6)
+  submissions submissions[]
+}
+
+model discussions {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  class_id   String    @db.Uuid
+  user_id    String    @db.Uuid
+  user_email String?   @db.VarChar(255)
+  content    String
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model materials {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  class_id   String    @db.Uuid
+  title      String    @db.VarChar(255)
+  content    String?
+  type       String?   @default("text") @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model messages {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id    String    @db.Uuid
+  sender_id    String    @db.Uuid
+  sender_email String?   @db.VarChar(255)
+  receiver_id  String    @db.Uuid
+  content      String
+  is_read      Boolean?  @default(false)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model notifications {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  user_id    String    @db.Uuid
+  type       String    @db.VarChar(50)
+  title      String    @db.VarChar(255)
+  message    String?
+  link       String?   @db.VarChar(500)
+  is_read    Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model quiz_attempts {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String    @db.Uuid
+  quiz_id     String    @db.Uuid
+  student_id  String    @db.Uuid
+  score       Float?
+  started_at  DateTime? @default(now()) @db.Timestamp(6)
+  finished_at DateTime? @db.Timestamp(6)
+  quizzes     quizzes   @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model quizzes {
+  id            String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id     String          @db.Uuid
+  class_id      String          @db.Uuid
+  title         String          @db.VarChar(255)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  quiz_attempts quiz_attempts[]
+}
+
+model submissions {
+  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id     String      @db.Uuid
+  assignment_id String      @db.Uuid
+  student_id    String      @db.Uuid
+  content       String?
+  submitted_at  DateTime?   @default(now()) @db.Timestamp(6)
+  score         Float?
+  feedback      String?
+  assignments   assignments @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([assignment_id, student_id])
+}

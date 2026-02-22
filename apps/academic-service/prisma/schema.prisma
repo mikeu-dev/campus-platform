@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model announcements {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  title      String    @db.VarChar(255)
+  content    String
+  type       String?   @default("general") @db.VarChar(50)
+  is_active  Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model attendances {
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id      String    @db.Uuid
+  class_id       String    @db.Uuid
+  student_id     String    @db.Uuid
+  meeting_number Int
+  status         String?   @default("alfa") @db.VarChar(20)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  classes        classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  students       students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([class_id, student_id, meeting_number])
+}
+
+model certificate_requests {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id        String    @db.Uuid
+  student_id       String    @db.Uuid
+  type             String    @db.VarChar(100)
+  purpose          String?
+  quantity         Int?      @default(1)
+  notes            String?
+  status           String?   @default("pending") @db.VarChar(20)
+  rejection_reason String?
+  download_url     String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  students         students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model class_schedules {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  class_id   String    @db.Uuid
+  day        String    @db.VarChar(20)
+  start_time DateTime  @db.Time(6)
+  end_time   DateTime  @db.Time(6)
+  room       String?   @db.VarChar(100)
+  type       String?   @default("offline") @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  classes    classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model classes {
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id       String            @db.Uuid
+  course_id       String            @db.Uuid
+  lecturer_id     String?           @db.Uuid
+  semester        String            @db.VarChar(20)
+  year            Int
+  capacity        Int?              @default(40)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  attendances     attendances[]
+  class_schedules class_schedules[]
+  courses         courses           @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  lecturers       lecturers?        @relation(fields: [lecturer_id], references: [id], onUpdate: NoAction)
+  enrollments     enrollments[]
+  exams           exams[]
+
+  @@unique([tenant_id, course_id, semester, year])
+}
+
+model courses {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  code       String    @db.VarChar(50)
+  name       String    @db.VarChar(255)
+  credits    Int       @default(0)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  classes    classes[]
+
+  @@unique([tenant_id, code])
+}
+
+model enrollments {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  student_id String    @db.Uuid
+  class_id   String    @db.Uuid
+  status     String?   @default("enrolled") @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  classes    classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  students   students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  grades     grades[]
+
+  @@unique([student_id, class_id])
+}
+
+model exams {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  class_id   String    @db.Uuid
+  type       String    @db.VarChar(20)
+  date       DateTime  @db.Date
+  start_time DateTime  @db.Time(6)
+  end_time   DateTime  @db.Time(6)
+  room       String?   @db.VarChar(100)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  classes    classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model financial_bills {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  student_id String    @db.Uuid
+  title      String    @db.VarChar(255)
+  amount     Decimal   @db.Decimal(15, 2)
+  is_paid    Boolean?  @default(false)
+  due_date   DateTime? @db.Date
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  students   students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model grades {
+  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id     String      @db.Uuid
+  enrollment_id String      @db.Uuid
+  grade         String?     @db.VarChar(5)
+  score         Float?
+  created_at    DateTime?   @default(now()) @db.Timestamp(6)
+  enrollments   enrollments @relation(fields: [enrollment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model lecturers {
+  id                       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id                String    @db.Uuid
+  user_id                  String    @db.Uuid
+  platform_lecturer_number String?   @db.VarChar(50)
+  name                     String    @db.VarChar(255)
+  created_at               DateTime? @default(now()) @db.Timestamp(6)
+  updated_at               DateTime? @default(now()) @db.Timestamp(6)
+  classes                  classes[]
+
+  @@unique([tenant_id, user_id])
+}
+
+model research_proposals {
+  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id            String    @db.Uuid
+  student_id           String    @db.Uuid
+  title                String
+  type                 String    @db.VarChar(50)
+  description          String?
+  supervisor_preferred String?   @db.VarChar(255)
+  status               String?   @default("pending") @db.VarChar(20)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  students             students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model student_profiles {
+  id                    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id             String    @db.Uuid
+  student_id            String    @unique @db.Uuid
+  gender                String?   @db.VarChar(20)
+  place_of_birth        String?   @db.VarChar(100)
+  date_of_birth         DateTime? @db.Date
+  religion              String?   @db.VarChar(50)
+  phone_1               String?   @db.VarChar(20)
+  phone_2               String?   @db.VarChar(20)
+  whatsapp              String?   @db.VarChar(20)
+  job_status            String?   @db.VarChar(50)
+  company_name          String?   @db.VarChar(255)
+  job_start_year        Int?
+  income_range          String?   @db.VarChar(100)
+  ktp_province          String?   @db.VarChar(100)
+  ktp_city              String?   @db.VarChar(100)
+  ktp_district          String?   @db.VarChar(100)
+  ktp_subdistrict       String?   @db.VarChar(100)
+  ktp_rt                String?   @db.VarChar(10)
+  ktp_rw                String?   @db.VarChar(10)
+  ktp_postal_code       String?   @db.VarChar(10)
+  ktp_address           String?
+  current_province      String?   @db.VarChar(100)
+  current_city          String?   @db.VarChar(100)
+  current_district      String?   @db.VarChar(100)
+  current_subdistrict   String?   @db.VarChar(100)
+  current_rt            String?   @db.VarChar(10)
+  current_rw            String?   @db.VarChar(10)
+  current_postal_code   String?   @db.VarChar(10)
+  current_address       String?
+  citizenship           String?   @db.VarChar(50)
+  nik                   String?   @db.VarChar(20)
+  kk_number             String?   @db.VarChar(20)
+  living_status         String?   @db.VarChar(50)
+  father_nik            String?   @db.VarChar(20)
+  father_name           String?   @db.VarChar(255)
+  father_living_status  String?   @db.VarChar(50)
+  father_phone          String?   @db.VarChar(20)
+  father_place_of_birth String?   @db.VarChar(100)
+  father_date_of_birth  DateTime? @db.Date
+  father_religion       String?   @db.VarChar(50)
+  father_job            String?   @db.VarChar(100)
+  father_income_range   String?   @db.VarChar(100)
+  father_address        String?
+  mother_nik            String?   @db.VarChar(20)
+  mother_name           String?   @db.VarChar(255)
+  mother_living_status  String?   @db.VarChar(50)
+  mother_phone          String?   @db.VarChar(20)
+  mother_place_of_birth String?   @db.VarChar(100)
+  mother_date_of_birth  DateTime? @db.Date
+  mother_religion       String?   @db.VarChar(50)
+  mother_job            String?   @db.VarChar(100)
+  mother_income_range   String?   @db.VarChar(100)
+  mother_address        String?
+  school_name           String?   @db.VarChar(255)
+  school_major          String?   @db.VarChar(100)
+  nisn                  String?   @db.VarChar(20)
+  diploma_number        String?   @db.VarChar(50)
+  graduation_year       Int?
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  updated_at            DateTime? @default(now()) @db.Timestamp(6)
+  students              students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model students {
+  id                      String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id               String                 @db.Uuid
+  user_id                 String                 @db.Uuid
+  platform_student_number String?                @db.VarChar(50)
+  name                    String                 @db.VarChar(255)
+  status                  String?                @default("active") @db.VarChar(50)
+  created_at              DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at              DateTime?              @default(now()) @db.Timestamp(6)
+  study_program           String?                @db.VarChar(100)
+  entry_year              Int?
+  attendances             attendances[]
+  certificate_requests    certificate_requests[]
+  enrollments             enrollments[]
+  financial_bills         financial_bills[]
+  research_proposals      research_proposals[]
+  student_profiles        student_profiles?
+
+  @@unique([tenant_id, user_id])
+}

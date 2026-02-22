@@ -16,18 +16,11 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Auth Middleware (stub)
-const authenticate = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ message: 'No token provided' });
-    // In production, verify JWT from Identity Service here
-    req.user = { tenant_id: '00000000-0000-0000-0000-000000000000', role: 'admin' };
-    next();
-};
+const { verifyToken, isAdmin } = require('./middlewares/auth.middleware');
 
 // Routes
 app.use('/api/v1/public/pmb', publicRoutes);
-app.use('/api/v1/admin/pmb', authenticate, adminRoutes);
+app.use('/api/v1/admin/pmb', verifyToken, isAdmin, adminRoutes);
 
 // Health Check
 app.get('/health', (req, res) => res.json({ status: 'admission-service is running' }));
@@ -41,8 +34,22 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Admission Service (PMB) listening at http://localhost:${port}`);
-});
+const prisma = require('./lib/prisma');
+
+const startServer = async () => {
+    try {
+        await prisma.$connect();
+        console.log('Database verification successful.');
+
+        app.listen(port, () => {
+            console.log(`Admission Service (PMB) listening at http://localhost:${port}`);
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
+};
+
+startServer();
 
 module.exports = app;

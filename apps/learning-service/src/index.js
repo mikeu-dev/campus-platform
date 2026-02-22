@@ -1,12 +1,12 @@
 const app = require('./app');
-const db = require('./config/db');
+const prisma = require('./lib/prisma');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3003;
 
 const startServer = async () => {
     try {
-        await db.query('SELECT NOW()');
+        await prisma.$connect();
         console.log('Database verification successful.');
 
         app.listen(PORT, () => {

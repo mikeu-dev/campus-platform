@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
 const applicantSchema = z.object({
@@ -9,7 +9,7 @@ const applicantSchema = z.object({
     identity_number: z.string().optional(),
     address: z.string().optional(),
     birth_place: z.string().optional(),
-    birth_date: z.string().optional(),
+    birth_date: z.string().optional(), // Keep as string for now, will parse
     gender: z.string().optional(),
     religion: z.string().optional(),
     previous_school: z.string().optional(),
@@ -28,31 +28,44 @@ class ApplicantController {
             const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
             const regNumber = `PMB${year}-${randomStr}`;
 
-            const result = await db.query(
-                `INSERT INTO pmb_applicants (
-                    tenant_id, period_id, registration_number, full_name, email, 
-                    phone_number, identity_number, address, birth_place, birth_date,
-                    gender, religion, previous_school, first_choice_prodi_id, second_choice_prodi_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
-                [
-                    tenantId, data.period_id, regNumber, data.full_name, data.email,
-                    data.phone_number, data.identity_number, data.address, data.birth_place, data.birth_date,
-                    data.gender, data.religion, data.previous_school, data.first_choice_prodi_id, data.second_choice_prodi_id
-                ]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.pmb_applicants.create({
+                data: {
+                    tenant_id: tenantId,
+                    period_id: data.period_id,
+                    registration_number: regNumber,
+                    full_name: data.full_name,
+                    email: data.email,
+                    phone_number: data.phone_number,
+                    identity_number: data.identity_number,
+                    address: data.address,
+                    birth_place: data.birth_place,
+                    birth_date: data.birth_date ? new Date(data.birth_date) : null,
+                    gender: data.gender,
+                    religion: data.religion,
+                    previous_school: data.previous_school,
+                    first_choice_prodi_id: data.first_choice_prodi_id,
+                    second_choice_prodi_id: data.second_choice_prodi_id,
+                    status: 'REGISTERED'
+                }
+            });
+            res.status(201).json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
     async getStatus(req, res, next) {
         try {
             const { regNumber } = req.params;
-            const result = await db.query(
-                'SELECT registration_number, full_name, status, created_at FROM pmb_applicants WHERE registration_number = $1',
-                [regNumber]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const result = await prisma.pmb_applicants.findUnique({
+                where: { registration_number: regNumber },
+                select: {
+                    registration_number: true,
+                    full_name: true,
+                    status: true,
+                    created_at: true
+                }
+            });
+            if (!result) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -60,21 +73,16 @@ class ApplicantController {
         try {
             const tenantId = req.user.tenant_id;
             const { period_id, status } = req.query;
-            let query = 'SELECT * FROM pmb_applicants WHERE tenant_id = $1';
-            let params = [tenantId];
 
-            if (period_id) {
-                query += ` AND period_id = $${params.length + 1}`;
-                params.push(period_id);
-            }
-            if (status) {
-                query += ` AND status = $${params.length + 1}`;
-                params.push(status);
-            }
+            const whereClause = { tenant_id: tenantId };
+            if (period_id) whereClause.period_id = period_id;
+            if (status) whereClause.status = status;
 
-            query += ' ORDER BY created_at DESC';
-            const result = await db.query(query, params);
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.pmb_applicants.findMany({
+                where: whereClause,
+                orderBy: { created_at: 'desc' }
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -82,24 +90,36 @@ class ApplicantController {
         try {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `SELECT a.*, 
-                        p1.name as first_choice_prodi_name, 
-                        p2.name as second_choice_prodi_name 
-                 FROM pmb_applicants a
-                 LEFT JOIN pmb_prodis p1 ON a.first_choice_prodi_id = p1.id
-                 LEFT JOIN pmb_prodis p2 ON a.second_choice_prodi_id = p2.id
-                 WHERE a.id = $1 AND a.tenant_id = $2`,
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
+            const applicant = await prisma.pmb_applicants.findFirst({
+                where: { id, tenant_id: tenantId },
+                include: {
+                    pmb_documents: true
+                }
+            });
 
-            // Get documents
-            const docs = await db.query('SELECT * FROM pmb_documents WHERE applicant_id = $1', [id]);
+            if (!applicant) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
+
+            // Fetch prodi names manually since no relation exists in Prisma schema
+            let firstChoiceName = null;
+            let secondChoiceName = null;
+
+            if (applicant.first_choice_prodi_id) {
+                const p1 = await prisma.pmb_prodis.findUnique({ where: { id: applicant.first_choice_prodi_id } });
+                if (p1) firstChoiceName = p1.name;
+            }
+            if (applicant.second_choice_prodi_id) {
+                const p2 = await prisma.pmb_prodis.findUnique({ where: { id: applicant.second_choice_prodi_id } });
+                if (p2) secondChoiceName = p2.name;
+            }
 
             res.json({
                 status: 'success',
-                data: { ...result.rows[0], documents: docs.rows }
+                data: {
+                    ...applicant,
+                    first_choice_prodi_name: firstChoiceName,
+                    second_choice_prodi_name: secondChoiceName,
+                    documents: applicant.pmb_documents
+                }
             });
         } catch (err) { next(err); }
     }
@@ -110,15 +130,19 @@ class ApplicantController {
             const { status, selection_score } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `UPDATE pmb_applicants SET status = $1, selection_score = $2, updated_at = NOW()
-                 WHERE id = $3 AND tenant_id = $4 RETURNING *`,
-                [status, selection_score, id, tenantId]
-            );
+            const exists = await prisma.pmb_applicants.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!exists) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
 
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Applicant not found' });
-
-            const applicant = result.rows[0];
+            const applicant = await prisma.pmb_applicants.update({
+                where: { id },
+                data: {
+                    status,
+                    selection_score,
+                    updated_at: new Date()
+                }
+            });
 
             // If status is PASSED, create a user account in identity-service and academic profile
             if (status === 'PASSED') {
@@ -162,30 +186,35 @@ class ApplicantController {
         try {
             const tenantId = req.user.tenant_id;
 
-            const stats = await db.query(`
-                SELECT 
-                    COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE status = 'VERIFIED') as verified,
-                    COUNT(*) FILTER (WHERE status = 'PASSED') as passed,
-                    COUNT(*) FILTER (WHERE status = 'REJECTED') as rejected
-                FROM pmb_applicants 
-                WHERE tenant_id = $1
-            `, [tenantId]);
+            // Using aggregated queries for stats
+            const total = await prisma.pmb_applicants.count({ where: { tenant_id: tenantId } });
+            const verified = await prisma.pmb_applicants.count({ where: { tenant_id: tenantId, status: 'VERIFIED' } });
+            const passed = await prisma.pmb_applicants.count({ where: { tenant_id: tenantId, status: 'PASSED' } });
+            const rejected = await prisma.pmb_applicants.count({ where: { tenant_id: tenantId, status: 'REJECTED' } });
 
-            const byPeriod = await db.query(`
-                SELECT p.name, COUNT(a.id) as count
+            // For byPeriod, we need to join with periods. Since Prisma groupBy with relation is limited,
+            // we can fetch periods and count applicants for each, or use raw query.
+            // Using raw query for efficient grouping by joined table column
+            const byPeriod = await prisma.$queryRaw`
+                SELECT p.name, COUNT(a.id)::int as count
                 FROM pmb_periods p
                 LEFT JOIN pmb_applicants a ON p.id = a.period_id
-                WHERE p.tenant_id = $1
+                WHERE p.tenant_id = ${tenantId}::uuid
                 GROUP BY p.name, p.created_at
                 ORDER BY p.created_at ASC
-            `, [tenantId]);
+            `;
+
+            // Convert BigInt/Decimal to number if necessary (Prisma returns BigInt for count in raw query)
+            const sanitizedByPeriod = byPeriod.map(p => ({
+                name: p.name,
+                count: Number(p.count)
+            }));
 
             res.json({
                 status: 'success',
                 data: {
-                    summary: stats.rows[0],
-                    byPeriod: byPeriod.rows
+                    summary: { total, verified, passed, rejected },
+                    byPeriod: sanitizedByPeriod
                 }
             });
         } catch (err) { next(err); }

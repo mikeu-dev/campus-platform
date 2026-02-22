@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -8,11 +8,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 class AuthService {
     // Find Tenant by Slug
     async getTenantBySlug(slug) {
-        const result = await db.query(
-            'SELECT id, name, status FROM tenants WHERE slug = $1',
-            [slug]
-        );
-        return result.rows[0];
+        return await prisma.tenants.findUnique({
+            where: { slug }
+        });
     }
 
     // Register a new user
@@ -23,73 +21,69 @@ class AuthService {
             throw new Error('Tenant not found');
         }
 
-        // 2. Check if user exists (Globally or per tenant? Model says Unique Email)
-        const existingUser = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-        if (existingUser.rows.length > 0) {
+        // 2. Check if user exists
+        const existingUser = await prisma.users.findFirst({
+            where: { email }
+        });
+
+        if (existingUser) {
             throw new Error('Email already registered');
         }
 
         // 3. Hash Password
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-        // 4. Create User
-        const client = await db.pool.connect();
-        try {
-            await client.query('BEGIN');
+        // 4. Transaction: Create User -> Find/Create Role -> Assign Role
+        return await prisma.$transaction(async (tx) => {
+            // Create User
+            const user = await tx.users.create({
+                data: {
+                    tenant_id: tenant.id,
+                    email,
+                    password_hash: hashedPassword,
+                    full_name: fullName
+                }
+            });
 
-            const userRes = await client.query(
-                `INSERT INTO users (tenant_id, email, password_hash, full_name)
-         VALUES ($1, $2, $3, $4) RETURNING id, email, full_name, tenant_id`,
-                [tenant.id, email, hashedPassword, fullName]
-            );
-            const user = userRes.rows[0];
+            // Find or Create Role
+            let role = await tx.roles.findFirst({
+                where: {
+                    tenant_id: tenant.id,
+                    name: roleName
+                }
+            });
 
-            // 5. Assign Role (Get Role ID first)
-            const roleRes = await client.query(
-                'SELECT id FROM roles WHERE name = $1 AND tenant_id = $2',
-                [roleName, tenant.id]
-            );
-
-            let roleId;
-            if (roleRes.rows.length === 0) {
-                // Create role if not exists (Auto-create for simplicity in MVP?) 
-                // Or throw error? Better to auto-create 'student'/'lecturer' roles if missing for the tenant.
-                const newRole = await client.query(
-                    'INSERT INTO roles (tenant_id, name) VALUES ($1, $2) RETURNING id',
-                    [tenant.id, roleName]
-                );
-                roleId = newRole.rows[0].id;
-            } else {
-                roleId = roleRes.rows[0].id;
+            if (!role) {
+                role = await tx.roles.create({
+                    data: {
+                        tenant_id: tenant.id,
+                        name: roleName
+                    }
+                });
             }
 
-            await client.query(
-                'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
-                [user.id, roleId]
-            );
+            // Assign Role
+            await tx.user_roles.create({
+                data: {
+                    user_id: user.id,
+                    role_id: role.id
+                }
+            });
 
-            await client.query('COMMIT');
             return user;
-        } catch (err) {
-            await client.query('ROLLBACK');
-            throw err;
-        } finally {
-            client.release();
-        }
+        });
     }
 
     // Login
     async login({ email, password }) {
         // 1. Find User
-        const result = await db.query(
-            `SELECT u.id, u.email, u.password_hash, u.full_name, u.tenant_id, t.slug as tenant_slug
-       FROM users u
-       JOIN tenants t ON u.tenant_id = t.id
-       WHERE u.email = $1`,
-            [email]
-        );
+        const user = await prisma.users.findUnique({
+            where: { email },
+            include: {
+                tenants: true
+            }
+        });
 
-        const user = result.rows[0];
         if (!user) {
             throw new Error('Invalid credentials');
         }
@@ -101,20 +95,19 @@ class AuthService {
         }
 
         // 3. Get Roles
-        const rolesRes = await db.query(
-            `SELECT r.name 
-       FROM user_roles ur
-       JOIN roles r ON ur.role_id = r.id
-       WHERE ur.user_id = $1`,
-            [user.id]
-        );
-        const roles = rolesRes.rows.map(r => r.name);
+        const userRoles = await prisma.user_roles.findMany({
+            where: { user_id: user.id },
+            include: {
+                roles: true
+            }
+        });
+        const roles = userRoles.map(ur => ur.roles.name);
 
         // 4. Generate Token
         const payload = {
             sub: user.id,
-            tenant_id: user.tenant_id, // UUID
-            tenant_slug: user.tenant_slug,
+            tenant_id: user.tenant_id,
+            tenant_slug: user.tenants.slug,
             roles: roles,
             email: user.email
         };
@@ -127,53 +120,58 @@ class AuthService {
     // Create Initial Tenant (Helper)
     async createTenant({ name, slug, domain }) {
         try {
-            const res = await db.query(
-                'INSERT INTO tenants (name, slug, domain) VALUES ($1, $2, $3) RETURNING *',
-                [name, slug, domain]
-            );
-            return res.rows[0];
+            return await prisma.tenants.create({
+                data: { name, slug, domain }
+            });
         } catch (err) {
-            if (err.code === '23505') throw new Error('Tenant slug already exists');
+            if (err.code === 'P2002') throw new Error('Tenant slug already exists');
             throw err;
         }
     }
+
     // List Users (Admin)
     async getUsers(tenantId, { page = 1, limit = 10, search = '' }) {
-        const offset = (page - 1) * limit;
-        const params = [tenantId];
-        let whereClause = 'WHERE u.tenant_id = $1';
+        const skip = (page - 1) * limit;
+        const take = limit;
 
-        if (search) {
-            params.push(`%${search}%`);
-            whereClause += ` AND (u.email ILIKE $${params.length} OR u.full_name ILIKE $${params.length})`;
-        }
+        const where = {
+            tenant_id: tenantId,
+            ...(search && {
+                OR: [
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { full_name: { contains: search, mode: 'insensitive' } }
+                ]
+            })
+        };
 
-        // Count Total
-        const countRes = await db.query(
-            `SELECT COUNT(u.id) 
-             FROM users u 
-             ${whereClause}`,
-            params
-        );
-        const total = parseInt(countRes.rows[0].count);
+        // Transaction to get data and count in parallel (or sequential)
+        const [users, total] = await prisma.$transaction([
+            prisma.users.findMany({
+                where,
+                skip,
+                take,
+                orderBy: { created_at: 'desc' },
+                include: {
+                    user_roles: {
+                        include: {
+                            roles: true
+                        }
+                    }
+                }
+            }),
+            prisma.users.count({ where })
+        ]);
 
-        // Get Data
-        params.push(limit);
-        params.push(offset);
-        const query = `
-            SELECT u.id, u.email, u.full_name, r.name as role
-            FROM users u
-            JOIN user_roles ur ON u.id = ur.user_id
-            JOIN roles r ON ur.role_id = r.id
-            ${whereClause}
-            ORDER BY u.created_at DESC
-            LIMIT $${params.length - 1} OFFSET $${params.length}
-        `;
-
-        const result = await db.query(query, params);
+        // Transform response to match previous structure if needed
+        const data = users.map(u => ({
+            id: u.id,
+            email: u.email,
+            full_name: u.full_name,
+            role: u.user_roles.length > 0 ? u.user_roles[0].roles.name : null
+        }));
 
         return {
-            data: result.rows,
+            data,
             meta: {
                 page: parseInt(page),
                 limit: parseInt(limit),
@@ -186,56 +184,55 @@ class AuthService {
     // Admin Create User (Internal/Admin)
     async adminCreateUser({ email, password, fullName, tenantId, roleName }) {
         // 1. Check if user exists
-        const existingUser = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-        if (existingUser.rows.length > 0) {
+        const existingUser = await prisma.users.findFirst({
+            where: { email }
+        });
+
+        if (existingUser) {
             throw new Error('Email already registered');
         }
 
         // 2. Hash Password
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-        // 3. Create User & Assign Role
-        const client = await db.pool.connect();
-        try {
-            await client.query('BEGIN');
+        // 3. Transaction
+        return await prisma.$transaction(async (tx) => {
+            const user = await tx.users.create({
+                data: {
+                    tenant_id: tenantId,
+                    email,
+                    password_hash: hashedPassword,
+                    full_name: fullName
+                }
+            });
 
-            const userRes = await client.query(
-                `INSERT INTO users (tenant_id, email, password_hash, full_name)
-                 VALUES ($1, $2, $3, $4) RETURNING id, email, full_name`,
-                [tenantId, email, hashedPassword, fullName]
-            );
-            const user = userRes.rows[0];
+            // Find or Create Role
+            let role = await tx.roles.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    name: roleName
+                }
+            });
 
-            // Assign Role
-            const roleRes = await client.query(
-                'SELECT id FROM roles WHERE name = $1 AND tenant_id = $2',
-                [roleName, tenantId]
-            );
-
-            let roleId;
-            if (roleRes.rows.length === 0) {
-                const newRole = await client.query(
-                    'INSERT INTO roles (tenant_id, name) VALUES ($1, $2) RETURNING id',
-                    [tenantId, roleName]
-                );
-                roleId = newRole.rows[0].id;
-            } else {
-                roleId = roleRes.rows[0].id;
+            if (!role) {
+                role = await tx.roles.create({
+                    data: {
+                        tenant_id: tenantId,
+                        name: roleName
+                    }
+                });
             }
 
-            await client.query(
-                'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
-                [user.id, roleId]
-            );
+            // Assign Role
+            await tx.user_roles.create({
+                data: {
+                    user_id: user.id,
+                    role_id: role.id
+                }
+            });
 
-            await client.query('COMMIT');
             return { ...user, role: roleName };
-        } catch (err) {
-            await client.query('ROLLBACK');
-            throw err;
-        } finally {
-            client.release();
-        }
+        });
     }
 }
 

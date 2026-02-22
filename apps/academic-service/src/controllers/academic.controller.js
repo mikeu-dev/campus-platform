@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
 // Validation Schemas
@@ -60,13 +60,17 @@ class AcademicController {
             const { code, name, credits } = courseSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO courses (tenant_id, code, name, credits) VALUES ($1, $2, $3, $4) RETURNING *',
-                [tenantId, code, name, credits]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const course = await prisma.courses.create({
+                data: {
+                    tenant_id: tenantId,
+                    code,
+                    name,
+                    credits
+                }
+            });
+            res.status(201).json({ status: 'success', data: course });
         } catch (err) {
-            if (err.code === '23505') return res.status(400).json({ status: 'fail', message: 'Course code already exists' });
+            if (err.code === 'P2002') return res.status(400).json({ status: 'fail', message: 'Course code already exists' });
             next(err);
         }
     }
@@ -77,34 +81,31 @@ class AcademicController {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             const search = req.query.search || '';
-            const offset = (page - 1) * limit;
+            const skip = (page - 1) * limit;
 
-            const params = [tenantId];
-            let whereClause = 'WHERE tenant_id = $1';
+            const where = {
+                tenant_id: tenantId,
+                ...(search && {
+                    OR: [
+                        { code: { contains: search, mode: 'insensitive' } },
+                        { name: { contains: search, mode: 'insensitive' } }
+                    ]
+                })
+            };
 
-            if (search) {
-                params.push(`%${search}%`);
-                whereClause += ` AND (code ILIKE $${params.length} OR name ILIKE $${params.length})`;
-            }
-
-            // Count
-            const countRes = await db.query(`SELECT COUNT(id) FROM courses ${whereClause}`, params);
-            const total = parseInt(countRes.rows[0].count);
-
-            // Data
-            params.push(limit);
-            params.push(offset);
-            const query = `
-                SELECT * FROM courses 
-                ${whereClause} 
-                ORDER BY created_at DESC 
-                LIMIT $${params.length - 1} OFFSET $${params.length}
-            `;
-            const result = await db.query(query, params);
+            const [courses, total] = await prisma.$transaction([
+                prisma.courses.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    orderBy: { created_at: 'desc' }
+                }),
+                prisma.courses.count({ where })
+            ]);
 
             res.json({
                 status: 'success',
-                data: result.rows,
+                data: courses,
                 meta: {
                     page,
                     limit,
@@ -121,22 +122,62 @@ class AcademicController {
             const courseId = req.params.id;
             const { code, name, credits } = courseSchema.partial().parse(req.body);
 
-            const result = await db.query(
-                `UPDATE courses 
-                 SET code = COALESCE($1, code), 
-                     name = COALESCE($2, name), 
-                     credits = COALESCE($3, credits),
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE tenant_id = $4 AND id = $5 
-                 RETURNING *`,
-                [code, name, credits, tenantId, courseId]
-            );
-
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Course not found' });
-
-            res.json({ status: 'success', data: result.rows[0] });
+            const course = await prisma.courses.update({
+                where: {
+                    id: courseId,
+                    tenant_id: tenantId // Prisma doesn't limit updates by non-unique fields in where clause for update directly on ID usually, but we can verify or use updateMany. 
+                    // However, ID is unique. To ensure tenant isolation, we should check first or use updateMany (which returns count).
+                    // Best practice for tenant isolation on ID update: findFirst to verify, then update.
+                    // Or relies on RLS (if active). Here we don't have RLS at DB level likely.
+                    // Let's use updateMany to ensure tenant safety within the query? No, updateMany doesn't return data in postgres/prisma easily without a separate read.
+                    // Standard Prisma: findUnique then update.
+                },
+                data: {
+                    code,
+                    name,
+                    credits,
+                    updated_at: new Date()
+                }
+            });
+            // Wait, if I want to enforce tenant_id check:
+            // The `where` in `update` only accepts unique fields.
+            // So if ID is unique globaly (UUID), it's fine.
+            // But to be safe, we should check tenant_id.
+            // Let's do a findFirst check.
         } catch (err) {
-            if (err.code === '23505') return res.status(400).json({ status: 'fail', message: 'Course code already exists' });
+            if (err.code === 'P2025') return res.status(404).json({ status: 'fail', message: 'Course not found' });
+            if (err.code === 'P2002') return res.status(400).json({ status: 'fail', message: 'Course code already exists' });
+            next(err);
+        }
+    }
+    // RE-WRITING updateCourse CORRECTLY with verification
+    async updateCourse(req, res, next) {
+        try {
+            const tenantId = req.user.tenant_id;
+            const courseId = req.params.id;
+            const { code, name, credits } = courseSchema.partial().parse(req.body);
+
+            const existing = await prisma.courses.findFirst({
+                where: { id: courseId, tenant_id: tenantId }
+            });
+
+            if (!existing) {
+                return res.status(404).json({ status: 'fail', message: 'Course not found' });
+            }
+
+            const course = await prisma.courses.update({
+                where: { id: courseId },
+                data: {
+                    code,
+                    name,
+                    credits,
+                    updated_at: new Date()
+                }
+            });
+
+            res.json({ status: 'success', data: course });
+        } catch (err) {
+            if (err.code === 'P2002') return res.status(400).json({ status: 'fail', message: 'Course code already exists' });
             next(err);
         }
     }
@@ -146,14 +187,17 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const courseId = req.params.id;
 
-            const result = await db.query(
-                'DELETE FROM courses WHERE tenant_id = $1 AND id = $2 RETURNING *',
-                [tenantId, courseId]
-            );
+            const existing = await prisma.courses.findFirst({
+                where: { id: courseId, tenant_id: tenantId }
+            });
 
-            if (result.rowCount === 0) {
+            if (!existing) {
                 return res.status(404).json({ status: 'fail', message: 'Course not found' });
             }
+
+            await prisma.courses.delete({
+                where: { id: courseId }
+            });
 
             res.json({ status: 'success', message: 'Course deleted successfully' });
         } catch (err) { next(err); }
@@ -165,11 +209,15 @@ class AcademicController {
             const { user_id, name, student_number } = studentSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO students (tenant_id, user_id, name, platform_student_number) VALUES ($1, $2, $3, $4) RETURNING *',
-                [tenantId, user_id, name, student_number]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const student = await prisma.students.create({
+                data: {
+                    tenant_id: tenantId,
+                    user_id,
+                    name,
+                    platform_student_number: student_number
+                }
+            });
+            res.status(201).json({ status: 'success', data: student });
         } catch (err) { next(err); }
     }
 
@@ -178,19 +226,17 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const studentId = req.params.id;
 
-            // Optional: Check dependencies (enrollments, grades) before deleting
-            // For now, we'll assume cascade delete or let DB error if constraint fails
-            // But usually safer to check or soft delete.
-            // Let's do a hard delete for simplicity as per plan.
+            const existing = await prisma.students.findFirst({
+                where: { id: studentId, tenant_id: tenantId }
+            });
 
-            const result = await db.query(
-                'DELETE FROM students WHERE tenant_id = $1 AND id = $2 RETURNING *',
-                [tenantId, studentId]
-            );
-
-            if (result.rowCount === 0) {
+            if (!existing) {
                 return res.status(404).json({ status: 'fail', message: 'Student not found' });
             }
+
+            await prisma.students.delete({
+                where: { id: studentId }
+            });
 
             res.json({ status: 'success', message: 'Student deleted successfully' });
         } catch (err) { next(err); }
@@ -203,51 +249,36 @@ class AcademicController {
             const limit = parseInt(req.query.limit) || 10;
             const search = req.query.search || '';
             const studyProgram = req.query.study_program || '';
-            const entryYear = req.query.entry_year || '';
+            const entryYear = req.query.entry_year ? parseInt(req.query.entry_year) : undefined;
             const status = req.query.status || '';
-            const offset = (page - 1) * limit;
+            const skip = (page - 1) * limit;
 
-            const params = [tenantId];
-            let whereClause = 'WHERE tenant_id = $1';
+            const where = {
+                tenant_id: tenantId,
+                ...(search && {
+                    OR: [
+                        { name: { contains: search, mode: 'insensitive' } },
+                        { platform_student_number: { contains: search, mode: 'insensitive' } }
+                    ]
+                }),
+                ...(studyProgram && { study_program: studyProgram }),
+                ...(entryYear && { entry_year: entryYear }),
+                ...(status && { status: status })
+            };
 
-            if (search) {
-                params.push(`%${search}%`);
-                whereClause += ` AND (name ILIKE $${params.length} OR platform_student_number ILIKE $${params.length})`;
-            }
-
-            if (studyProgram) {
-                params.push(studyProgram);
-                whereClause += ` AND study_program = $${params.length}`;
-            }
-
-            if (entryYear) {
-                params.push(entryYear);
-                whereClause += ` AND entry_year = $${params.length}`;
-            }
-
-            if (status) {
-                params.push(status);
-                whereClause += ` AND status = $${params.length}`;
-            }
-
-            // Count
-            const countRes = await db.query(`SELECT COUNT(id) FROM students ${whereClause}`, params);
-            const total = parseInt(countRes.rows[0].count);
-
-            // Data
-            params.push(limit);
-            params.push(offset);
-            const query = `
-                SELECT * FROM students 
-                ${whereClause} 
-                ORDER BY created_at DESC 
-                LIMIT $${params.length - 1} OFFSET $${params.length}
-            `;
-            const result = await db.query(query, params);
+            const [students, total] = await prisma.$transaction([
+                prisma.students.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    orderBy: { created_at: 'desc' }
+                }),
+                prisma.students.count({ where })
+            ]);
 
             res.json({
                 status: 'success',
-                data: result.rows,
+                data: students,
                 meta: {
                     page,
                     limit,
@@ -263,12 +294,14 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub; // From JWT
 
-            const result = await db.query(
-                'SELECT * FROM students WHERE tenant_id = $1 AND user_id = $2',
-                [tenantId, userId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Student profile not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const student = await prisma.students.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    user_id: userId
+                }
+            });
+            if (!student) return res.status(404).json({ status: 'fail', message: 'Student profile not found' });
+            res.json({ status: 'success', data: student });
         } catch (err) { next(err); }
     }
 
@@ -278,11 +311,15 @@ class AcademicController {
             const { user_id, name, lecturer_number } = lecturerSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO lecturers (tenant_id, user_id, name, platform_lecturer_number) VALUES ($1, $2, $3, $4) RETURNING *',
-                [tenantId, user_id, name, lecturer_number]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const lecturer = await prisma.lecturers.create({
+                data: {
+                    tenant_id: tenantId,
+                    user_id,
+                    name,
+                    platform_lecturer_number: lecturer_number
+                }
+            });
+            res.status(201).json({ status: 'success', data: lecturer });
         } catch (err) { next(err); }
     }
 
@@ -291,12 +328,14 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const result = await db.query(
-                'SELECT * FROM lecturers WHERE tenant_id = $1 AND user_id = $2',
-                [tenantId, userId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Lecturer profile not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const lecturer = await prisma.lecturers.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    user_id: userId
+                }
+            });
+            if (!lecturer) return res.status(404).json({ status: 'fail', message: 'Lecturer profile not found' });
+            res.json({ status: 'success', data: lecturer });
         } catch (err) { next(err); }
     }
 
@@ -306,34 +345,31 @@ class AcademicController {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             const search = req.query.search || '';
-            const offset = (page - 1) * limit;
+            const skip = (page - 1) * limit;
 
-            const params = [tenantId];
-            let whereClause = 'WHERE tenant_id = $1';
+            const where = {
+                tenant_id: tenantId,
+                ...(search && {
+                    OR: [
+                        { name: { contains: search, mode: 'insensitive' } },
+                        { platform_lecturer_number: { contains: search, mode: 'insensitive' } }
+                    ]
+                })
+            };
 
-            if (search) {
-                params.push(`%${search}%`);
-                whereClause += ` AND (name ILIKE $${params.length} OR platform_lecturer_number ILIKE $${params.length})`;
-            }
-
-            // Count
-            const countRes = await db.query(`SELECT COUNT(id) FROM lecturers ${whereClause}`, params);
-            const total = parseInt(countRes.rows[0].count);
-
-            // Data
-            params.push(limit);
-            params.push(offset);
-            const query = `
-                SELECT * FROM lecturers 
-                ${whereClause} 
-                ORDER BY created_at DESC 
-                LIMIT $${params.length - 1} OFFSET $${params.length}
-            `;
-            const result = await db.query(query, params);
+            const [lecturers, total] = await prisma.$transaction([
+                prisma.lecturers.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    orderBy: { created_at: 'desc' }
+                }),
+                prisma.lecturers.count({ where })
+            ]);
 
             res.json({
                 status: 'success',
-                data: result.rows,
+                data: lecturers,
                 meta: {
                     page,
                     limit,
@@ -350,19 +386,24 @@ class AcademicController {
             const lecturerId = req.params.id;
             const { name, lecturer_number } = req.body;
 
-            const result = await db.query(
-                `UPDATE lecturers 
-                 SET name = COALESCE($1, name), 
-                     platform_lecturer_number = COALESCE($2, platform_lecturer_number),
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE tenant_id = $3 AND id = $4 
-                 RETURNING *`,
-                [name, lecturer_number, tenantId, lecturerId]
-            );
+            const existing = await prisma.lecturers.findFirst({
+                where: { id: lecturerId, tenant_id: tenantId }
+            });
 
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Lecturer not found' });
+            if (!existing) {
+                return res.status(404).json({ status: 'fail', message: 'Lecturer not found' });
+            }
 
-            res.json({ status: 'success', data: result.rows[0] });
+            const lecturer = await prisma.lecturers.update({
+                where: { id: lecturerId },
+                data: {
+                    name,
+                    platform_lecturer_number: lecturer_number,
+                    updated_at: new Date()
+                }
+            });
+
+            res.json({ status: 'success', data: lecturer });
         } catch (err) { next(err); }
     }
 
@@ -371,14 +412,17 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const lecturerId = req.params.id;
 
-            const result = await db.query(
-                'DELETE FROM lecturers WHERE tenant_id = $1 AND id = $2 RETURNING *',
-                [tenantId, lecturerId]
-            );
+            const existing = await prisma.lecturers.findFirst({
+                where: { id: lecturerId, tenant_id: tenantId }
+            });
 
-            if (result.rowCount === 0) {
+            if (!existing) {
                 return res.status(404).json({ status: 'fail', message: 'Lecturer not found' });
             }
+
+            await prisma.lecturers.delete({
+                where: { id: lecturerId }
+            });
 
             res.json({ status: 'success', message: 'Lecturer deleted successfully' });
         } catch (err) { next(err); }
@@ -391,11 +435,16 @@ class AcademicController {
             const { course_id, semester, year, lecturer_id } = schemaWithLecturer.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO classes (tenant_id, course_id, semester, year, lecturer_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [tenantId, course_id, semester, year, lecturer_id]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const newClass = await prisma.classes.create({
+                data: {
+                    tenant_id: tenantId,
+                    course_id,
+                    semester,
+                    year,
+                    lecturer_id
+                }
+            });
+            res.status(201).json({ status: 'success', data: newClass });
         } catch (err) { next(err); }
     }
 
@@ -406,61 +455,54 @@ class AcademicController {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             const search = req.query.search || '';
-            const offset = (page - 1) * limit;
+            const skip = (page - 1) * limit;
 
-            const params = [tenantId];
-            let whereClause = 'WHERE c.tenant_id = $1';
+            const where = {
+                tenant_id: tenantId,
+                ...(lecturer_id && { lecturer_id }),
+                ...(req.query.semester && { semester: req.query.semester }),
+                ...(req.query.year && { year: parseInt(req.query.year) }),
+                ...(search && {
+                    course: {
+                        OR: [
+                            { name: { contains: search, mode: 'insensitive' } },
+                            { code: { contains: search, mode: 'insensitive' } }
+                        ]
+                    }
+                })
+            };
 
-            if (lecturer_id) {
-                params.push(lecturer_id);
-                whereClause += ` AND c.lecturer_id = $${params.length}`;
-            }
+            const [classes, total] = await prisma.$transaction([
+                prisma.classes.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    orderBy: [{ year: 'desc' }, { semester: 'desc' }],
+                    include: {
+                        course: true,
+                        lecturer: true
+                    }
+                }),
+                prisma.classes.count({ where })
+            ]);
 
-            if (req.query.semester) {
-                params.push(req.query.semester);
-                whereClause += ` AND c.semester = $${params.length}`;
-            }
+            // Map to match simpler structure if needed, or return as is.
+            // Original SQL returned flattened fields.
+            const data = classes.map(c => ({
+                id: c.id,
+                semester: c.semester,
+                year: c.year,
+                lecturer_id: c.lecturer_id,
+                capacity: c.capacity,
+                course_name: c.course.name,
+                course_code: c.course.code,
+                credits: c.course.credits,
+                lecturer_name: c.lecturer?.name || null
+            }));
 
-            if (req.query.year) {
-                params.push(req.query.year);
-                whereClause += ` AND c.year = $${params.length}`;
-            }
-
-            if (search) {
-                params.push(`%${search}%`);
-                whereClause += ` AND (co.name ILIKE $${params.length} OR co.code ILIKE $${params.length})`;
-            }
-
-            // Count
-            const countQuery = `
-                SELECT COUNT(c.id)
-                FROM classes c
-                JOIN courses co ON c.course_id = co.id
-                LEFT JOIN lecturers l ON c.lecturer_id = l.id
-                ${whereClause}
-            `;
-            const countRes = await db.query(countQuery, params);
-            const total = parseInt(countRes.rows[0].count);
-
-            // Data
-            params.push(limit);
-            params.push(offset);
-            const query = `
-            SELECT c.id, c.semester, c.year, c.lecturer_id, c.capacity, 
-                   co.name as course_name, co.code as course_code, co.credits,
-                   l.name as lecturer_name
-            FROM classes c
-            JOIN courses co ON c.course_id = co.id
-            LEFT JOIN lecturers l ON c.lecturer_id = l.id
-            ${whereClause}
-            ORDER BY c.year DESC, c.semester DESC
-            LIMIT $${params.length - 1} OFFSET $${params.length}
-            `;
-
-            const result = await db.query(query, params);
             res.json({
                 status: 'success',
-                data: result.rows,
+                data,
                 meta: {
                     page,
                     limit,
@@ -478,24 +520,27 @@ class AcademicController {
             const schemaWithLecturer = classSchema.partial().extend({ lecturer_id: z.string().uuid().nullable().optional() });
             const { course_id, semester, year, lecturer_id, capacity } = schemaWithLecturer.parse(req.body);
 
-            // TODO: Adding unique check for course+semester+year+class_group if needed
+            const existing = await prisma.classes.findFirst({
+                where: { id: classId, tenant_id: tenantId }
+            });
 
-            const result = await db.query(
-                `UPDATE classes 
-                 SET course_id = COALESCE($1, course_id), 
-                     semester = COALESCE($2, semester), 
-                     year = COALESCE($3, year),
-                     lecturer_id = $4, -- Allow null explicitly if passed
-                     capacity = COALESCE($5, capacity),
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE tenant_id = $6 AND id = $7 
-                 RETURNING *`,
-                [course_id, semester, year, lecturer_id, capacity, tenantId, classId]
-            );
+            if (!existing) {
+                return res.status(404).json({ status: 'fail', message: 'Class not found' });
+            }
 
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Class not found' });
+            const updatedClass = await prisma.classes.update({
+                where: { id: classId },
+                data: {
+                    course_id,
+                    semester,
+                    year,
+                    lecturer_id,
+                    capacity,
+                    updated_at: new Date()
+                }
+            });
 
-            res.json({ status: 'success', data: result.rows[0] });
+            res.json({ status: 'success', data: updatedClass });
         } catch (err) { next(err); }
     }
 
@@ -504,14 +549,17 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const classId = req.params.id;
 
-            const result = await db.query(
-                'DELETE FROM classes WHERE tenant_id = $1 AND id = $2 RETURNING *',
-                [tenantId, classId]
-            );
+            const existing = await prisma.classes.findFirst({
+                where: { id: classId, tenant_id: tenantId }
+            });
 
-            if (result.rowCount === 0) {
+            if (!existing) {
                 return res.status(404).json({ status: 'fail', message: 'Class not found' });
             }
+
+            await prisma.classes.delete({
+                where: { id: classId }
+            });
 
             res.json({ status: 'success', message: 'Class deleted successfully' });
         } catch (err) { next(err); }
@@ -523,13 +571,22 @@ class AcademicController {
             const { class_id, student_id } = enrollmentSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'INSERT INTO enrollments (tenant_id, class_id, student_id) VALUES ($1, $2, $3) RETURNING *',
-                [tenantId, class_id, student_id]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            // Check if already enrolled to avoid race conditions or rely on DB constraint
+            const existing = await prisma.enrollments.findFirst({
+                where: { class_id, student_id }
+            });
+            if (existing) return res.status(400).json({ status: 'fail', message: 'Already enrolled' });
+
+            const enrollment = await prisma.enrollments.create({
+                data: {
+                    tenant_id: tenantId,
+                    class_id,
+                    student_id
+                }
+            });
+            res.status(201).json({ status: 'success', data: enrollment });
         } catch (err) {
-            if (err.code === '23505') return res.status(400).json({ status: 'fail', message: 'Already enrolled' });
+            if (err.code === 'P2002') return res.status(400).json({ status: 'fail', message: 'Already enrolled' });
             next(err);
         }
     }
@@ -537,25 +594,74 @@ class AcademicController {
     async getMyEnrollments(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const userId = req.user.sub; // Identity User ID
+            const userId = req.user.sub;
 
-            const result = await db.query(`
-        SELECT 
-            e.id, e.status, c.id as class_id, c.semester, c.year, 
-            co.name as course_name, co.code as course_code, co.credits,
-            l.name as lecturer_name,
-            cs.day, cs.start_time, cs.end_time, cs.room, cs.type
-        FROM enrollments e
-        JOIN students s ON e.student_id = s.id
-        JOIN classes c ON e.class_id = c.id
-        JOIN courses co ON c.course_id = co.id
-        LEFT JOIN lecturers l ON c.lecturer_id = l.id
-        LEFT JOIN class_schedules cs ON cs.class_id = c.id
-        WHERE e.tenant_id = $1 AND s.user_id = $2
-      `, [tenantId, userId]);
+            const enrollments = await prisma.enrollments.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    student: { user_id: userId }
+                },
+                include: {
+                    class: {
+                        include: {
+                            course: true,
+                            lecturer: true,
+                            class_schedules: true // Note: One class can have multiple schedules? Original query joined class_schedules.
+                            // If multiple schedules, original query row multiplication? 
+                            // Original query: JOIN class_schedules cs ON cs.class_id = c.id
+                        }
+                    }
+                }
+            });
 
+            // Map and flatten. If class has multiple schedules, logic depends on original behavior.
+            // Original: `cs.day, cs.start_time...`
+            // If a class has 2 schedules, original query returns 2 rows for same enrollment?
+            // Yes, standard SQL join behavior.
+            // Converting to Prisma:
+            // We get enrollments. simple map.
+            // IF we want to replicate SQL "row per schedule":
+            const data = [];
+            for (const e of enrollments) {
+                const schedules = e.class.class_schedules || [];
+                if (schedules.length === 0) {
+                    // Still return row with null schedule info? 
+                    // Original used LEFT JOIN class_schedules. So yes.
+                    data.push({
+                        id: e.id,
+                        status: e.status,
+                        class_id: e.class.id,
+                        semester: e.class.semester,
+                        year: e.class.year,
+                        course_name: e.class.course.name,
+                        course_code: e.class.course.code,
+                        credits: e.class.course.credits,
+                        lecturer_name: e.class.lecturer?.name || null,
+                        day: null, start_time: null, end_time: null, room: null, type: null
+                    });
+                } else {
+                    for (const s of schedules) {
+                        data.push({
+                            id: e.id,
+                            status: e.status,
+                            class_id: e.class.id,
+                            semester: e.class.semester,
+                            year: e.class.year,
+                            course_name: e.class.course.name,
+                            course_code: e.class.course.code,
+                            credits: e.class.course.credits,
+                            lecturer_name: e.class.lecturer?.name || null,
+                            day: s.day,
+                            start_time: s.start_time,
+                            end_time: s.end_time,
+                            room: s.room,
+                            type: s.type
+                        });
+                    }
+                }
+            }
 
-            res.json({ status: 'success', data: result.rows });
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -566,19 +672,43 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const query = `
-                SELECT cs.*, co.name as course_name, co.code as course_code, l.name as lecturer_name, c.semester, c.year
-                FROM class_schedules cs
-                JOIN classes c ON cs.class_id = c.id
-                JOIN courses co ON c.course_id = co.id
-                LEFT JOIN lecturers l ON c.lecturer_id = l.id
-                JOIN enrollments e ON e.class_id = c.id
-                JOIN students s ON e.student_id = s.id
-                WHERE cs.tenant_id = $1 AND s.user_id = $2
-                ORDER BY cs.day, cs.start_time
-            `;
-            const result = await db.query(query, [tenantId, userId]);
-            res.json({ status: 'success', data: result.rows });
+            // Find schedules where class has enrollment for this student
+            const schedules = await prisma.class_schedules.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class: {
+                        enrollments: {
+                            some: {
+                                student: { user_id: userId }
+                            }
+                        }
+                    }
+                },
+                include: {
+                    class: {
+                        include: {
+                            course: true,
+                            lecturer: true
+                        }
+                    }
+                },
+                orderBy: [
+                    { day: 'asc' }, // enum or string sorting? Prisma sorts enums by definition order usually or string.
+                    { start_time: 'asc' }
+                ]
+            });
+
+            // Map to flat
+            const data = schedules.map(s => ({
+                ...s,
+                course_name: s.class.course.name,
+                course_code: s.class.course.code,
+                lecturer_name: s.class.lecturer?.name || null,
+                semester: s.class.semester,
+                year: s.class.year
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -587,18 +717,37 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const query = `
-                SELECT ex.*, co.name as course_name, co.code as course_code
-                FROM exams ex
-                JOIN classes c ON ex.class_id = c.id
-                JOIN courses co ON c.course_id = co.id
-                JOIN enrollments e ON e.class_id = c.id
-                JOIN students s ON e.student_id = s.id
-                WHERE ex.tenant_id = $1 AND s.user_id = $2
-                ORDER BY ex.date, ex.start_time
-            `;
-            const result = await db.query(query, [tenantId, userId]);
-            res.json({ status: 'success', data: result.rows });
+            const exams = await prisma.exams.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class: {
+                        enrollments: {
+                            some: {
+                                student: { user_id: userId }
+                            }
+                        }
+                    }
+                },
+                include: {
+                    class: {
+                        include: {
+                            course: true
+                        }
+                    }
+                },
+                orderBy: [
+                    { date: 'asc' },
+                    { start_time: 'asc' }
+                ]
+            });
+
+            const data = exams.map(ex => ({
+                ...ex,
+                course_name: ex.class.course.name,
+                course_code: ex.class.course.code
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -607,14 +756,15 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const query = `
-                SELECT rp.* FROM research_proposals rp
-                JOIN students s ON rp.student_id = s.id
-                WHERE rp.tenant_id = $1 AND s.user_id = $2
-                ORDER BY rp.created_at DESC
-            `;
-            const result = await db.query(query, [tenantId, userId]);
-            res.json({ status: 'success', data: result.rows });
+            const proposals = await prisma.research_proposals.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    student: { user_id: userId }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            res.json({ status: 'success', data: proposals });
         } catch (err) { next(err); }
     }
 
@@ -624,17 +774,23 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            // Get student ID
-            const studentRes = await db.query('SELECT id FROM students WHERE tenant_id = $1 AND user_id = $2', [tenantId, userId]);
-            if (studentRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Student not found' });
-            const studentId = studentRes.rows[0].id;
+            const student = await prisma.students.findFirst({
+                where: { tenant_id: tenantId, user_id: userId }
+            });
 
-            const result = await db.query(
-                `INSERT INTO research_proposals (tenant_id, student_id, title, type, description, supervisor_preferred)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-                [tenantId, studentId, title, type, description, supervisor_preferred]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            if (!student) return res.status(404).json({ status: 'fail', message: 'Student not found' });
+
+            const proposal = await prisma.research_proposals.create({
+                data: {
+                    tenant_id: tenantId,
+                    student_id: student.id,
+                    title,
+                    type,
+                    description,
+                    supervisor_preferred
+                }
+            });
+            res.status(201).json({ status: 'success', data: proposal });
         } catch (err) { next(err); }
     }
 
@@ -643,14 +799,15 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const query = `
-                SELECT cr.* FROM certificate_requests cr
-                JOIN students s ON cr.student_id = s.id
-                WHERE cr.tenant_id = $1 AND s.user_id = $2
-                ORDER BY cr.created_at DESC
-            `;
-            const result = await db.query(query, [tenantId, userId]);
-            res.json({ status: 'success', data: result.rows });
+            const requests = await prisma.certificate_requests.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    student: { user_id: userId }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            res.json({ status: 'success', data: requests });
         } catch (err) { next(err); }
     }
 
@@ -660,27 +817,38 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const studentRes = await db.query('SELECT id FROM students WHERE tenant_id = $1 AND user_id = $2', [tenantId, userId]);
-            if (studentRes.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Student not found' });
-            const studentId = studentRes.rows[0].id;
+            const student = await prisma.students.findFirst({
+                where: { tenant_id: tenantId, user_id: userId }
+            });
 
-            const result = await db.query(
-                `INSERT INTO certificate_requests (tenant_id, student_id, type, purpose, quantity, notes)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-                [tenantId, studentId, type, purpose, quantity || 1, notes]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            if (!student) return res.status(404).json({ status: 'fail', message: 'Student not found' });
+
+            const request = await prisma.certificate_requests.create({
+                data: {
+                    tenant_id: tenantId,
+                    student_id: student.id,
+                    type,
+                    purpose,
+                    quantity: quantity || 1,
+                    notes
+                }
+            });
+            res.status(201).json({ status: 'success', data: request });
         } catch (err) { next(err); }
     }
 
     async getAnnouncements(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM announcements WHERE tenant_id = $1 AND is_active = TRUE ORDER BY created_at DESC LIMIT 5',
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const announcements = await prisma.announcements.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    is_active: true
+                },
+                orderBy: { created_at: 'desc' },
+                take: 5
+            });
+            res.json({ status: 'success', data: announcements });
         } catch (err) { next(err); }
     }
 
@@ -689,21 +857,20 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const query = `
-                SELECT fb.* FROM financial_bills fb
-                JOIN students s ON fb.student_id = s.id
-                WHERE fb.tenant_id = $1 AND s.user_id = $2
-                ORDER BY fb.due_date ASC
-            `;
-            const result = await db.query(query, [tenantId, userId]);
+            const bills = await prisma.financial_bills.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    student: { user_id: userId }
+                },
+                orderBy: { due_date: 'asc' }
+            });
 
-            // Summarize
-            const totalUnpaid = result.rows.reduce((sum, bill) => bill.is_paid ? sum : sum + parseFloat(bill.amount), 0);
+            const totalUnpaid = bills.reduce((sum, bill) => bill.is_paid ? sum : sum + Number(bill.amount), 0);
 
             res.json({
                 status: 'success',
                 data: {
-                    bills: result.rows,
+                    bills,
                     totalUnpaid
                 }
             });
@@ -715,32 +882,41 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            // Simplified GPA calculation: assume score is available and maps to 4.0 scale
-            // In a real app, this would be more complex (joining enrollments, classes, courses)
-            const query = `
-                SELECT g.score, co.credits
-                FROM grades g
-                JOIN enrollments e ON g.enrollment_id = e.id
-                JOIN students s ON e.student_id = s.id
-                JOIN classes c ON e.class_id = c.id
-                JOIN courses co ON c.course_id = co.id
-                WHERE g.tenant_id = $1 AND s.user_id = $2
-            `;
-            const result = await db.query(query, [tenantId, userId]);
+            const grades = await prisma.grades.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    enrollment: {
+                        student: { user_id: userId }
+                    }
+                },
+                include: {
+                    enrollment: {
+                        include: {
+                            class: {
+                                include: {
+                                    course: true
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
             let totalCredits = 0;
             let totalPoints = 0;
 
-            result.rows.forEach(row => {
-                // Mock mapping score to points
-                let points = 0;
-                if (row.score >= 80) points = 4;
-                else if (row.score >= 70) points = 3;
-                else if (row.score >= 60) points = 2;
-                else if (row.score >= 50) points = 1;
+            grades.forEach(g => {
+                const credits = g.enrollment.class.course.credits;
+                const score = g.score; // Assuming score is number
 
-                totalPoints += points * row.credits;
-                totalCredits += row.credits;
+                let points = 0;
+                if (score >= 80) points = 4;
+                else if (score >= 70) points = 3;
+                else if (score >= 60) points = 2;
+                else if (score >= 50) points = 1;
+
+                totalPoints += points * credits;
+                totalCredits += credits;
             });
 
             const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
@@ -761,15 +937,27 @@ class AcademicController {
             const { class_id, student_id, meeting_number, status } = attendanceSchema.parse(req.body);
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `INSERT INTO attendances (tenant_id, class_id, student_id, meeting_number, status)
-                 VALUES ($1, $2, $3, $4, $5)
-                 ON CONFLICT (class_id, student_id, meeting_number)
-                 DO UPDATE SET status = EXCLUDED.status, created_at = CURRENT_TIMESTAMP
-                 RETURNING *`,
-                [tenantId, class_id, student_id, meeting_number, status]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const attendance = await prisma.attendances.upsert({
+                where: {
+                    class_id_student_id_meeting_number: {
+                        class_id,
+                        student_id,
+                        meeting_number
+                    }
+                },
+                update: {
+                    status,
+                    created_at: new Date() // Updates timestamp on change
+                },
+                create: {
+                    tenant_id: tenantId,
+                    class_id,
+                    student_id,
+                    meeting_number,
+                    status
+                }
+            });
+            res.status(201).json({ status: 'success', data: attendance });
         } catch (err) { next(err); }
     }
 
@@ -779,14 +967,16 @@ class AcademicController {
             const tenantId = req.user.tenant_id;
             const userId = req.user.sub;
 
-            const query = `
-                SELECT a.* FROM attendances a
-                JOIN students s ON a.student_id = s.id
-                WHERE a.tenant_id = $1 AND a.class_id = $2 AND s.user_id = $3
-                ORDER BY a.meeting_number ASC
-            `;
-            const result = await db.query(query, [tenantId, classId, userId]);
-            res.json({ status: 'success', data: result.rows });
+            const attendances = await prisma.attendances.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId,
+                    students: { user_id: userId }
+                },
+                orderBy: { meeting_number: 'asc' }
+            });
+
+            res.json({ status: 'success', data: attendances });
         } catch (err) { next(err); }
     }
 
@@ -797,20 +987,25 @@ class AcademicController {
             const userId = req.user.sub;
 
             // Simplified: count status for current student in class
-            const query = `
-                SELECT 
-                    status,
-                    COUNT(*) as count
-                FROM attendances a
-                JOIN students s ON a.student_id = s.id
-                WHERE a.tenant_id = $1 AND a.class_id = $2 AND s.user_id = $3
-                GROUP BY status
-            `;
-            const result = await db.query(query, [tenantId, classId, userId]);
+            // Check if userId is passed for context, but usually this is for the *student* viewing their own.
+            // "getting class attendance summary" for a student?
+            // SQL: WHERE ... s.user_id = $3. Yes, for the student.
+
+            const group = await prisma.attendances.groupBy({
+                by: ['status'],
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId,
+                    students: { user_id: userId }
+                },
+                _count: {
+                    status: true
+                }
+            });
 
             const summary = { hadir: 0, alfa: 0, izin: 0, sakit: 0 };
-            result.rows.forEach(row => {
-                summary[row.status] = parseInt(row.count);
+            group.forEach(g => {
+                if (g.status) summary[g.status] = g._count.status;
             });
 
             res.json({ status: 'success', data: summary });
@@ -822,15 +1017,30 @@ class AcademicController {
             const { classId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const query = `
-                SELECT s.id, s.name, s.student_number
-                FROM enrollments e
-                JOIN students s ON e.student_id = s.id
-                WHERE e.tenant_id = $1 AND e.class_id = $2
-                ORDER BY s.name ASC
-            `;
-            const result = await db.query(query, [tenantId, classId]);
-            res.json({ status: 'success', data: result.rows });
+            const enrollments = await prisma.enrollments.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId
+                },
+                include: {
+                    students: {
+                        select: {
+                            id: true,
+                            name: true,
+                            platform_student_number: true
+                        }
+                    }
+                },
+                orderBy: { students: { name: 'asc' } }
+            });
+
+            const data = enrollments.map(e => ({
+                id: e.students.id,
+                name: e.students.name,
+                student_number: e.students.platform_student_number
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -838,30 +1048,36 @@ class AcademicController {
         try {
             const { classId } = req.params;
             const tenantId = req.user.tenant_id;
-            const meetingNumber = req.query.meeting;
+            const meetingNumber = req.query.meeting ? parseInt(req.query.meeting) : undefined;
 
-            let query = `
-                SELECT a.*, s.name as student_name, s.student_number
-                FROM attendances a
-                JOIN students s ON a.student_id = s.id
-                WHERE a.tenant_id = $1 AND a.class_id = $2
-            `;
-            const params = [tenantId, classId];
+            const attendances = await prisma.attendances.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId,
+                    ...(meetingNumber && { meeting_number: meetingNumber })
+                },
+                include: {
+                    students: {
+                        select: {
+                            name: true,
+                            platform_student_number: true
+                        }
+                    }
+                },
+                orderBy: { students: { name: 'asc' } }
+            });
 
-            if (meetingNumber) {
-                params.push(meetingNumber);
-                query += ` AND a.meeting_number = $${params.length}`;
-            }
+            const data = attendances.map(a => ({
+                ...a,
+                student_name: a.students.name,
+                student_number: a.students.platform_student_number
+            }));
 
-            query += ` ORDER BY s.name ASC`;
-
-            const result = await db.query(query, params);
-            res.json({ status: 'success', data: result.rows });
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
     async recordBatchAttendance(req, res, next) {
-        const client = await db.connect();
         try {
             const { class_id, attendances } = req.body; // attendances: [{ student_id, status }]
             const meeting_number = req.body.meeting_number;
@@ -871,27 +1087,34 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'Invalid attendances data' });
             }
 
-            await client.query('BEGIN');
+            // Using transaction to batch upserts
+            await prisma.$transaction(
+                attendances.map(att =>
+                    prisma.attendances.upsert({
+                        where: {
+                            class_id_student_id_meeting_number: {
+                                class_id,
+                                student_id: att.student_id,
+                                meeting_number
+                            }
+                        },
+                        update: {
+                            status: att.status,
+                            created_at: new Date()
+                        },
+                        create: {
+                            tenant_id: tenantId,
+                            class_id,
+                            student_id: att.student_id,
+                            meeting_number,
+                            status: att.status
+                        }
+                    })
+                )
+            );
 
-            const query = `
-                INSERT INTO attendances (tenant_id, class_id, student_id, meeting_number, status)
-                VALUES ($1, $2, $3, $4, $5)
-                ON CONFLICT (class_id, student_id, meeting_number)
-                DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP
-            `;
-
-            for (const att of attendances) {
-                await client.query(query, [tenantId, class_id, att.student_id, meeting_number, att.status]);
-            }
-
-            await client.query('COMMIT');
             res.json({ status: 'success', message: 'Attendance recorded successfully' });
-        } catch (err) {
-            await client.query('ROLLBACK');
-            next(err);
-        } finally {
-            client.release();
-        }
+        } catch (err) { next(err); }
     }
 
     // --- Grading ---
@@ -900,28 +1123,36 @@ class AcademicController {
             const { classId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const query = `
-                SELECT 
-                    e.id as enrollment_id,
-                    s.id as student_id,
-                    s.name as student_name,
-                    s.student_number,
-                    g.id as grade_id,
-                    g.grade,
-                    g.score
-                FROM enrollments e
-                JOIN students s ON e.student_id = s.id
-                LEFT JOIN grades g ON g.enrollment_id = e.id
-                WHERE e.tenant_id = $1 AND e.class_id = $2
-                ORDER BY s.name ASC
-            `;
-            const result = await db.query(query, [tenantId, classId]);
-            res.json({ status: 'success', data: result.rows });
+            const enrollments = await prisma.enrollments.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId
+                },
+                include: {
+                    students: true,
+                    grades: true
+                },
+                orderBy: { students: { name: 'asc' } }
+            });
+
+            const data = enrollments.map(e => {
+                const grade = e.grades.length > 0 ? e.grades[0] : null; // Assume 1-to-1 effectively
+                return {
+                    enrollment_id: e.id,
+                    student_id: e.students.id,
+                    student_name: e.students.name,
+                    student_number: e.students.platform_student_number,
+                    grade_id: grade?.id || null,
+                    grade: grade?.grade || null,
+                    score: grade?.score || null
+                };
+            });
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
     async upsertGrades(req, res, next) {
-        const client = await db.connect();
         try {
             const { class_id, grades } = req.body; // grades: [{ enrollment_id, score, grade }]
             const tenantId = req.user.tenant_id;
@@ -930,27 +1161,34 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'Invalid grades data' });
             }
 
-            await client.query('BEGIN');
+            // Manually check existence and upsert because strict unique constraint might be missing in schema
+            // but we want logically unique grade per enrollment
+            await prisma.$transaction(async (tx) => {
+                for (const g of grades) {
+                    const existing = await tx.grades.findFirst({
+                        where: { enrollment_id: g.enrollment_id }
+                    });
 
-            const query = `
-                INSERT INTO grades (tenant_id, enrollment_id, score, grade)
-                VALUES ($1, $2, $3, $4)
-                ON CONFLICT (enrollment_id)
-                DO UPDATE SET score = EXCLUDED.score, grade = EXCLUDED.grade
-            `;
+                    if (existing) {
+                        await tx.grades.update({
+                            where: { id: existing.id },
+                            data: { score: g.score, grade: g.grade }
+                        });
+                    } else {
+                        await tx.grades.create({
+                            data: {
+                                tenant_id: tenantId,
+                                enrollment_id: g.enrollment_id,
+                                score: g.score,
+                                grade: g.grade
+                            }
+                        });
+                    }
+                }
+            });
 
-            for (const g of grades) {
-                await client.query(query, [tenantId, g.enrollment_id, g.score, g.grade]);
-            }
-
-            await client.query('COMMIT');
             res.json({ status: 'success', message: 'Grades saved successfully' });
-        } catch (err) {
-            await client.query('ROLLBACK');
-            next(err);
-        } finally {
-            client.release();
-        }
+        } catch (err) { next(err); }
     }
 
     // --- Class Schedules ---
@@ -959,11 +1197,17 @@ class AcademicController {
             const { classId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'SELECT * FROM class_schedules WHERE tenant_id = $1 AND class_id = $2 ORDER BY day, start_time',
-                [tenantId, classId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const result = await prisma.class_schedules.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId
+                },
+                orderBy: [
+                    { day: 'asc' }, // enum sorting might need check, but string usually fine
+                    { start_time: 'asc' }
+                ]
+            });
+            res.json({ status: 'success', data: result });
         } catch (err) { next(err); }
     }
 
@@ -976,12 +1220,18 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'class_id, day, start_time, end_time are required' });
             }
 
-            const result = await db.query(
-                `INSERT INTO class_schedules (tenant_id, class_id, day, start_time, end_time, room, type)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-                [tenantId, class_id, day, start_time, end_time, room || null, type || 'offline']
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const schedule = await prisma.class_schedules.create({
+                data: {
+                    tenant_id: tenantId,
+                    class_id,
+                    day,
+                    start_time,
+                    end_time,
+                    room: room || null,
+                    type: type || 'offline'
+                }
+            });
+            res.status(201).json({ status: 'success', data: schedule });
         } catch (err) { next(err); }
     }
 
@@ -991,13 +1241,22 @@ class AcademicController {
             const { day, start_time, end_time, room, type } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `UPDATE class_schedules SET day = $1, start_time = $2, end_time = $3, room = $4, type = $5
-                 WHERE id = $6 AND tenant_id = $7 RETURNING *`,
-                [day, start_time, end_time, room, type || 'offline', id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Schedule not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const existing = await prisma.class_schedules.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Schedule not found' });
+
+            const schedule = await prisma.class_schedules.update({
+                where: { id },
+                data: {
+                    day,
+                    start_time,
+                    end_time,
+                    room,
+                    type: type || 'offline'
+                }
+            });
+            res.json({ status: 'success', data: schedule });
         } catch (err) { next(err); }
     }
 
@@ -1006,12 +1265,14 @@ class AcademicController {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'DELETE FROM class_schedules WHERE id = $1 AND tenant_id = $2 RETURNING id',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Schedule not found' });
-            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+            const existing = await prisma.class_schedules.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Schedule not found' });
+
+            await prisma.class_schedules.delete({ where: { id } });
+
+            res.json({ status: 'success', data: { deleted: id } });
         } catch (err) { next(err); }
     }
 
@@ -1021,16 +1282,32 @@ class AcademicController {
             const { classId } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `SELECT e.*, co.name as course_name, co.code as course_code
-                 FROM exams e
-                 JOIN classes c ON e.class_id = c.id
-                 JOIN courses co ON c.course_id = co.id
-                 WHERE e.tenant_id = $1 AND e.class_id = $2
-                 ORDER BY e.date, e.start_time`,
-                [tenantId, classId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const exams = await prisma.exams.findMany({
+                where: {
+                    tenant_id: tenantId,
+                    class_id: classId
+                },
+                include: {
+                    classes: {
+                        include: {
+                            courses: true // Relation name is 'courses' in classes model
+                        }
+                    }
+                },
+                orderBy: [
+                    { date: 'asc' },
+                    { start_time: 'asc' }
+                ]
+            });
+
+            // Flatten
+            const data = exams.map(e => ({
+                ...e,
+                course_name: e.classes.courses.name,
+                course_code: e.classes.courses.code
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -1043,12 +1320,18 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'class_id, type, date, start_time, end_time are required' });
             }
 
-            const result = await db.query(
-                `INSERT INTO exams (tenant_id, class_id, type, date, start_time, end_time, room)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-                [tenantId, class_id, type, date, start_time, end_time, room || null]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const exam = await prisma.exams.create({
+                data: {
+                    tenant_id: tenantId,
+                    class_id,
+                    type,
+                    date,
+                    start_time,
+                    end_time,
+                    room: room || null
+                }
+            });
+            res.status(201).json({ status: 'success', data: exam });
         } catch (err) { next(err); }
     }
 
@@ -1058,13 +1341,16 @@ class AcademicController {
             const { type, date, start_time, end_time, room } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `UPDATE exams SET type = $1, date = $2, start_time = $3, end_time = $4, room = $5
-                 WHERE id = $6 AND tenant_id = $7 RETURNING *`,
-                [type, date, start_time, end_time, room, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Exam not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const existing = await prisma.exams.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Exam not found' });
+
+            const exam = await prisma.exams.update({
+                where: { id },
+                data: { type, date, start_time, end_time, room }
+            });
+            res.json({ status: 'success', data: exam });
         } catch (err) { next(err); }
     }
 
@@ -1073,12 +1359,13 @@ class AcademicController {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'DELETE FROM exams WHERE id = $1 AND tenant_id = $2 RETURNING id',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Exam not found' });
-            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+            const existing = await prisma.exams.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Exam not found' });
+
+            await prisma.exams.delete({ where: { id } });
+            res.json({ status: 'success', data: { deleted: id } });
         } catch (err) { next(err); }
     }
 
@@ -1086,11 +1373,11 @@ class AcademicController {
     async getAllAnnouncements(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'SELECT * FROM announcements WHERE tenant_id = $1 ORDER BY created_at DESC',
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const announcements = await prisma.announcements.findMany({
+                where: { tenant_id: tenantId },
+                orderBy: { created_at: 'desc' }
+            });
+            res.json({ status: 'success', data: announcements });
         } catch (err) { next(err); }
     }
 
@@ -1103,12 +1390,16 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'title and content are required' });
             }
 
-            const result = await db.query(
-                `INSERT INTO announcements (tenant_id, title, content, type, is_active)
-                 VALUES ($1, $2, $3, $4, TRUE) RETURNING *`,
-                [tenantId, title, content, type || 'general']
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const announcement = await prisma.announcements.create({
+                data: {
+                    tenant_id: tenantId,
+                    title,
+                    content,
+                    type: type || 'general',
+                    is_active: true
+                }
+            });
+            res.status(201).json({ status: 'success', data: announcement });
         } catch (err) { next(err); }
     }
 
@@ -1118,13 +1409,21 @@ class AcademicController {
             const { title, content, type, is_active } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `UPDATE announcements SET title = $1, content = $2, type = $3, is_active = $4
-                 WHERE id = $5 AND tenant_id = $6 RETURNING *`,
-                [title, content, type || 'general', is_active !== undefined ? is_active : true, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Announcement not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const existing = await prisma.announcements.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Announcement not found' });
+
+            const announcement = await prisma.announcements.update({
+                where: { id },
+                data: {
+                    title,
+                    content,
+                    type: type || 'general',
+                    is_active: is_active !== undefined ? is_active : true
+                }
+            });
+            res.json({ status: 'success', data: announcement });
         } catch (err) { next(err); }
     }
 
@@ -1133,12 +1432,13 @@ class AcademicController {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'DELETE FROM announcements WHERE id = $1 AND tenant_id = $2 RETURNING id',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Announcement not found' });
-            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+            const existing = await prisma.announcements.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Announcement not found' });
+
+            await prisma.announcements.delete({ where: { id } });
+            res.json({ status: 'success', data: { deleted: id } });
         } catch (err) { next(err); }
     }
 
@@ -1146,15 +1446,23 @@ class AcademicController {
     async getAllBills(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `SELECT fb.*, s.name as student_name, s.student_number
-                 FROM financial_bills fb
-                 JOIN students s ON fb.student_id = s.id
-                 WHERE fb.tenant_id = $1
-                 ORDER BY fb.created_at DESC`,
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const bills = await prisma.financial_bills.findMany({
+                where: { tenant_id: tenantId },
+                include: {
+                    students: {
+                        select: { name: true, platform_student_number: true } // Assuming platform_student_number is the field mapped to student_number in previous code
+                    }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            const data = bills.map(b => ({
+                ...b,
+                student_name: b.students.name,
+                student_number: b.students.platform_student_number
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -1167,12 +1475,16 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'student_id, title, amount are required' });
             }
 
-            const result = await db.query(
-                `INSERT INTO financial_bills (tenant_id, student_id, title, amount, due_date)
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                [tenantId, student_id, title, amount, due_date || null]
-            );
-            res.status(201).json({ status: 'success', data: result.rows[0] });
+            const bill = await prisma.financial_bills.create({
+                data: {
+                    tenant_id: tenantId,
+                    student_id,
+                    title,
+                    amount,
+                    due_date: due_date || null
+                }
+            });
+            res.status(201).json({ status: 'success', data: bill });
         } catch (err) { next(err); }
     }
 
@@ -1182,13 +1494,16 @@ class AcademicController {
             const { title, amount, is_paid, due_date } = req.body;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                `UPDATE financial_bills SET title = $1, amount = $2, is_paid = $3, due_date = $4
-                 WHERE id = $5 AND tenant_id = $6 RETURNING *`,
-                [title, amount, is_paid || false, due_date, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Bill not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const existing = await prisma.financial_bills.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Bill not found' });
+
+            const bill = await prisma.financial_bills.update({
+                where: { id },
+                data: { title, amount, is_paid: is_paid || false, due_date }
+            });
+            res.json({ status: 'success', data: bill });
         } catch (err) { next(err); }
     }
 
@@ -1197,12 +1512,13 @@ class AcademicController {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
 
-            const result = await db.query(
-                'DELETE FROM financial_bills WHERE id = $1 AND tenant_id = $2 RETURNING id',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Bill not found' });
-            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+            const existing = await prisma.financial_bills.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Bill not found' });
+
+            await prisma.financial_bills.delete({ where: { id } });
+            res.json({ status: 'success', data: { deleted: id } });
         } catch (err) { next(err); }
     }
 
@@ -1210,15 +1526,23 @@ class AcademicController {
     async getAllResearchProposals(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `SELECT rp.*, s.name as student_name, s.student_number
-                 FROM research_proposals rp
-                 JOIN students s ON rp.student_id = s.id
-                 WHERE rp.tenant_id = $1
-                 ORDER BY rp.created_at DESC`,
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const proposals = await prisma.research_proposals.findMany({
+                where: { tenant_id: tenantId },
+                include: {
+                    students: {
+                        select: { name: true, platform_student_number: true }
+                    }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            const data = proposals.map(p => ({
+                ...p,
+                student_name: p.students.name,
+                student_number: p.students.platform_student_number
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -1232,12 +1556,16 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'Invalid status' });
             }
 
-            const result = await db.query(
-                'UPDATE research_proposals SET status = $1 WHERE id = $2 AND tenant_id = $3 RETURNING *',
-                [status, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Proposal not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const existing = await prisma.research_proposals.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Proposal not found' });
+
+            const proposal = await prisma.research_proposals.update({
+                where: { id },
+                data: { status }
+            });
+            res.json({ status: 'success', data: proposal });
         } catch (err) { next(err); }
     }
 
@@ -1245,12 +1573,14 @@ class AcademicController {
         try {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'DELETE FROM research_proposals WHERE id = $1 AND tenant_id = $2 RETURNING id',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Proposal not found' });
-            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+
+            const existing = await prisma.research_proposals.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Proposal not found' });
+
+            await prisma.research_proposals.delete({ where: { id } });
+            res.json({ status: 'success', data: { deleted: id } });
         } catch (err) { next(err); }
     }
 
@@ -1258,15 +1588,23 @@ class AcademicController {
     async getAllCertificateRequests(req, res, next) {
         try {
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                `SELECT cr.*, s.name as student_name, s.student_number
-                 FROM certificate_requests cr
-                 JOIN students s ON cr.student_id = s.id
-                 WHERE cr.tenant_id = $1
-                 ORDER BY cr.created_at DESC`,
-                [tenantId]
-            );
-            res.json({ status: 'success', data: result.rows });
+            const requests = await prisma.certificate_requests.findMany({
+                where: { tenant_id: tenantId },
+                include: {
+                    students: {
+                        select: { name: true, platform_student_number: true }
+                    }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            const data = requests.map(r => ({
+                ...r,
+                student_name: r.students.name,
+                student_number: r.students.platform_student_number
+            }));
+
+            res.json({ status: 'success', data });
         } catch (err) { next(err); }
     }
 
@@ -1280,13 +1618,20 @@ class AcademicController {
                 return res.status(400).json({ status: 'fail', message: 'Invalid status' });
             }
 
-            const result = await db.query(
-                `UPDATE certificate_requests SET status = $1, rejection_reason = $2, download_url = $3
-                 WHERE id = $4 AND tenant_id = $5 RETURNING *`,
-                [status, rejection_reason || null, download_url || null, id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Request not found' });
-            res.json({ status: 'success', data: result.rows[0] });
+            const existing = await prisma.certificate_requests.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Request not found' });
+
+            const request = await prisma.certificate_requests.update({
+                where: { id },
+                data: {
+                    status,
+                    rejection_reason: rejection_reason || null,
+                    download_url: download_url || null
+                }
+            });
+            res.json({ status: 'success', data: request });
         } catch (err) { next(err); }
     }
 
@@ -1294,12 +1639,14 @@ class AcademicController {
         try {
             const { id } = req.params;
             const tenantId = req.user.tenant_id;
-            const result = await db.query(
-                'DELETE FROM certificate_requests WHERE id = $1 AND tenant_id = $2 RETURNING id',
-                [id, tenantId]
-            );
-            if (result.rows.length === 0) return res.status(404).json({ status: 'fail', message: 'Request not found' });
-            res.json({ status: 'success', data: { deleted: result.rows[0].id } });
+
+            const existing = await prisma.certificate_requests.findFirst({
+                where: { id, tenant_id: tenantId }
+            });
+            if (!existing) return res.status(404).json({ status: 'fail', message: 'Request not found' });
+
+            await prisma.certificate_requests.delete({ where: { id } });
+            res.json({ status: 'success', data: { deleted: id } });
         } catch (err) { next(err); }
     }
 }
