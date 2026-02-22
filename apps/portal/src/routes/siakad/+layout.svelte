@@ -9,12 +9,14 @@
 		MessageSquare,
 		Calendar,
 		Users,
-		UserCircle
+		UserCircle,
+		ChevronsUpDown
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Sheet, SheetContent, SheetTrigger } from '$lib/components/ui/sheet';
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { cn } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -162,31 +164,58 @@
 				{/each}
 			</nav>
 		</div>
+		<!-- Profile Dropdown Menu -->
 		<div class="mt-auto p-4">
-			<div
-				class="flex items-center gap-4 rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
-			>
-				<Avatar>
-					<AvatarFallback class="uppercase">
-						{page.data.user?.email?.substring(0, 2) || 'US'}
-					</AvatarFallback>
-				</Avatar>
-				<a href="/siakad/profile" class="flex-1 overflow-hidden hover:underline">
-					<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
-					<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
-				</a>
-				<form action="/logout" method="POST">
-					<Button
-						variant="ghost"
-						size="icon"
-						type="submit"
-						class="h-8 w-8 text-destructive hover:text-destructive"
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger class="w-full outline-none">
+					<div
+						class="flex w-full cursor-pointer items-center gap-3 rounded-xl border bg-card p-3 text-card-foreground shadow-sm transition-colors hover:bg-accent"
 					>
-						<LogOut class="h-4 w-4" />
-						<span class="sr-only">{m.auth_sign_out()}</span>
-					</Button>
-				</form>
-			</div>
+						<Avatar class="h-9 w-9">
+							<AvatarFallback class="text-xs uppercase">
+								{page.data.user?.email?.substring(0, 2) || 'US'}
+							</AvatarFallback>
+						</Avatar>
+						<div class="flex-1 overflow-hidden text-left">
+							<p class="truncate text-sm font-medium">{page.data.user?.email}</p>
+							<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
+						</div>
+						<ChevronsUpDown class="h-4 w-4 shrink-0 text-muted-foreground" />
+					</div>
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content class="w-56" side="top" align="start">
+					<DropdownMenu.Label>
+						<div class="flex flex-col space-y-1">
+							<p class="text-sm font-medium">{page.data.user?.email}</p>
+							<p class="text-xs text-muted-foreground capitalize">{page.data.user?.roles?.[0]}</p>
+						</div>
+					</DropdownMenu.Label>
+					<DropdownMenu.Separator />
+					<a href="/siakad/profile">
+						<DropdownMenu.Item class="cursor-pointer gap-2">
+							<UserCircle class="h-4 w-4" />
+							Profil Saya
+						</DropdownMenu.Item>
+					</a>
+					<a href="/lms">
+						<DropdownMenu.Item class="cursor-pointer gap-2">
+							<BookOpen class="h-4 w-4" />
+							LMS
+						</DropdownMenu.Item>
+					</a>
+					<DropdownMenu.Separator />
+					<form action="/logout" method="POST">
+						<button type="submit" class="w-full">
+							<DropdownMenu.Item
+								class="cursor-pointer gap-2 text-destructive focus:text-destructive"
+							>
+								<LogOut class="h-4 w-4" />
+								{m.auth_sign_out()}
+							</DropdownMenu.Item>
+						</button>
+					</form>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 	</div>
 {/snippet}
