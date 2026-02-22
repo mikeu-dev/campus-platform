@@ -34,7 +34,6 @@
 		Minus,
 		Image as ImageIcon,
 		Table as TableIcon,
-		Type,
 		Eraser
 	} from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -49,10 +48,9 @@
 	interface Props {
 		content?: string;
 		onchange?: (content: string) => void;
-		placeholder?: string;
 	}
 
-	let { content = '', onchange, placeholder = 'Tulis konten di sini...' }: Props = $props();
+	let { content = '', onchange }: Props = $props();
 
 	let element: HTMLElement;
 	let editor: Editor | null = $state(null);

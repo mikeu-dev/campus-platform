@@ -2,7 +2,6 @@
 	import { slide } from 'svelte/transition';
 	import { ChevronDown } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
-	import type { Component } from 'svelte';
 
 	interface Props {
 		label: string;

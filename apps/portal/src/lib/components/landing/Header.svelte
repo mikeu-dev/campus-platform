@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Menu, X, LogIn, ChevronDown, GraduationCap, Phone, Mail } from 'lucide-svelte';
+	import { Menu, X, LogIn, ChevronDown, Phone, Mail } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { slide, fly } from 'svelte/transition';
 

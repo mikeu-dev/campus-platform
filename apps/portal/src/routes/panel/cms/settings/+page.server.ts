@@ -4,7 +4,6 @@ import { PUBLIC_PUBLIC_API_URL } from '$env/static/public';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async () => {
-	const tenantId = '00000000-0000-0000-0000-000000000000';
 	let settings = {};
 
 	try {
