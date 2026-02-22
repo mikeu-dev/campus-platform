@@ -9,7 +9,10 @@
 		Calendar,
 		FileText,
 		ClipboardCheck,
-		ChevronDown
+		ChevronDown,
+		BookOpen,
+		Users,
+		PenTool
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -25,20 +28,59 @@
 
 	let { children, data }: Props = $props();
 
-	// Navigation Items
-	const navItems = [
-		{ href: '/lms', label: m.nav_lms_home(), icon: Home },
-		{ href: '/lms/schedule', label: m.nav_lms_schedule(), icon: Calendar },
-		{ href: '/lms/classes', label: m.nav_classes(), icon: GraduationCap },
-		{ href: '/lms/chat', label: m.nav_messages(), icon: MessageSquare }
-	];
+	/* Role detection */
+	const userRoles: string[] = $derived(page.data.user?.roles || []);
+	const isLecturer: boolean = $derived(userRoles.includes('lecturer'));
+	const isStudent: boolean = $derived(userRoles.includes('student'));
 
-	const examGroup = [
-		{ href: '/lms/exams', label: m.nav_lms_exams(), icon: FileText },
-		{ href: '/lms/exams/permission', label: m.nav_lms_exam_permission(), icon: ClipboardCheck }
-	];
+	/* Navigation Items — shared */
+	interface NavItem {
+		href: string;
+		label: string;
+		icon: any;
+		roles?: string[];
+	}
 
-	let isExamsOpen = $state(false);
+	interface NavGroup {
+		label?: string;
+		roles?: string[];
+		items: NavItem[];
+		collapsible?: boolean;
+	}
+
+	const navGroups: NavGroup[] = $derived([
+		{
+			items: [
+				{ href: '/lms', label: m.nav_lms_home(), icon: Home },
+				{ href: '/lms/schedule', label: m.nav_lms_schedule(), icon: Calendar },
+				{ href: '/lms/classes', label: m.nav_classes(), icon: GraduationCap },
+				{ href: '/lms/chat', label: m.nav_messages(), icon: MessageSquare }
+			]
+		},
+		{
+			label: m.nav_lms_exams_group(),
+			roles: ['student'],
+			collapsible: true,
+			items: [
+				{ href: '/lms/exams', label: m.nav_lms_exams(), icon: FileText },
+				{ href: '/lms/exams/permission', label: m.nav_lms_exam_permission(), icon: ClipboardCheck }
+			]
+		},
+		{
+			label: 'Dosen',
+			roles: ['lecturer'],
+			items: [
+				{ href: '/lms/grading', label: 'Penilaian', icon: PenTool },
+				{ href: '/lms/students', label: 'Mahasiswa Saya', icon: Users }
+			]
+		}
+	]);
+
+	let openGroups = $state<Record<string, boolean>>({});
+
+	function toggleGroup(label: string) {
+		openGroups = { ...openGroups, [label]: !openGroups[label] };
+	}
 </script>
 
 {#snippet SidebarContent()}
@@ -50,48 +92,84 @@
 		</div>
 		<div class="flex-1 overflow-auto py-2">
 			<nav class="grid items-start gap-1 px-4 text-sm font-medium">
-				{#each navItems as item (item.href)}
-					<a
-						href={item.href}
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							(item.href === '/lms'
-								? page.url.pathname === '/lms'
-								: page.url.pathname.startsWith(item.href)) && 'bg-muted text-primary'
-						)}
-					>
-						<item.icon class="h-4 w-4" />
-						{item.label}
-					</a>
-				{/each}
-
-				<div class="space-y-1">
-					<button
-						onclick={() => (isExamsOpen = !isExamsOpen)}
-						class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-					>
-						<div class="flex items-center gap-3">
-							<FileText class="h-4 w-4" />
-							{m.nav_lms_exams_group()}
-						</div>
-						<ChevronDown class={cn('h-4 w-4 transition-transform', isExamsOpen && 'rotate-180')} />
-					</button>
-					{#if isExamsOpen}
-						<div class="ml-4 flex flex-col gap-1 border-l pl-4">
-							{#each examGroup as item (item.href)}
+				{#each navGroups as group (group.label || 'main')}
+					{@const shouldShow =
+						!group.roles || group.roles.some((r: string) => userRoles.includes(r))}
+					{#if shouldShow}
+						{#if group.label && group.collapsible}
+							<!-- Collapsible group (Exams) -->
+							<div class="space-y-1">
+								<button
+									onclick={() => toggleGroup(group.label || '')}
+									class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+								>
+									<div class="flex items-center gap-3">
+										<FileText class="h-4 w-4" />
+										{group.label}
+									</div>
+									<ChevronDown
+										class={cn(
+											'h-4 w-4 transition-transform',
+											openGroups[group.label || ''] && 'rotate-180'
+										)}
+									/>
+								</button>
+								{#if openGroups[group.label || '']}
+									<div class="ml-4 flex flex-col gap-1 border-l pl-4">
+										{#each group.items as item (item.href)}
+											<a
+												href={item.href}
+												class={cn(
+													'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+													page.url.pathname.startsWith(item.href) && 'text-primary'
+												)}
+											>
+												{item.label}
+											</a>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{:else if group.label}
+							<!-- Non-collapsible labeled group (Dosen) -->
+							<div class="mt-4 mb-2 px-3">
+								<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+									{group.label}
+								</p>
+							</div>
+							{#each group.items as item (item.href)}
 								<a
 									href={item.href}
 									class={cn(
 										'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-										page.url.pathname.startsWith(item.href) && 'text-primary'
+										(item.href === '/lms'
+											? page.url.pathname === '/lms'
+											: page.url.pathname.startsWith(item.href)) && 'bg-muted text-primary'
 									)}
 								>
+									<item.icon class="h-4 w-4" />
 									{item.label}
 								</a>
 							{/each}
-						</div>
+						{:else}
+							<!-- Default group (no label) -->
+							{#each group.items as item (item.href)}
+								<a
+									href={item.href}
+									class={cn(
+										'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+										(item.href === '/lms'
+											? page.url.pathname === '/lms'
+											: page.url.pathname.startsWith(item.href)) && 'bg-muted text-primary'
+									)}
+								>
+									<item.icon class="h-4 w-4" />
+									{item.label}
+								</a>
+							{/each}
+						{/if}
 					{/if}
-				</div>
+				{/each}
 
 				{#if page.data.user?.roles?.includes('admin')}
 					<div class="mt-4 mb-2 px-3">

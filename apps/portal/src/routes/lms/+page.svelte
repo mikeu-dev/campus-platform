@@ -17,7 +17,11 @@
 		LayoutDashboard,
 		MessageSquare,
 		ArrowRight,
-		Megaphone
+		Megaphone,
+		Users,
+		BookOpen,
+		GraduationCap,
+		ChevronRight
 	} from 'lucide-svelte';
 	import {
 		Sheet,
@@ -34,6 +38,9 @@
 	const deadlines = $derived(data.deadlines || []);
 	const stats = $derived(data.stats || {});
 	const user = $derived(data.user);
+	const isLecturer = $derived(data.isLecturer || false);
+	const lecturerProfile = $derived(data.lecturerProfile);
+	const lecturerClasses = $derived(data.lecturerClasses || []);
 
 	let selectedAnnouncement = $state<any>(null);
 	let isAnnouncementOpen = $state(false);
@@ -71,7 +78,12 @@
 				{getGreeting()}, {user?.email?.split('@')[0]}!
 			</h1>
 			<p class="max-w-xl text-lg opacity-90">
-				{m.dashboard_welcome_student()}
+				{#if isLecturer}
+					Selamat datang di Learning Management System. Kelola kelas dan pantau kemajuan mahasiswa
+					Anda.
+				{:else}
+					{m.dashboard_welcome_student()}
+				{/if}
 			</p>
 			<div class="mt-4 flex gap-4">
 				<Button variant="secondary" href="/lms/classes" class="gap-2">
@@ -85,49 +97,135 @@
 		<div class="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-white/5 blur-3xl"></div>
 	</div>
 
-	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-		<!-- Summary Stats -->
-		<Card class="transition-shadow hover:shadow-md">
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">Progress Tugas</CardTitle>
-				<CheckCircle2 class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">
-					{stats?.gradedCount || 0} / {stats?.totalSubmissions || 0}
-				</div>
-				<p class="text-xs text-muted-foreground">Tugas telah dinilai</p>
-				<div class="mt-4 h-2 w-full rounded-full bg-muted">
-					<div
-						class="h-full rounded-full bg-primary"
-						style="width: {(stats?.gradedCount / stats?.totalSubmissions) * 100 || 0}%"
-					></div>
-				</div>
-			</CardContent>
-		</Card>
+	{#if isLecturer}
+		<!-- =================== LECTURER DASHBOARD =================== -->
+		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+			<Card class="transition-shadow hover:shadow-md">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">Total Kelas Aktif</CardTitle>
+					<BookOpen class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">{lecturerClasses.length}</div>
+					<p class="text-xs text-muted-foreground">Semester ini</p>
+				</CardContent>
+			</Card>
 
-		<Card class="transition-shadow hover:shadow-md">
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">Deadline Terdekat</CardTitle>
-				<Clock class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">{deadlines.filter((d: any) => !d.is_submitted).length}</div>
-				<p class="text-xs text-muted-foreground">Tugas belum dikumpulkan</p>
-			</CardContent>
-		</Card>
+			<Card class="transition-shadow hover:shadow-md">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">Total Mahasiswa</CardTitle>
+					<Users class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">
+						{lecturerClasses.reduce((sum: number, c: any) => sum + (c.enrolled_count || 0), 0)}
+					</div>
+					<p class="text-xs text-muted-foreground">Di seluruh kelas Anda</p>
+				</CardContent>
+			</Card>
 
-		<Card class="transition-shadow hover:shadow-md">
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">Aktivitas Forum</CardTitle>
-				<MessageSquare class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">Aktif</div>
-				<p class="text-xs text-muted-foreground">Lihat diskusi terbaru di kelas Anda</p>
-			</CardContent>
-		</Card>
-	</div>
+			<Card class="transition-shadow hover:shadow-md">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">Forum Diskusi</CardTitle>
+					<MessageSquare class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">Aktif</div>
+					<p class="text-xs text-muted-foreground">Diskusi terbaru dari kelas Anda</p>
+				</CardContent>
+			</Card>
+		</div>
+
+		<!-- Lecturer Classes Quick Access -->
+		<div class="space-y-4">
+			<div class="flex items-center justify-between px-2">
+				<h2 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
+					<GraduationCap class="h-6 w-6 text-primary" />
+					Kelas Saya
+				</h2>
+				<Button variant="outline" href="/lms/classes" class="gap-2">
+					Lihat Semua <ChevronRight class="h-4 w-4" />
+				</Button>
+			</div>
+			{#if lecturerClasses.length > 0}
+				<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{#each lecturerClasses.slice(0, 6) as cls (cls.id)}
+						<a
+							href="/lms/classes/{cls.id}"
+							class="block rounded-xl border bg-card p-5 shadow-sm transition-all hover:border-primary hover:shadow-md"
+						>
+							<Badge variant="outline" class="text-[10px] font-bold tracking-wider uppercase">
+								{cls.course_code}
+							</Badge>
+							<h3 class="mt-2 line-clamp-2 text-lg font-semibold">{cls.course_name}</h3>
+							<div class="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+								<span class="flex items-center gap-1">
+									<Calendar class="h-3 w-3" />
+									{cls.day || 'TBA'}
+								</span>
+								<span class="flex items-center gap-1">
+									<Users class="h-3 w-3" />
+									{cls.enrolled_count || 0} mahasiswa
+								</span>
+							</div>
+						</a>
+					{/each}
+				</div>
+			{:else}
+				<div
+					class="flex h-40 items-center justify-center rounded-xl border border-dashed text-muted-foreground"
+				>
+					Belum ada kelas aktif di semester ini
+				</div>
+			{/if}
+		</div>
+	{:else}
+		<!-- =================== STUDENT DASHBOARD =================== -->
+		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+			<Card class="transition-shadow hover:shadow-md">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">Progress Tugas</CardTitle>
+					<CheckCircle2 class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">
+						{stats?.gradedCount || 0} / {stats?.totalSubmissions || 0}
+					</div>
+					<p class="text-xs text-muted-foreground">Tugas telah dinilai</p>
+					<div class="mt-4 h-2 w-full rounded-full bg-muted">
+						<div
+							class="h-full rounded-full bg-primary"
+							style="width: {(stats?.gradedCount / stats?.totalSubmissions) * 100 || 0}%"
+						></div>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card class="transition-shadow hover:shadow-md">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">Deadline Terdekat</CardTitle>
+					<Clock class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">
+						{deadlines.filter((d: any) => !d.is_submitted).length}
+					</div>
+					<p class="text-xs text-muted-foreground">Tugas belum dikumpulkan</p>
+				</CardContent>
+			</Card>
+
+			<Card class="transition-shadow hover:shadow-md">
+				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle class="text-sm font-medium">Aktivitas Forum</CardTitle>
+					<MessageSquare class="h-4 w-4 text-muted-foreground" />
+				</CardHeader>
+				<CardContent>
+					<div class="text-2xl font-bold">Aktif</div>
+					<p class="text-xs text-muted-foreground">Lihat diskusi terbaru di kelas Anda</p>
+				</CardContent>
+			</Card>
+		</div>
+	{/if}
 
 	<div class="grid gap-6 lg:grid-cols-2">
 		<!-- Announcements Section -->
@@ -182,37 +280,76 @@
 		<!-- My Activity Section -->
 		<div class="space-y-4">
 			<div class="flex items-center justify-between px-2">
-				<h2 class="text-2xl font-bold tracking-tight">Aktivitas Saya</h2>
+				<h2 class="text-2xl font-bold tracking-tight">
+					{isLecturer ? 'Jadwal Mengajar Hari Ini' : 'Aktivitas Saya'}
+				</h2>
 			</div>
 
-			<Card>
-				<CardHeader class="pb-3">
-					<CardTitle class="text-lg">Daftar Tugas</CardTitle>
-					<CardDescription>Tugas yang akan datang sesuai tenggat waktu.</CardDescription>
-				</CardHeader>
-				<CardContent class="grid gap-4">
-					{#if deadlines && deadlines.length > 0}
-						{#each deadlines as task (task.id)}
-							<div class="flex items-center justify-between gap-4 rounded-lg border p-3">
-								<div class="flex flex-col gap-1 overflow-hidden">
-									<h4 class="truncate font-medium">{task.title}</h4>
-									<div class="flex items-center gap-2 text-xs text-muted-foreground">
-										<Calendar class="h-3 w-3" />
-										{new Date(task.deadline).toLocaleString('id-ID')}
+			{#if isLecturer}
+				<Card>
+					<CardHeader class="pb-3">
+						<CardTitle class="text-lg">Kelas Hari Ini</CardTitle>
+						<CardDescription>Jadwal mengajar Anda untuk hari ini.</CardDescription>
+					</CardHeader>
+					<CardContent class="grid gap-4">
+						{@const today = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][
+							new Date().getDay()
+						]}
+						{@const todayClasses = lecturerClasses.filter((c: any) => c.day === today)}
+						{#if todayClasses.length > 0}
+							{#each todayClasses as cls (cls.id)}
+								<div class="flex items-center justify-between gap-4 rounded-lg border p-3">
+									<div class="flex flex-col gap-1 overflow-hidden">
+										<h4 class="truncate font-medium">{cls.course_name}</h4>
+										<div class="flex items-center gap-2 text-xs text-muted-foreground">
+											<Clock class="h-3 w-3" />
+											{cls.start_time?.split(':').slice(0, 2).join(':')} - {cls.end_time
+												?.split(':')
+												.slice(0, 2)
+												.join(':')}
+											· {cls.room || 'TBA'}
+										</div>
 									</div>
+									<Badge variant="secondary">{cls.course_code}</Badge>
 								</div>
-								<Badge variant={task.is_submitted ? 'secondary' : 'destructive'}>
-									{task.is_submitted ? 'Selesai' : 'Belum'}
-								</Badge>
-							</div>
-						{/each}
-					{:else}
-						<p class="py-8 text-center text-sm text-muted-foreground italic">
-							Tidak ada tugas mendatang
-						</p>
-					{/if}
-				</CardContent>
-			</Card>
+							{/each}
+						{:else}
+							<p class="py-8 text-center text-sm text-muted-foreground italic">
+								Tidak ada jadwal mengajar hari ini ({today})
+							</p>
+						{/if}
+					</CardContent>
+				</Card>
+			{:else}
+				<Card>
+					<CardHeader class="pb-3">
+						<CardTitle class="text-lg">Daftar Tugas</CardTitle>
+						<CardDescription>Tugas yang akan datang sesuai tenggat waktu.</CardDescription>
+					</CardHeader>
+					<CardContent class="grid gap-4">
+						{#if deadlines && deadlines.length > 0}
+							{#each deadlines as task (task.id)}
+								<div class="flex items-center justify-between gap-4 rounded-lg border p-3">
+									<div class="flex flex-col gap-1 overflow-hidden">
+										<h4 class="truncate font-medium">{task.title}</h4>
+										<div class="flex items-center gap-2 text-xs text-muted-foreground">
+											<Calendar class="h-3 w-3" />
+											{new Date(task.deadline).toLocaleString('id-ID')}
+										</div>
+									</div>
+									<Badge variant={task.is_submitted ? 'secondary' : 'destructive'}>
+										{task.is_submitted ? 'Selesai' : 'Belum'}
+									</Badge>
+								</div>
+							{/each}
+						{:else}
+							<p class="py-8 text-center text-sm text-muted-foreground italic">
+								Tidak ada tugas mendatang
+							</p>
+						{/if}
+					</CardContent>
+				</Card>
+			{/if}
 		</div>
 	</div>
 </div>
