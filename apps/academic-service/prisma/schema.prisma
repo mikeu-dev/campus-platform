@@ -8,7 +8,7 @@ datasource db {
 }
 
 model announcements {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   title      String    @db.VarChar(255)
   content    String
@@ -18,7 +18,7 @@ model announcements {
 }
 
 model attendances {
-  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id      String    @db.Uuid
   class_id       String    @db.Uuid
   student_id     String    @db.Uuid
@@ -32,7 +32,7 @@ model attendances {
 }
 
 model certificate_requests {
-  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id        String    @db.Uuid
   student_id       String    @db.Uuid
   type             String    @db.VarChar(100)
@@ -47,7 +47,7 @@ model certificate_requests {
 }
 
 model class_schedules {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   class_id   String    @db.Uuid
   day        String    @db.VarChar(20)
@@ -60,7 +60,7 @@ model class_schedules {
 }
 
 model classes {
-  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id       String            @db.Uuid
   course_id       String            @db.Uuid
   lecturer_id     String?           @db.Uuid
@@ -79,7 +79,7 @@ model classes {
 }
 
 model courses {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   code       String    @db.VarChar(50)
   name       String    @db.VarChar(255)
@@ -91,7 +91,7 @@ model courses {
 }
 
 model enrollments {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   student_id String    @db.Uuid
   class_id   String    @db.Uuid
@@ -105,7 +105,7 @@ model enrollments {
 }
 
 model exams {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   class_id   String    @db.Uuid
   type       String    @db.VarChar(20)
@@ -118,7 +118,7 @@ model exams {
 }
 
 model financial_bills {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   student_id String    @db.Uuid
   title      String    @db.VarChar(255)
@@ -130,7 +130,7 @@ model financial_bills {
 }
 
 model grades {
-  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id     String      @db.Uuid
   enrollment_id String      @db.Uuid
   grade         String?     @db.VarChar(5)
@@ -140,7 +140,7 @@ model grades {
 }
 
 model lecturers {
-  id                       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id                String    @db.Uuid
   user_id                  String    @db.Uuid
   platform_lecturer_number String?   @db.VarChar(50)
@@ -153,7 +153,7 @@ model lecturers {
 }
 
 model research_proposals {
-  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id            String    @db.Uuid
   student_id           String    @db.Uuid
   title                String
@@ -166,7 +166,7 @@ model research_proposals {
 }
 
 model student_profiles {
-  id                    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id             String    @db.Uuid
   student_id            String    @unique @db.Uuid
   gender                String?   @db.VarChar(20)
@@ -231,7 +231,7 @@ model student_profiles {
 }
 
 model students {
-  id                      String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id               String                 @db.Uuid
   user_id                 String                 @db.Uuid
   platform_student_number String?                @db.VarChar(50)

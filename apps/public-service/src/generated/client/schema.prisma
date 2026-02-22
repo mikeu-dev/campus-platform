@@ -8,7 +8,7 @@ datasource db {
 }
 
 model public_agendas {
-  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String    @db.Uuid
   title       String    @db.VarChar(255)
   description String?
@@ -21,7 +21,7 @@ model public_agendas {
 }
 
 model public_links {
-  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String    @db.Uuid
   title       String    @db.VarChar(255)
   url         String
@@ -32,7 +32,7 @@ model public_links {
 }
 
 model public_pages {
-  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String    @db.Uuid
   title       String    @db.VarChar(255)
   slug        String    @db.VarChar(255)
@@ -47,7 +47,7 @@ model public_pages {
 }
 
 model public_posts {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   title      String    @db.VarChar(255)
   slug       String    @db.VarChar(255)
@@ -63,7 +63,7 @@ model public_posts {
 }
 
 model public_settings {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   key        String    @db.VarChar(100)
   value      String?
@@ -75,7 +75,7 @@ model public_settings {
 }
 
 model public_sliders {
-  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String    @db.Uuid
   title       String?   @db.VarChar(255)
   description String?
@@ -87,7 +87,7 @@ model public_sliders {
 }
 
 model public_videos {
-  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id   String    @db.Uuid
   title       String?   @db.VarChar(255)
   youtube_id  String    @db.VarChar(50)
@@ -98,7 +98,7 @@ model public_videos {
 }
 
 model public_visitors {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id  String    @db.Uuid
   ip_address String?   @db.VarChar(45)
   user_agent String?
