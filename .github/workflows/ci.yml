@@ -29,6 +29,12 @@ jobs:
             run:
                 working-directory: apps/identity-service
 
+        env:
+            DATABASE_URL: postgres://postgres:postgrespassword@localhost:5435/campus_identity_db
+            DIRECT_URL: postgres://postgres:postgrespassword@localhost:5435/campus_identity_db
+            JWT_SECRET: test-jwt-secret-for-ci
+            NODE_ENV: test
+
         steps:
             - uses: actions/checkout@v4
 
@@ -52,15 +58,9 @@ jobs:
             - name: Run database migrations
               run: |
                   PGPASSWORD=postgrespassword psql -h localhost -p 5435 -U postgres -d campus_identity_db -f ../../infra/db/init/01_identity_schema.sql
-              env:
-                  DATABASE_URL: postgres://postgres:postgrespassword@localhost:5435/campus_identity_db
 
             - name: Run tests
               run: npm test
-              env:
-                  DATABASE_URL: postgres://postgres:postgrespassword@localhost:5435/campus_identity_db
-                  JWT_SECRET: test-jwt-secret-for-ci
-                  NODE_ENV: test
 
     test-academic-service:
         runs-on: ubuntu-latest
@@ -85,6 +85,7 @@ jobs:
 
         env:
             DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_academic_db
+            DIRECT_URL: postgres://postgres:postgrespassword@localhost:5432/campus_academic_db
             JWT_SECRET: test-secret-key-123
 
         steps:
@@ -137,6 +138,7 @@ jobs:
 
         env:
             DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_admission_db
+            DIRECT_URL: postgres://postgres:postgrespassword@localhost:5432/campus_admission_db
             JWT_SECRET: test-secret-key-123
 
         steps:
@@ -189,6 +191,7 @@ jobs:
 
         env:
             DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_learning_db
+            DIRECT_URL: postgres://postgres:postgrespassword@localhost:5432/campus_learning_db
             JWT_SECRET: test-secret-key-123
 
         steps:
@@ -241,6 +244,7 @@ jobs:
 
         env:
             DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/campus_public_db
+            DIRECT_URL: postgres://postgres:postgrespassword@localhost:5432/campus_public_db
             JWT_SECRET: test-secret-key-123
 
         steps:
