@@ -45,8 +45,8 @@ describe('Class Management API', () => {
                 {
                     id: 'cl1',
                     semester: '2023-1',
-                    course: { name: 'Intro to CS' },
-                    lecturer: { name: 'Dr. John' }
+                    courses: { name: 'Intro to CS', code: 'CS100', credits: 3 },
+                    lecturers: { name: 'Dr. John' }
                 }
             ]);
             prisma.classes.count.mockResolvedValue(1);

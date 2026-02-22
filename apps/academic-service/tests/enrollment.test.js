@@ -52,8 +52,8 @@ describe('Enrollment Management API', () => {
             prisma.classes.findMany.mockResolvedValue([
                 {
                     id: 'cl1', semester: 'GANJIL', year: 2023,
-                    course: { name: 'CS101', code: 'CS101', credits: 3 },
-                    lecturer: { name: 'Dr. John' }
+                    courses: { name: 'CS101', code: 'CS101', credits: 3 },
+                    lecturers: { name: 'Dr. John' }
                 }
             ]);
 
@@ -109,8 +109,9 @@ describe('Enrollment Management API', () => {
             prisma.enrollments.findMany.mockResolvedValue([
                 {
                     id: 'e1',
-                    class: {
-                        course: { name: 'CS101' }
+                    classes: {
+                        courses: { name: 'CS101', code: 'CS101', credits: 3 },
+                        class_schedules: []
                     }
                 }
             ]);
