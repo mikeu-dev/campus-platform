@@ -27,14 +27,35 @@
 	const navGroups = [
 		{
 			items: [
-				{ href: '/siakad', label: m.siakad_dashboard_title(), icon: LayoutDashboard },
-				{ href: '/siakad/schedule', label: m.siakad_schedule_title(), icon: Calendar },
-				{ href: '/siakad/grades', label: m.siakad_grades_title(), icon: GraduationCap },
-				{ href: '/siakad/certificates', label: m.siakad_certificates_title(), icon: MessageSquare }
+				{
+					href: '/siakad',
+					label: m.siakad_dashboard_title(),
+					icon: LayoutDashboard,
+					roles: ['student', 'lecturer']
+				},
+				{
+					href: '/siakad/schedule',
+					label: m.siakad_schedule_title(),
+					icon: Calendar,
+					roles: ['student']
+				},
+				{
+					href: '/siakad/grades',
+					label: m.siakad_grades_title(),
+					icon: GraduationCap,
+					roles: ['student']
+				},
+				{
+					href: '/siakad/certificates',
+					label: m.siakad_certificates_title(),
+					icon: MessageSquare,
+					roles: ['student']
+				}
 			]
 		},
 		{
 			label: m.siakad_academic_group(),
+			roles: ['student'],
 			items: [
 				{ href: '/siakad/enrollment', label: m.siakad_enrollment_title(), icon: BookOpen },
 				{ href: '/siakad/krs/history', label: m.siakad_krs_history_title(), icon: BookOpen },
@@ -43,6 +64,7 @@
 		},
 		{
 			label: m.siakad_research_group(),
+			roles: ['student'],
 			items: [
 				{
 					href: '/siakad/research/proposal',
@@ -55,8 +77,20 @@
 					icon: BookOpen
 				}
 			]
+		},
+		{
+			label: m.nav_section_lecturer(),
+			roles: ['lecturer'],
+			items: [{ href: '/siakad/teaching', label: m.nav_teaching(), icon: BookOpen }]
+		},
+		{
+			label: 'Administrator',
+			roles: ['admin'],
+			items: [{ href: '/panel', label: 'Admin Panel', icon: LayoutDashboard }]
 		}
 	];
+
+	const userRoles = $derived(page.data.user?.roles || []);
 </script>
 
 {#snippet SidebarContent()}
@@ -68,61 +102,37 @@
 		</div>
 		<div class="flex-1 overflow-auto py-2">
 			<nav class="grid items-start px-4 text-sm font-medium">
-				{#each navGroups as group, i (i)}
-					{#if group.label}
-						<div class="mt-4 mb-2 px-3">
-							<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-								{group.label}
-							</p>
-						</div>
+				{#each navGroups as group (group.label || 'main')}
+					{@const filteredItems = group.items.filter((item) => {
+						if (!item.roles) return !group.roles || group.roles.some((r) => userRoles.includes(r));
+						return item.roles.some((r) => userRoles.includes(r));
+					})}
+
+					{#if filteredItems.length > 0}
+						{#if group.label}
+							<div class="mt-4 mb-2 px-3">
+								<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+									{group.label}
+								</p>
+							</div>
+						{/if}
+
+						{#each filteredItems as item (item.href)}
+							<a
+								href={item.href}
+								class={cn(
+									'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+									(page.url.pathname === item.href ||
+										(item.href !== '/siakad' && page.url.pathname.startsWith(item.href))) &&
+										'bg-muted text-primary'
+								)}
+							>
+								<item.icon class="h-4 w-4" />
+								{item.label}
+							</a>
+						{/each}
 					{/if}
-
-					{#each group.items as item (item.href)}
-						<a
-							href={item.href}
-							class={cn(
-								'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-								page.url.pathname === item.href && 'bg-muted text-primary'
-							)}
-						>
-							<item.icon class="h-4 w-4" />
-							{item.label}
-						</a>
-					{/each}
 				{/each}
-
-				{#if page.data.user?.roles?.includes('lecturer')}
-					<div class="mt-4 mb-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							{m.nav_section_lecturer()}
-						</p>
-					</div>
-					<a
-						href="/siakad/teaching"
-						class={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-							page.url.pathname.includes('/teaching') && 'bg-muted text-primary'
-						)}
-					>
-						<BookOpen class="h-4 w-4" />
-						{m.nav_teaching()}
-					</a>
-				{/if}
-
-				{#if page.data.user?.roles?.includes('admin')}
-					<div class="mt-4 mb-2 px-3">
-						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-							Administrator
-						</p>
-					</div>
-					<a
-						href="/panel"
-						class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-					>
-						<LayoutDashboard class="h-4 w-4" />
-						Admin Panel
-					</a>
-				{/if}
 			</nav>
 		</div>
 		<div class="mt-auto p-4">
