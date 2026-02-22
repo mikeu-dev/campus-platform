@@ -41,6 +41,19 @@ class AgendaController {
         } catch (err) { next(err); }
     }
 
+    async getById(req, res, next) {
+        try {
+            const { tenantId, id } = req.params;
+            const result = await prisma.public_agendas.findFirst({
+                where: { id, tenant_id: tenantId, is_active: true }
+            });
+            if (!result) {
+                return res.status(404).json({ status: 'fail', message: 'Agenda not found' });
+            }
+            res.json({ status: 'success', data: result });
+        } catch (err) { next(err); }
+    }
+
     async create(req, res, next) {
         try {
             const data = agendaSchema.parse(req.body);
