@@ -7,12 +7,28 @@ import { join } from 'node:path';
 export const load = async ({ locals, depends }) => {
 	depends('app:profile');
 	const token = locals.token;
+	const roles = locals.user?.roles || [];
+	const isLecturer = roles.includes('lecturer');
+
 	try {
+		if (isLecturer) {
+			// Fetch lecturer profile
+			const response = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/lecturers/me`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+			return {
+				profile: response.data.data,
+				isLecturer: true
+			};
+		}
+
+		// Fetch student profile
 		const response = await axios.get(`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		return {
-			profile: response.data.data
+			profile: response.data.data,
+			isLecturer: false
 		};
 	} catch (e: any) {
 		if (e.response?.status === 401) {
@@ -20,7 +36,8 @@ export const load = async ({ locals, depends }) => {
 		}
 		console.error('Failed to load profile:', e.response?.data || e.message);
 		return {
-			profile: {} // Fail gracefully or show error
+			profile: {},
+			isLecturer
 		};
 	}
 };
@@ -41,18 +58,28 @@ export const actions = {
 			const buffer = Buffer.from(arrayBuffer);
 			const fileName = `${Date.now()}-${photo.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
 			const uploadDir = 'static/uploads';
-			const filePath = join(process.cwd(), uploadDir, fileName); // Ensure process.cwd() is root of app
+			const filePath = join(process.cwd(), uploadDir, fileName);
 
 			await writeFile(filePath, buffer);
 
 			const photoUrl = `/uploads/${fileName}`;
 
-			// Update profile with photo_url
-			await axios.put(
-				`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`,
-				{ photo_url: photoUrl },
-				{ headers: { Authorization: `Bearer ${token}` } }
-			);
+			const roles = locals.user?.roles || [];
+			const isLecturer = roles.includes('lecturer');
+
+			if (isLecturer) {
+				await axios.put(
+					`${PUBLIC_ACADEMIC_API_URL}/lecturers/me`,
+					{ photo_url: photoUrl },
+					{ headers: { Authorization: `Bearer ${token}` } }
+				);
+			} else {
+				await axios.put(
+					`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`,
+					{ photo_url: photoUrl },
+					{ headers: { Authorization: `Bearer ${token}` } }
+				);
+			}
 
 			return { success: true };
 		} catch (err: any) {
@@ -75,10 +102,19 @@ export const actions = {
 			}
 		}
 
+		const roles = locals.user?.roles || [];
+		const isLecturer = roles.includes('lecturer');
+
 		try {
-			await axios.put(`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`, data, {
-				headers: { Authorization: `Bearer ${token}` }
-			});
+			if (isLecturer) {
+				await axios.put(`${PUBLIC_ACADEMIC_API_URL}/lecturers/me`, data, {
+					headers: { Authorization: `Bearer ${token}` }
+				});
+			} else {
+				await axios.put(`${PUBLIC_ACADEMIC_API_URL}/students/me/profile`, data, {
+					headers: { Authorization: `Bearer ${token}` }
+				});
+			}
 			return { success: true };
 		} catch (error: any) {
 			console.error('Failed to update profile:', error.response?.data || error.message);

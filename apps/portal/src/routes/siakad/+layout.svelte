@@ -8,7 +8,8 @@
 		Menu,
 		MessageSquare,
 		Calendar,
-		Users
+		Users,
+		UserCircle
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -64,6 +65,12 @@
 					label: m.siakad_certificates_title(),
 					icon: MessageSquare,
 					roles: ['student']
+				},
+				{
+					href: '/siakad/profile',
+					label: 'Profil',
+					icon: UserCircle,
+					roles: ['student', 'lecturer']
 				}
 			]
 		},
@@ -98,7 +105,8 @@
 			items: [
 				{ href: '/siakad/teaching', label: m.nav_teaching(), icon: BookOpen },
 				{ href: '/siakad/advising', label: m.nav_advising(), icon: Users },
-				{ href: '/siakad/research-service', label: m.nav_research_service(), icon: BookOpen }
+				{ href: '/siakad/research-service', label: m.nav_research_service(), icon: BookOpen },
+				{ href: '/siakad/profile', label: 'Profil Dosen', icon: UserCircle }
 			]
 		},
 		{
