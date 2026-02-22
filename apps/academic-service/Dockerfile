@@ -1,5 +1,5 @@
 # Dockerfile for Academic Service
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ WORKDIR /app
 COPY apps/academic-service ./apps/academic-service
 
 # Production image
-FROM node:18-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 COPY --from=builder /app ./

@@ -1,5 +1,5 @@
 # Dockerfile for Learning Service
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ WORKDIR /app
 COPY apps/learning-service ./apps/learning-service
 
 # Production image
-FROM node:18-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 COPY --from=builder /app ./

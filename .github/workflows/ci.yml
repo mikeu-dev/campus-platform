@@ -93,7 +93,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "22"
                   cache: "npm"
                   cache-dependency-path: apps/academic-service/package-lock.json
 
@@ -145,7 +145,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "22"
                   cache: "npm"
                   cache-dependency-path: apps/admission-service/package-lock.json
 
@@ -197,7 +197,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "22"
                   cache: "npm"
                   cache-dependency-path: apps/learning-service/package-lock.json
 
@@ -249,7 +249,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
+                  node-version: "22"
                   cache: "npm"
                   cache-dependency-path: apps/public-service/package-lock.json
 
