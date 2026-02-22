@@ -759,7 +759,7 @@ class AcademicController {
             const proposals = await prisma.research_proposals.findMany({
                 where: {
                     tenant_id: tenantId,
-                    student: { user_id: userId }
+                    students: { user_id: userId }
                 },
                 orderBy: { created_at: 'desc' }
             });
