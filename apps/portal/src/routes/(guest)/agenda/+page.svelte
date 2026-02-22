@@ -52,7 +52,7 @@
 		<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 			{#if agendas.length > 0}
 				<div class="space-y-4">
-					{#each agendas as agenda}
+					{#each agendas as agenda (agenda.id)}
 						<a
 							href="/agenda/{agenda.id}"
 							class="group flex gap-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg"

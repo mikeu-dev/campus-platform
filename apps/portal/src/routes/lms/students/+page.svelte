@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Users, Search, GraduationCap, BookOpen, TrendingUp } from 'lucide-svelte';
+	import { Users, Search, BookOpen, TrendingUp } from 'lucide-svelte';
 	import { Badge } from '$lib/components/ui/badge';
 
 	let searchQuery = $state('');

@@ -37,7 +37,7 @@
 		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 			{#if posts.length > 0}
 				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-					{#each posts as post}
+					{#each posts as post (post.id)}
 						<a
 							href="/posts/{post.slug}"
 							class="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"

@@ -10,11 +10,9 @@
 		FileText,
 		ClipboardCheck,
 		ChevronDown,
-		BookOpen,
 		Users,
 		PenTool,
 		UserCircle,
-		Settings,
 		ChevronsUpDown
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
@@ -33,7 +31,6 @@
 
 	/* Role detection */
 	const userRoles: string[] = $derived(page.data.user?.roles || []);
-	const isLecturer: boolean = $derived(userRoles.includes('lecturer'));
 
 	/* Navigation Items */
 	interface NavItem {

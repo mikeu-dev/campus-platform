@@ -39,7 +39,7 @@
 	const stats = $derived(data.stats || {});
 	const user = $derived(data.user);
 	const isLecturer = $derived(data.isLecturer || false);
-	const lecturerProfile = $derived(data.lecturerProfile);
+	const _lecturerProfile = $derived(data.lecturerProfile);
 	const lecturerClasses = $derived(data.lecturerClasses || []);
 
 	let selectedAnnouncement = $state<any>(null);

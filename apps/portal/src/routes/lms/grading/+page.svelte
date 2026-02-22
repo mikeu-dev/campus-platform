@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PenTool, Search, CheckCircle2, Clock, AlertCircle } from 'lucide-svelte';
+	import { Search, CheckCircle2, Clock, AlertCircle } from 'lucide-svelte';
 	import { Badge } from '$lib/components/ui/badge';
 
 	let searchQuery = $state('');

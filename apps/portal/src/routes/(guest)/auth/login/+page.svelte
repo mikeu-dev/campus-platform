@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { GraduationCap, Mail, Lock, LogIn, ShieldCheck, Settings } from 'lucide-svelte';
+	import { Mail, Lock, LogIn, ShieldCheck, Settings } from 'lucide-svelte';
 	import type { ActionData } from './$types';
 	import * as m from '$lib/paraglide/messages.js';
 
