@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { GraduationCap, Mail, Lock, LogIn } from 'lucide-svelte';
+	import { GraduationCap, Mail, Lock, LogIn, ShieldCheck, Settings } from 'lucide-svelte';
 	import type { ActionData } from './$types';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -12,36 +12,40 @@
 	let isLoading = $state(false);
 </script>
 
-<div class="gradient-bg flex min-h-screen items-center justify-center p-4">
-	<!-- Floating shapes for visual interest -->
-	<div class="pointer-events-none absolute inset-0 overflow-hidden">
+<div class="flex min-h-screen items-center justify-center bg-slate-950 p-4">
+	<!-- Subtle professional background effect -->
+	<div class="pointer-events-none absolute inset-0 overflow-hidden opacity-20">
+		<div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl"></div>
 		<div
-			class="animate-blob absolute -top-40 -left-40 h-80 w-80 rounded-full bg-purple-300 opacity-30 mix-blend-multiply blur-xl"
-		></div>
-		<div
-			class="animate-blob animation-delay-2000 absolute -right-40 -bottom-40 h-80 w-80 rounded-full bg-yellow-300 opacity-30 mix-blend-multiply blur-xl"
-		></div>
-		<div
-			class="animate-blob animation-delay-4000 absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-300 opacity-30 mix-blend-multiply blur-xl"
+			class="absolute -right-24 -bottom-24 h-96 w-96 rounded-full bg-slate-500/10 blur-3xl"
 		></div>
 	</div>
 
 	<!-- Login Card -->
-	<div class="glass-card relative z-10 w-full max-w-md rounded-2xl p-8 shadow-2xl">
+	<div
+		class="shadow-3xl relative z-10 w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-10 shadow-indigo-500/10"
+	>
 		<!-- Logo & Header -->
-		<div class="mb-8 text-center">
+		<div class="mb-10 text-center">
 			<div
-				class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 shadow-lg"
+				class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-indigo-700 shadow-xl ring-4 ring-slate-800"
 			>
-				<GraduationCap class="h-8 w-8 text-white" />
+				<ShieldCheck class="h-10 w-10 text-white" />
 			</div>
-			<h1 class="text-2xl font-bold text-gray-900">
-				{m.auth_welcome_title()}<span
-					class="bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
-					>App</span
+			<div class="space-y-1">
+				<h1 class="text-3xl font-extrabold tracking-tight text-white">
+					Panel <span class="text-indigo-400">Pengelola</span>
+				</h1>
+				<p class="text-sm font-medium text-slate-400">AMIK-YPAT PURWAKARTA</p>
+			</div>
+			<div class="mt-4 flex justify-center">
+				<span
+					class="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-[10px] font-bold tracking-widest text-indigo-400 uppercase ring-1 ring-indigo-500/50"
 				>
-			</h1>
-			<p class="mt-2 text-sm text-gray-500">{m.auth_welcome_subtitle()}</p>
+					<Settings class="h-3 w-3" />
+					Administrative Access
+				</span>
+			</div>
 		</div>
 
 		<!-- Error Message -->
@@ -70,16 +74,16 @@
 					isLoading = false;
 				};
 			}}
-			class="space-y-5"
+			class="space-y-6"
 		>
 			<!-- Email Input -->
-			<div class="relative">
-				<label for="email" class="mb-1.5 block text-sm font-medium text-gray-700"
+			<div class="space-y-2">
+				<label for="email" class="text-xs font-bold tracking-wider text-slate-400 uppercase"
 					>{m.auth_email_label()}</label
 				>
 				<div class="relative">
-					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-						<Mail class="h-5 w-5 text-gray-400" />
+					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+						<Mail class="h-5 w-5 text-slate-500" />
 					</div>
 					<input
 						id="email"
@@ -87,20 +91,20 @@
 						type="email"
 						autocomplete="email"
 						required
-						placeholder="you@university.edu"
-						class="input-modern w-full rounded-xl py-3 pr-4 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none"
+						placeholder="admin@ypat.ac.id"
+						class="w-full rounded-xl border-2 border-slate-800 bg-slate-950/50 py-3.5 pr-4 pl-11 text-white placeholder-slate-600 transition-all outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 					/>
 				</div>
 			</div>
 
 			<!-- Password Input -->
-			<div class="relative">
-				<label for="password" class="mb-1.5 block text-sm font-medium text-gray-700"
+			<div class="space-y-2">
+				<label for="password" class="text-xs font-bold tracking-wider text-slate-400 uppercase"
 					>{m.auth_password_label()}</label
 				>
 				<div class="relative">
-					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-						<Lock class="h-5 w-5 text-gray-400" />
+					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+						<Lock class="h-5 w-5 text-slate-500" />
 					</div>
 					<input
 						id="password"
@@ -109,7 +113,7 @@
 						autocomplete="current-password"
 						required
 						placeholder="••••••••"
-						class="input-modern w-full rounded-xl py-3 pr-4 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none"
+						class="w-full rounded-xl border-2 border-slate-800 bg-slate-950/50 py-3.5 pr-4 pl-11 text-white placeholder-slate-600 transition-all outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 					/>
 				</div>
 			</div>
@@ -118,7 +122,7 @@
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="btn-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+				class="flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-indigo-500 hover:shadow-indigo-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
 			>
 				{#if isLoading}
 					<svg class="mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -139,34 +143,10 @@
 		</form>
 
 		<!-- Footer -->
-		<div class="mt-8 text-center">
-			<p class="text-xs text-gray-500">
-				{m.auth_footer()}
+		<div class="mt-10 border-t border-slate-800 pt-6 text-center">
+			<p class="text-[10px] font-medium tracking-widest text-slate-500 uppercase">
+				&copy; 2026 AMIK-YPAT • Secure Administration Portal
 			</p>
 		</div>
 	</div>
 </div>
-
-<style>
-	@keyframes blob {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
-		}
-		33% {
-			transform: translate(30px, -50px) scale(1.1);
-		}
-		66% {
-			transform: translate(-20px, 20px) scale(0.9);
-		}
-	}
-	.animate-blob {
-		animation: blob 7s infinite;
-	}
-	.animation-delay-2000 {
-		animation-delay: 2s;
-	}
-	.animation-delay-4000 {
-		animation-delay: 4s;
-	}
-</style>
