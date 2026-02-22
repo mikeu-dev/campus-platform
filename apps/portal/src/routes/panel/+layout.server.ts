@@ -6,6 +6,11 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		throw redirect(302, '/login');
 	}
 
+	// Enforce admin role for /panel routes
+	if (!locals.user.roles || !locals.user.roles.includes('admin')) {
+		throw redirect(302, '/siakad'); // Redirect non-admins to student dashboard
+	}
+
 	return {
 		user: locals.user,
 		token: locals.token

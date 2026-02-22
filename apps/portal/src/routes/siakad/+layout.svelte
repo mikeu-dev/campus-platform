@@ -108,6 +108,21 @@
 						{m.nav_teaching()}
 					</a>
 				{/if}
+
+				{#if page.data.user?.roles?.includes('admin')}
+					<div class="mt-4 mb-2 px-3">
+						<p class="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							Administrator
+						</p>
+					</div>
+					<a
+						href="/panel"
+						class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+					>
+						<LayoutDashboard class="h-4 w-4" />
+						Admin Panel
+					</a>
+				{/if}
 			</nav>
 		</div>
 		<div class="mt-auto p-4">
