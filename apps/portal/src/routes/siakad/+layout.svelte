@@ -66,12 +66,6 @@
 					label: m.siakad_certificates_title(),
 					icon: MessageSquare,
 					roles: ['student']
-				},
-				{
-					href: '/siakad/profile',
-					label: 'Profil',
-					icon: UserCircle,
-					roles: ['student', 'lecturer']
 				}
 			]
 		},
