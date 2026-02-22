@@ -8,8 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Check if lecturer
 	if (!user?.roles.includes('lecturer')) {
-		// Redirect or show access denied? For now, let's just show empty or distinct message in UI.
-		// Ideally prompt to register as lecturer profile?
+		throw redirect(302, '/siakad');
 	}
 
 	let classes = [];
