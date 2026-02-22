@@ -17,9 +17,11 @@ This project is a **Monorepo** managed by NPM Workspaces, consisting of a main w
         *   **Landing Page** (`/`): Professional university company profile.
 
 2.  **Services** (Backend)
-    *   `academic-service`: Handles academic logic.
+    *   `academic-service`: Handles academic logic (classes, enrollments, attendance).
     *   `identity-service`: Handles authentication & user management.
-    *   `learning-service`: Handles LMS logic.
+    *   `learning-service`: Handles LMS logic (modules, quizzes, assignments).
+    *   `admission-service`: Handles PMB/student admission registration.
+    *   `public-service`: Handles public-facing data (landing page content).
 
 ### Packages (`/packages`)
 *   **Shared Types (`@campus-platform/shared-types`)**:
@@ -30,7 +32,7 @@ This project is a **Monorepo** managed by NPM Workspaces, consisting of a main w
 ## Getting Started
 
 ### Prerequisites
-*   Node.js 20+
+*   **Node.js**: Minimum `v20.19.0` (Recommended `v22.x` LTS). Prisma and AWS SDK require specific Node engine compatibility.
 *   NPM 10+
 *   Docker (for infra)
 
@@ -65,10 +67,12 @@ This project is a **Monorepo** managed by NPM Workspaces, consisting of a main w
 ```graphql
 campus-platform/
 ├── apps/
-│   ├── portal/          # Main SvelteKit Frontend
-│   ├── academic-service/
-│   ├── identity-service/
-│   └── learning-service/
+│   ├── portal/            # Main SvelteKit Frontend
+│   ├── academic-service/  # Express Microservice
+│   ├── identity-service/  # Express Microservice
+│   ├── learning-service/  # Express Microservice
+│   ├── admission-service/ # Express Microservice
+│   └── public-service/    # Express Microservice
 ├── packages/
 │   └── shared-types/    # Shared TypeScript Definitions
 ├── docs/                # Architecture & Boundaries documentation
