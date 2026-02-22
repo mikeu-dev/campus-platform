@@ -165,7 +165,7 @@ class ApplicantController {
 
                     // 2. Create Academic Student Profile
                     if (newUser && newUser.id) {
-                        await axios.post(`${ACADEMIC_API}/api/students`, {
+                        await axios.post(`${ACADEMIC_API}/api/v1/students`, {
                             user_id: newUser.id,
                             name: applicant.full_name,
                             student_number: applicant.registration_number // Use reg number as temp student number
