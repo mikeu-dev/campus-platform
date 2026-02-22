@@ -7,7 +7,8 @@
 		GraduationCap,
 		Menu,
 		MessageSquare,
-		Calendar
+		Calendar,
+		Users
 	} from 'lucide-svelte';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -24,7 +25,20 @@
 	let { children, data }: Props = $props();
 
 	/* Navigation Config */
-	const navGroups = [
+	interface NavItem {
+		href: string;
+		label: string;
+		icon: any;
+		roles?: string[];
+	}
+
+	interface NavGroup {
+		label?: string;
+		roles?: string[];
+		items: NavItem[];
+	}
+
+	const navGroups: NavGroup[] = [
 		{
 			items: [
 				{
@@ -107,9 +121,10 @@
 		<div class="flex-1 overflow-auto py-2">
 			<nav class="grid items-start px-4 text-sm font-medium">
 				{#each navGroups as group (group.label || 'main')}
-					{@const filteredItems = group.items.filter((item) => {
-						if (!item.roles) return !group.roles || group.roles.some((r) => userRoles.includes(r));
-						return item.roles.some((r) => userRoles.includes(r));
+					{@const filteredItems = group.items.filter((item: NavItem) => {
+						if (!item.roles)
+							return !group.roles || group.roles.some((r: string) => userRoles.includes(r));
+						return item.roles.some((r: string) => userRoles.includes(r));
 					})}
 
 					{#if filteredItems.length > 0}
