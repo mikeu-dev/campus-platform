@@ -18,7 +18,7 @@ export const load = async ({ locals, params, depends }) => {
 		};
 	} catch (e: any) {
 		if (e.response?.status === 401) {
-			throw redirect(302, '/login');
+			throw redirect(302, '/auth/login');
 		}
 		console.error('Failed to load student profile:', e.response?.data || e.message);
 		return {
