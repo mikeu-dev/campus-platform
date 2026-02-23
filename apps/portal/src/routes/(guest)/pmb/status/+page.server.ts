@@ -11,8 +11,8 @@ export const load = async ({ url }: any) => {
 
 	if (registrationNumber) {
 		try {
-			const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/public/pmb/status`, {
-				params: { registration_number: registrationNumber, email }
+			const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/status/${registrationNumber}`, {
+				params: { email }
 			});
 			applicant = res.data.data;
 		} catch (_error: any) {
@@ -36,7 +36,7 @@ export const actions = {
 		const fileUrl = 'https://placehold.co/600x400/png?text=Simulated+Document';
 
 		try {
-			await axios.post(`${PUBLIC_ADMISSION_API_URL}/public/pmb/upload`, {
+			await axios.post(`${PUBLIC_ADMISSION_API_URL}/documents`, {
 				applicant_id: applicantId,
 				document_type: documentType,
 				file_url: fileUrl

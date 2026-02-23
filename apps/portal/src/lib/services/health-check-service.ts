@@ -26,7 +26,9 @@ export async function checkHealth(url: string): Promise<{ status: 'up' | 'down';
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-        const response = await fetch(`${url}/health`, {
+        const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+        const rootUrl = cleanUrl.replace(/\/api\/v1$/, '');
+        const response = await fetch(`${rootUrl}/health`, {
             signal: controller.signal,
             headers: { 'Accept': 'application/json' }
         });

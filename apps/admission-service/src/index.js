@@ -19,8 +19,8 @@ app.use(express.json());
 const { verifyToken, isAdmin } = require('./middlewares/auth.middleware');
 
 // Routes
-app.use('/api/v1/public/pmb', publicRoutes);
-app.use('/api/v1/admin/pmb', verifyToken, isAdmin, adminRoutes);
+app.use('/api/v1', publicRoutes);
+app.use('/api/v1/admin', verifyToken, isAdmin, adminRoutes);
 
 // Health Check
 app.get('/health', async (req, res) => {

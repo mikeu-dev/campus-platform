@@ -37,8 +37,8 @@ app.get('/health', async (req, res) => {
 const publicRoutes = require('./routes/public.routes');
 const adminRoutes = require('./routes/admin.routes');
 
-app.use('/api/v1/public', publicRoutes);
-app.use('/api/v1/admin/public', adminRoutes);
+app.use('/api/v1', publicRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

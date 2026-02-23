@@ -25,9 +25,9 @@ export const load = async ({ fetch }) => {
 	try {
 		const base = PUBLIC_PUBLIC_API_URL;
 		const [settingsRes, pagesRes, linksRes] = await Promise.allSettled([
-			fetchWithTimeout(`${base}/public/${tenantId}/settings`),
-			fetchWithTimeout(`${base}/public/${tenantId}/pages`),
-			fetchWithTimeout(`${base}/public/${tenantId}/links`)
+			fetchWithTimeout(`${base}/${tenantId}/settings`),
+			fetchWithTimeout(`${base}/${tenantId}/pages`),
+			fetchWithTimeout(`${base}/${tenantId}/links`)
 		]);
 
 		if (settingsRes.status === 'fulfilled' && settingsRes.value.ok) {

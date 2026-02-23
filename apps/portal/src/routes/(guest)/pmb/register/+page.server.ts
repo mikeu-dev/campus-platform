@@ -11,11 +11,11 @@ export const load = async () => {
 
 	try {
 		const periodsRes = await axios.get(
-			`${PUBLIC_ADMISSION_API_URL}/public/pmb/${tenantId}/periods`
+			`${PUBLIC_ADMISSION_API_URL}/${tenantId}/periods`
 		);
 		periods = periodsRes.data.data.filter((p: any) => p.is_active);
 
-		const prodisRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/public/pmb/${tenantId}/prodis`);
+		const prodisRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/${tenantId}/prodis`);
 		prodis = prodisRes.data.data;
 	} catch (error: any) {
 		console.error('Registration data load error:', error.response?.data || error.message);
@@ -53,7 +53,7 @@ export const actions = {
 
 		try {
 			const res = await axios.post(
-				`${PUBLIC_ADMISSION_API_URL}/public/pmb/register`,
+				`${PUBLIC_ADMISSION_API_URL}/register`,
 				registrationData
 			);
 			const applicant = res.data.data;
