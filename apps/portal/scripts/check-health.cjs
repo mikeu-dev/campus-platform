@@ -18,8 +18,9 @@ const SERVICES = [
 const TIMEOUT = 10000;
 
 async function checkUrl(name, baseUrl) {
-    // Normalize URL and ensure it doesn't end with a slash before adding /health
-    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    // Normalize URL: strip trailing slash and /api/v1 if present for the root health check
+    let cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    cleanBaseUrl = cleanBaseUrl.replace(/\/api\/v1$/, '');
     const url = `${cleanBaseUrl}/health`;
 
     return new Promise((resolve) => {
