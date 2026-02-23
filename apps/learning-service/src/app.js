@@ -17,8 +17,24 @@ app.use(morgan('combined', { stream: accessLogStream })); // Log to file
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', service: 'learning-service' });
+const prisma = require('./lib/prisma');
+
+app.get('/health', async (req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).json({
+            status: 'ok',
+            service: 'learning-service',
+            database: 'connected'
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'trouble',
+            service: 'learning-service',
+            database: 'disconnected',
+            error: error.message
+        });
+    }
 });
 
 // Routes will be mounted here

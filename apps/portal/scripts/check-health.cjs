@@ -34,10 +34,19 @@ async function checkUrl(name, baseUrl) {
             res.on('data', (chunk) => { data += chunk; });
             res.on('end', () => {
                 const duration = Date.now() - start;
+                let detail = '';
+                try {
+                    const body = JSON.parse(data);
+                    detail = body.database ? `DB: ${body.database}` : (body.status || 'OK');
+                    if (body.error) detail += ` (${body.error})`;
+                } catch {
+                    detail = res.statusCode === 200 ? 'OK' : `HTTP ${res.statusCode}`;
+                }
+
                 if (res.statusCode === 200) {
-                    resolve({ name, url, status: 'UP', detail: 'OK', duration });
+                    resolve({ name, url, status: 'UP', detail, duration });
                 } else {
-                    resolve({ name, url, status: 'DOWN', detail: `HTTP ${res.statusCode}`, duration });
+                    resolve({ name, url, status: 'DOWN', detail, duration });
                 }
             });
         });

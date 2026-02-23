@@ -23,7 +23,23 @@ app.use('/api/v1/public/pmb', publicRoutes);
 app.use('/api/v1/admin/pmb', verifyToken, isAdmin, adminRoutes);
 
 // Health Check
-app.get('/health', (req, res) => res.json({ status: 'admission-service is running' }));
+app.get('/health', async (req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).json({
+            status: 'ok',
+            service: 'admission-service',
+            database: 'connected'
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'trouble',
+            service: 'admission-service',
+            database: 'disconnected',
+            error: error.message
+        });
+    }
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
