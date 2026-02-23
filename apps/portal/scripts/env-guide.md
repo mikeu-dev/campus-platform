@@ -2,8 +2,12 @@
 
 Gunakan daftar ini sebagai acuan saat mengisi **Environment Variables** di dashboard Vercel masing-masing layanan. Pastikan Anda menyesuaikan URL Database dengan kredensial Supabase Anda.
 
-> [!NOTE]
-> Untuk Supabase, gunakan port **6543** (Pooler) untuk `DATABASE_URL` dan port **5432** (Direct) untuk `DIRECT_URL`. Jangan lupa tambahkan `?schema=[nama_service]` di akhir setiap URL.
+> [!IMPORTANT]
+> **Peringatan Password Supabase**: Jika password Anda mengandung karakter spesial seperti `#`, Anda harus mengubahnya menjadi URL-encoded (misal `#` menjadi `%23`).
+> 
+> **Contoh format yang benar (sesuai lokal Anda):**
+> - `DATABASE_URL`: `postgresql://postgres.[ID]:[PASSWORD_DENGAN_%23]@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&schema=[NAMA_SERVICE]`
+> - `DIRECT_URL`: `postgresql://postgres.[ID]:[PASSWORD_DENGAN_%23]@aws-1-ap-southeast-2.pooler.supabase.com:5432/postgres?schema=[NAMA_SERVICE]`
 
 ---
 
