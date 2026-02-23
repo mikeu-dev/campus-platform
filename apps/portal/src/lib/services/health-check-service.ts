@@ -23,9 +23,8 @@ export const services = [
 
 export async function checkHealth(url: string): Promise<{ status: 'up' | 'down'; message: string }> {
     try {
-        // Use a 5 second timeout for health checks
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
         const response = await fetch(`${url}/health`, {
             signal: controller.signal,
@@ -38,8 +37,11 @@ export async function checkHealth(url: string): Promise<{ status: 'up' | 'down';
             const data = await response.json();
             return { status: 'up', message: data.status || 'OK' };
         }
-        return { status: 'down', message: `Status ${response.status}` };
+        return { status: 'down', message: `HTTP ${response.status}: ${response.statusText}` };
     } catch (error: any) {
-        return { status: 'down', message: error.message || 'Connection Failed' };
+        if (error.name === 'AbortError') {
+            return { status: 'down', message: 'Timeout: Layanan tidak merespon dalam 10 detik' };
+        }
+        return { status: 'down', message: error.message || 'Gagal terhubung ke layanan' };
     }
 }

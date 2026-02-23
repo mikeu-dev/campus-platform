@@ -15,16 +15,21 @@ const SERVICES = [
     { name: 'Admission', url: process.env.PUBLIC_ADMISSION_API_URL || 'http://localhost:3005/api/v1' }
 ];
 
-const TIMEOUT = 5000;
+const TIMEOUT = 10000;
 
 async function checkUrl(name, baseUrl) {
-    const url = `${baseUrl}/health`.replace(/([^:]\/)\/+/g, "$1"); // Normalize slashes
+    // Normalize URL and ensure it doesn't end with a slash before adding /health
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const url = `${cleanBaseUrl}/health`;
 
     return new Promise((resolve) => {
         const client = url.startsWith('https') ? https : http;
         const start = Date.now();
 
-        const req = client.get(url, { timeout: TIMEOUT }, (res) => {
+        const req = client.get(url, {
+            timeout: TIMEOUT,
+            headers: { 'Accept': 'application/json', 'User-Agent': 'CampusHealthCheck/1.0' }
+        }, (res) => {
             let data = '';
             res.on('data', (chunk) => { data += chunk; });
             res.on('end', () => {
@@ -38,12 +43,18 @@ async function checkUrl(name, baseUrl) {
         });
 
         req.on('error', (err) => {
-            resolve({ name, url, status: 'DOWN', detail: err.message, duration: Date.now() - start });
+            const duration = Date.now() - start;
+            let detail = err.message;
+            if (err.code === 'ECONNREFUSED') detail = 'Connection Refused (Server Down?)';
+            if (err.code === 'ENOTFOUND') detail = 'Domain Not Found (DNS Issue?)';
+            if (err.code === 'ETIMEDOUT') detail = 'Connection Timed Out';
+
+            resolve({ name, url, status: 'DOWN', detail: detail || 'Network Error', duration });
         });
 
         req.on('timeout', () => {
             req.destroy();
-            resolve({ name, url, status: 'DOWN', detail: 'TIMEOUT', duration: TIMEOUT });
+            resolve({ name, url, status: 'ABORTED', detail: `TIMEOUT (> ${TIMEOUT}ms)`, duration: TIMEOUT });
         });
     });
 }
