@@ -23,26 +23,12 @@ export const load = async ({ fetch }) => {
 	};
 
 	try {
-		const base = PUBLIC_PUBLIC_API_URL;
-		const [settingsRes, pagesRes, linksRes] = await Promise.allSettled([
-			fetchWithTimeout(`${base}/${tenantId}/settings`),
-			fetchWithTimeout(`${base}/${tenantId}/pages`),
-			fetchWithTimeout(`${base}/${tenantId}/links`)
-		]);
-
-		if (settingsRes.status === 'fulfilled' && settingsRes.value.ok) {
-			const res = await settingsRes.value.json();
-			settings = res.data;
-		}
-
-		if (pagesRes.status === 'fulfilled' && pagesRes.value.ok) {
-			const res = await pagesRes.value.json();
-			pages = res.data;
-		}
-
-		if (linksRes.status === 'fulfilled' && linksRes.value.ok) {
-			const res = await linksRes.value.json();
-			links = res.data;
+		const res = await fetch(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/shared`);
+		if (res.ok) {
+			const { data } = await res.json();
+			settings = data.settings || {};
+			pages = data.pages || [];
+			links = data.links || [];
 		}
 	} catch (error: any) {
 		console.error('Guest layout load error:', error.message);

@@ -14,19 +14,14 @@ export const load: PageServerLoad = async () => {
 	let videos = [];
 
 	try {
-		const [slidersRes, settingsRes, postsRes, agendasRes, videosRes] = await Promise.all([
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/sliders`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/settings`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/posts?pinned=true&limit=4`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/agendas?pinned=true&limit=4`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/videos?limit=2`)
-		]);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/landing`);
+		const bulkData = res.data.data;
 
-		sliders = slidersRes.data.data;
-		settings = settingsRes.data.data;
-		posts = postsRes.data.data;
-		agendas = agendasRes.data.data;
-		videos = videosRes.data.data;
+		sliders = bulkData.sliders || [];
+		settings = bulkData.settings || {};
+		posts = bulkData.posts || [];
+		agendas = bulkData.agendas || [];
+		videos = bulkData.videos || [];
 	} catch (error: any) {
 		console.error('Landing page load error:', error.response?.data || error.message);
 	}
