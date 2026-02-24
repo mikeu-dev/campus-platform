@@ -80,13 +80,13 @@
 			<!-- Static Links / Secondary Info -->
 			<div>
 				<h3 class="mb-4 text-sm font-semibold tracking-wider text-gray-200 uppercase">
-					{m.footer_academic()}
+					Program & Informasi
 				</h3>
 				<ul class="space-y-3 text-sm text-gray-400">
-					<li><a href="/pages/profil-kampus" class="hover:text-white">Profil Kampus</a></li>
-					<li><a href="/pages/sejarah" class="hover:text-white">Sejarah</a></li>
-					<li><a href="/pages/akademik" class="hover:text-white">Akademik</a></li>
-					<li><a href="/pages/riset" class="hover:text-white">Riset & Inovasi</a></li>
+					<li><a href="/pages/tentang-kami" class="hover:text-white">Sejarah Kampus</a></li>
+					<li><a href="/pages/kurikulum" class="hover:text-white">Kurikulum</a></li>
+					<li><a href="/pages/mengenal-prodi" class="hover:text-white">Mengenal Prodi</a></li>
+					<li><a href="/pages/informasi-riset" class="hover:text-white">Riset & Informasi</a></li>
 				</ul>
 			</div>
 
