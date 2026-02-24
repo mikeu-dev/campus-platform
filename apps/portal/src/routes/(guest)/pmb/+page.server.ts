@@ -9,9 +9,7 @@ export const load = async () => {
 	let prodis = [];
 
 	try {
-		const periodsRes = await axios.get(
-			`${PUBLIC_ADMISSION_API_URL}/${tenantId}/periods`
-		);
+		const periodsRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/${tenantId}/periods`);
 		periods = periodsRes.data.data;
 
 		const prodisRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/${tenantId}/prodis`);
