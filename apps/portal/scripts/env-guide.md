@@ -64,8 +64,8 @@ Layanan pendaftaran mahasiswa baru. Layanan ini membutuhkan URL internal service
 | `DATABASE_URL` | URL Supabase Pooler `?schema=admission` |
 | `DIRECT_URL` | URL Supabase Direct `?schema=admission` |
 | `JWT_SECRET` | Sama dengan Identity Service |
-| `IDENTITY_API_URL` | Domain Vercel dari Identity Service |
-| `ACADEMIC_API_URL` | Domain Vercel dari Academic Service |
+| `IDENTITY_API_URL` | Domain Vercel dari Identity Service | **Tanpa `/api/v1`** |
+| `ACADEMIC_API_URL` | Domain Vercel dari Academic Service | **Pakai `/api/v1`** |
 | `NODE_ENV` | `production` |
 
 ---

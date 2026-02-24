@@ -149,7 +149,7 @@ class ApplicantController {
                 try {
                     const axios = require('axios');
                     const IDENTITY_API = process.env.IDENTITY_API_URL || 'http://localhost:3001';
-                    const ACADEMIC_API = process.env.ACADEMIC_API_URL || 'http://localhost:3002';
+                    const ACADEMIC_API = process.env.ACADEMIC_API_URL || 'http://localhost:3002/api/v1';
 
                     // 1. Create Identity Account
                     const identityRes = await axios.post(`${IDENTITY_API}/auth/users`, {
@@ -165,7 +165,7 @@ class ApplicantController {
 
                     // 2. Create Academic Student Profile
                     if (newUser && newUser.id) {
-                        await axios.post(`${ACADEMIC_API}/api/v1/students`, {
+                        await axios.post(`${ACADEMIC_API}/students`, {
                             user_id: newUser.id,
                             name: applicant.full_name,
                             student_number: applicant.registration_number // Use reg number as temp student number
