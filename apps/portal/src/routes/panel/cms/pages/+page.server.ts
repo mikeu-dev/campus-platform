@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let pages = [];
 
 	try {
-		const apiUrl = `${PUBLIC_PUBLIC_API_URL}/admin/public/pages`;
+		const apiUrl = `${PUBLIC_PUBLIC_API_URL}/admin/pages`;
 		console.log(`[CMS Pages] Fetching from: ${apiUrl}`);
 		const res = await axios.get(apiUrl, {
 			headers: { Authorization: `Bearer ${token}` }

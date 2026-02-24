@@ -20,6 +20,7 @@
 	import { Plus, Loader2, Search, Clock, CheckCircle2, BookOpen, Calendar } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 	import { Input } from '$lib/components/ui/input';
 
 	interface Props {
@@ -43,7 +44,7 @@
 	async function fetchEnrollments() {
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/enrollments/my', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/enrollments/my`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -68,7 +69,7 @@
 				limit: '100' // Fetch enough for selection
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/classes?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes?${query.toString()}`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -90,7 +91,7 @@
 
 	async function getStudentProfile() {
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/students/me', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students/me`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -110,7 +111,7 @@
 		}
 		enrollingId = classId;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/enrollments', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/enrollments`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

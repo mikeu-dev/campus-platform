@@ -12,6 +12,7 @@
 	import { CalendarDays, Users, Loader2, Search, Clock, MapPin, Award } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -31,7 +32,7 @@
 		loading = true;
 		try {
 			// Fetch detailed profile to get lecturer ID
-			const profileRes = await fetch('http://localhost:3002/api/v1/lecturers/me', {
+			const profileRes = await fetch(`${PUBLIC_ACADEMIC_API_URL}/lecturers/me`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const profileData = await profileRes.json();
@@ -49,7 +50,7 @@
 				limit: '100'
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/classes?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes?${query.toString()}`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 

@@ -20,6 +20,7 @@
 	import { Loader2, Trash2, CheckCircle, XCircle, Clock } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -38,7 +39,7 @@
 	async function fetchProposals() {
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/research/all', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/research/all`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -59,7 +60,7 @@
 	async function handleUpdateStatus() {
 		saving = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/research/${selectedId}/status`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/research/${selectedId}/status`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
 				body: JSON.stringify({ status: selectedStatus })
@@ -82,7 +83,7 @@
 	async function handleDelete(id: string) {
 		if (!confirm('Hapus proposal ini?')) return;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/research/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/research/${id}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

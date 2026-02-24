@@ -31,6 +31,7 @@
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -85,7 +86,7 @@
 				search: search
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/classes?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes?${query.toString()}`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 
@@ -105,10 +106,10 @@
 	async function fetchDropdownData() {
 		try {
 			const [coursesRes, lecturersRes] = await Promise.all([
-				fetch('http://localhost:3002/api/v1/courses?limit=100', {
+				fetch(`${PUBLIC_ACADEMIC_API_URL}/courses?limit=100`, {
 					headers: { Authorization: `Bearer ${data.token}` }
 				}),
-				fetch('http://localhost:3002/api/v1/lecturers?limit=100', {
+				fetch(`${PUBLIC_ACADEMIC_API_URL}/lecturers?limit=100`, {
 					headers: { Authorization: `Bearer ${data.token}` }
 				})
 			]);
@@ -131,7 +132,7 @@
 
 		createLoading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/classes', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -191,7 +192,7 @@
 	async function handleUpdateClass() {
 		editLoading = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/classes/${editingClass.id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes/${editingClass.id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',
@@ -230,7 +231,7 @@
 			return;
 
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/classes/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes/${id}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

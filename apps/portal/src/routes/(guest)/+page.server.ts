@@ -15,11 +15,11 @@ export const load: PageServerLoad = async () => {
 
 	try {
 		const [slidersRes, settingsRes, postsRes, agendasRes, videosRes] = await Promise.all([
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/sliders`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/settings`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/posts?pinned=true&limit=4`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/agendas?pinned=true&limit=4`),
-			axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/videos?limit=2`)
+			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/sliders`),
+			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/settings`),
+			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/posts?pinned=true&limit=4`),
+			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/agendas?pinned=true&limit=4`),
+			axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/videos?limit=2`)
 		]);
 
 		sliders = slidersRes.data.data;

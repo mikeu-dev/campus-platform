@@ -8,7 +8,7 @@ export const load = async () => {
 	let agendas: any[] = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/agendas`);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/agendas`);
 		agendas = res.data.data || [];
 	} catch (error: any) {
 		console.error('Agendas load error:', error.response?.data || error.message);

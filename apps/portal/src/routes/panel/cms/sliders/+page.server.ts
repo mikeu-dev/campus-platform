@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let sliders = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/sliders`, {
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/sliders`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		sliders = res.data.data;
@@ -30,7 +30,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_PUBLIC_API_URL}/admin/public/sliders`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/sliders`,
 				{
 					...data,
 					order_index: parseInt(data.order_index as string) || 0,

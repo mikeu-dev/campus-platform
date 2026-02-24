@@ -24,7 +24,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_ADMISSION_API_URL}/admin/pmb/prodis`,
+				`${PUBLIC_ADMISSION_API_URL}/admin/prodis`,
 				{ name, faculty, is_active: true },
 				{ headers: { Authorization: `Bearer ${locals.token}` } }
 			);

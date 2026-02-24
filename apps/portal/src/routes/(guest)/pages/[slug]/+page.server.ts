@@ -9,7 +9,7 @@ export const load = async ({ params }: any) => {
 	let pageData = null;
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/pages/${slug}`);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/pages/${slug}`);
 		pageData = res.data.data;
 	} catch (error: any) {
 		console.error('Page load error:', error.response?.data || error.message);

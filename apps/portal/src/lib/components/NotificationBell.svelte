@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Bell, Check, ExternalLink } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { PUBLIC_LEARNING_API_URL } from '$env/static/public';
 
 	interface Notification {
 		id: string;
@@ -19,8 +20,7 @@
 	let unreadCount = $state(0);
 	let loading = $state(false);
 
-	const LEARNING_API =
-		import.meta.env.VITE_PUBLIC_LEARNING_API_URL || 'http://localhost:3003/api/v1';
+	const LEARNING_API = PUBLIC_LEARNING_API_URL;
 
 	async function fetchNotifications() {
 		if (!token) return;
