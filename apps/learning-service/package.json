@@ -1,6 +1,9 @@
 {
   "name": "learning-service",
   "version": "1.0.0",
+  "engines": {
+    "node": "20.x"
+  },
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,6 +26,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.982.0",
     "@aws-sdk/lib-storage": "^3.982.0",
+    "@prisma/adapter-pg": "^7.4.1",
+    "@prisma/client": "^7.4.1",
+    "@vercel/analytics": "^1.5.0",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
@@ -30,15 +36,13 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "pg": "^8.18.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@prisma/adapter-pg": "^7.4.1",
-    "@prisma/client": "^7.4.1",
     "@prisma/config": "^7.4.1",
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
-    "pg": "^8.18.0",
     "prisma": "^7.4.1",
     "supertest": "^7.2.2"
   }

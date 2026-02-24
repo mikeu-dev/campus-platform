@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let videos = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/videos`, {
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/videos`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		videos = res.data.data;
@@ -42,7 +42,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_PUBLIC_API_URL}/admin/public/videos`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/videos`,
 				{
 					...data,
 					youtube_id,

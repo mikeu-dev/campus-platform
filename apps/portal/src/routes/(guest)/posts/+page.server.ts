@@ -8,7 +8,7 @@ export const load = async () => {
 	let posts: any[] = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/posts`);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/posts`);
 		posts = res.data.data || [];
 	} catch (error: any) {
 		console.error('Posts load error:', error.response?.data || error.message);

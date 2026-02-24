@@ -21,6 +21,7 @@
 	import { Loader2, Trash2, CheckCircle, XCircle, Clock, FileDown } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -41,7 +42,7 @@
 	async function fetchRequests() {
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/certificates/all', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/certificates/all`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -64,7 +65,7 @@
 	async function handleUpdateStatus() {
 		saving = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/certificates/${selectedId}/status`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/certificates/${selectedId}/status`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
 				body: JSON.stringify({
@@ -91,7 +92,7 @@
 	async function handleDelete(id: string) {
 		if (!confirm('Hapus permohonan ini?')) return;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/certificates/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/certificates/${id}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

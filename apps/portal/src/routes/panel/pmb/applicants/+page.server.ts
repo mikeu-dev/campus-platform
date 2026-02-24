@@ -12,14 +12,18 @@ export const load = async ({ url, locals }: any) => {
 
 	try {
 		// Fetch applicants with filters
-		const applicantsRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/pmb/applicants`, {
-			params: { period_id: periodId, status },
+		const params: any = {};
+		if (periodId) params.period_id = periodId;
+		if (status) params.status = status;
+
+		const applicantsRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/applicants`, {
+			params,
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		applicants = applicantsRes.data.data;
 
 		// Fetch periods for filter dropdown
-		const periodsRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/pmb/periods`, {
+		const periodsRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/periods`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		periods = periodsRes.data.data;

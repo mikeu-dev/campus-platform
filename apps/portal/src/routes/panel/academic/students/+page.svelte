@@ -23,6 +23,7 @@
 	import { Search, Loader2, FileEdit, Trash2, Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL, PUBLIC_IDENTITY_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -60,7 +61,7 @@
 				search: search
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/students?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students?${query.toString()}`, {
 				headers: {
 					Authorization: `Bearer ${data.token}`
 				}
@@ -83,7 +84,7 @@
 		createLoading = true;
 		try {
 			// 1. Create User in Identity Service
-			const userRes = await fetch('http://localhost:3001/api/v1/auth/users', {
+			const userRes = await fetch(`${PUBLIC_IDENTITY_API_URL}/auth/users`, {
 				// Adjusted to match identity-service port
 				method: 'POST',
 				headers: {
@@ -106,7 +107,7 @@
 			const userId = userResponse.data.id;
 
 			// 2. Create Student in Academic Service
-			const studentRes = await fetch('http://localhost:3002/api/v1/students', {
+			const studentRes = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -145,7 +146,7 @@
 			return;
 
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/students/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students/${id}`, {
 				method: 'DELETE',
 				headers: {
 					Authorization: `Bearer ${data.token}`

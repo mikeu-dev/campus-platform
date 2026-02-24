@@ -20,6 +20,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Search, Loader2, FileDown, Printer, ArrowLeft } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -56,7 +57,7 @@
 				status: status
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/students?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students?${query.toString()}`, {
 				headers: {
 					Authorization: `Bearer ${data.token}`
 				}
@@ -110,7 +111,7 @@
 				status: status
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/students?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students?${query.toString()}`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();

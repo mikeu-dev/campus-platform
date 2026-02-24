@@ -9,7 +9,7 @@ export const load = async ({ params }: any) => {
 	let agenda = null;
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/agendas/${id}`);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/agendas/${id}`);
 		agenda = res.data.data;
 	} catch (error: any) {
 		console.error('Agenda detail load error:', error.response?.data || error.message);

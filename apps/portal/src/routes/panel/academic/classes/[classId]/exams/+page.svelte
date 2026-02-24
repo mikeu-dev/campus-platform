@@ -24,6 +24,7 @@
 	import { ArrowLeft, Plus, Pencil, Trash2, Loader2, Calendar, Clock, MapPin } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -48,7 +49,7 @@
 	async function fetchExams() {
 		loading = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/classes/${classId}/exams`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes/${classId}/exams`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -104,7 +105,7 @@
 
 			let res: Response;
 			if (editingId) {
-				res = await fetch(`http://localhost:3002/api/v1/exams/${editingId}`, {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/exams/${editingId}`, {
 					method: 'PUT',
 					headers: {
 						'Content-Type': 'application/json',
@@ -114,7 +115,7 @@
 				});
 			} else {
 				body.class_id = classId;
-				res = await fetch('http://localhost:3002/api/v1/exams', {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/exams`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -142,7 +143,7 @@
 	async function handleDelete(examId: string) {
 		if (!confirm('Apakah Anda yakin ingin menghapus ujian ini?')) return;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/exams/${examId}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/exams/${examId}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

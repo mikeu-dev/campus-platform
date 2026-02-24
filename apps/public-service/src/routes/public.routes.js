@@ -8,6 +8,11 @@ const settingController = require('../controllers/setting.controller');
 const linkController = require('../controllers/link.controller');
 const pageController = require('../controllers/page.controller');
 const visitorController = require('../controllers/visitor.controller');
+const landingController = require('../controllers/landing.controller');
+
+// Bulk Landing Data
+router.get('/:tenantId/landing', landingController.getLandingData);
+router.get('/:tenantId/shared', landingController.getSharedData);
 
 // Sliders
 router.get('/:tenantId/sliders', sliderController.getPublic);

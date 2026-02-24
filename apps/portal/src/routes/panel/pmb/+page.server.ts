@@ -7,7 +7,7 @@ export const load = async ({ locals }: any) => {
 	let stats = { summary: { total: 0, verified: 0, passed: 0, rejected: 0 }, byPeriod: [] };
 
 	try {
-		const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/pmb/stats`, {
+		const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/stats`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		stats = res.data.data;

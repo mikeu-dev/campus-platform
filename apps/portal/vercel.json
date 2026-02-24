@@ -1,25 +1,4 @@
 {
-    "version": 2,
-    "rewrites": [
-        {
-            "source": "/api/v1/identity/:path*",
-            "destination": "https://[IDENTITY_SERVICE_URL]/:path*"
-        },
-        {
-            "source": "/api/v1/academic/:path*",
-            "destination": "https://[ACADEMIC_SERVICE_URL]/:path*"
-        },
-        {
-            "source": "/api/v1/admission/:path*",
-            "destination": "https://[ADMISSION_SERVICE_URL]/:path*"
-        },
-        {
-            "source": "/api/v1/public/:path*",
-            "destination": "https://[PUBLIC_SERVICE_URL]/:path*"
-        },
-        {
-            "source": "/api/v1/learning/:path*",
-            "destination": "https://[LEARNING_SERVICE_URL]/:path*"
-        }
-    ]
+	"version": 2,
+	"rewrites": []
 }

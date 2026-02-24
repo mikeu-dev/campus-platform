@@ -23,6 +23,7 @@
 	import { Plus, Pencil, Trash2, Loader2, Check, X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -46,7 +47,7 @@
 	async function fetchBills() {
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/finance/bills', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/finance/bills`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -60,7 +61,7 @@
 
 	async function fetchStudents() {
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/students?limit=500', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/students?limit=500`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -110,14 +111,14 @@
 
 			let res: Response;
 			if (editingId) {
-				res = await fetch(`http://localhost:3002/api/v1/finance/bills/${editingId}`, {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/finance/bills/${editingId}`, {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
 					body: JSON.stringify(body)
 				});
 			} else {
 				body.student_id = formStudentId;
-				res = await fetch('http://localhost:3002/api/v1/finance/bills', {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/finance/bills`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
 					body: JSON.stringify(body)
@@ -141,7 +142,7 @@
 	async function handleDelete(id: string) {
 		if (!confirm('Hapus tagihan ini?')) return;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/finance/bills/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/finance/bills/${id}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

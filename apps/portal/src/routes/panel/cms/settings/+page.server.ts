@@ -7,7 +7,7 @@ export const load = async () => {
 	let settings = {};
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/settings`);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/settings`);
 		settings = res.data.data;
 	} catch (error: any) {
 		console.error('Settings load error:', error.response?.data || error.message);
@@ -29,7 +29,7 @@ export const actions = {
 		const bulkData = { settings: data };
 
 		try {
-			await axios.post(`${PUBLIC_PUBLIC_API_URL}/admin/public/settings/bulk`, bulkData, {
+			await axios.post(`${PUBLIC_PUBLIC_API_URL}/admin/settings/bulk`, bulkData, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 			return { success: true };

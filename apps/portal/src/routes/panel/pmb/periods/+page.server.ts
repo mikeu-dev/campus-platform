@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let periods = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/pmb/periods`, {
+		const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/periods`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		periods = res.data.data;
@@ -30,7 +30,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_ADMISSION_API_URL}/admin/pmb/periods`,
+				`${PUBLIC_ADMISSION_API_URL}/admin/periods`,
 				{
 					...data,
 					is_active: data.is_active === 'on'

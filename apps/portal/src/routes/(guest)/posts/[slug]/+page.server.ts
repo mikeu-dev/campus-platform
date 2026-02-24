@@ -9,7 +9,7 @@ export const load = async ({ params }: any) => {
 	let post = null;
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/public/${tenantId}/posts/${slug}`);
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/posts/${slug}`);
 		post = res.data.data;
 	} catch (error: any) {
 		console.error('Post detail load error:', error.response?.data || error.message);

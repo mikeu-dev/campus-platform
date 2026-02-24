@@ -7,18 +7,30 @@ const path = require('path');
 
 const app = express();
 
-// Create a write stream (in append mode)
-const accessLogStream = fs.createWriteStream(path.join(__dirname, '../server.log'), { flags: 'a' });
-
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev')); // Log to console
-app.use(morgan('combined', { stream: accessLogStream })); // Log to file
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', service: 'academic-service' });
+const prisma = require('./lib/prisma');
+
+app.get('/health', async (req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).json({
+            status: 'ok',
+            service: 'academic-service',
+            database: 'connected'
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'trouble',
+            service: 'academic-service',
+            database: 'disconnected',
+            error: error.message
+        });
+    }
 });
 
 // Routes will be mounted here

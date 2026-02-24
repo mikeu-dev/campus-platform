@@ -23,6 +23,7 @@
 	import { Plus, Pencil, Trash2, Loader2, Eye, EyeOff } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -45,7 +46,7 @@
 	async function fetchAnnouncements() {
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/announcements/all', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/announcements/all`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -98,13 +99,13 @@
 
 			let res: Response;
 			if (editingId) {
-				res = await fetch(`http://localhost:3002/api/v1/announcements/${editingId}`, {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/announcements/${editingId}`, {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
 					body: JSON.stringify(body)
 				});
 			} else {
-				res = await fetch('http://localhost:3002/api/v1/announcements', {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/announcements`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
 					body: JSON.stringify(body)
@@ -129,7 +130,7 @@
 	async function handleDelete(id: string) {
 		if (!confirm('Hapus pengumuman ini?')) return;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/announcements/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/announcements/${id}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

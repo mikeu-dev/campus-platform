@@ -10,7 +10,7 @@ export const load = async ({ params, locals }: any) => {
 	let applicant = null;
 
 	try {
-		const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/pmb/applicants/${id}`, {
+		const res = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/applicants/${id}`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		applicant = res.data.data;
@@ -34,7 +34,7 @@ export const actions = {
 
 		try {
 			await axios.put(
-				`${PUBLIC_ADMISSION_API_URL}/admin/pmb/applicants/${id}/status`,
+				`${PUBLIC_ADMISSION_API_URL}/admin/applicants/${id}/status`,
 				{ status, selection_score: score ? parseFloat(score) : null },
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
@@ -54,7 +54,7 @@ export const actions = {
 
 		try {
 			await axios.put(
-				`${PUBLIC_ADMISSION_API_URL}/admin/pmb/documents/${docId}/status`,
+				`${PUBLIC_ADMISSION_API_URL}/admin/documents/${docId}/status`,
 				{ status, notes },
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);

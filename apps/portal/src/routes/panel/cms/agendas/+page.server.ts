@@ -8,7 +8,7 @@ export const load = async ({ locals }: any) => {
 	let agendas = [];
 
 	try {
-		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/public/agendas`, {
+		const res = await axios.get(`${PUBLIC_PUBLIC_API_URL}/admin/agendas`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		agendas = res.data.data;
@@ -30,7 +30,7 @@ export const actions = {
 
 		try {
 			await axios.post(
-				`${PUBLIC_PUBLIC_API_URL}/admin/public/agendas`,
+				`${PUBLIC_PUBLIC_API_URL}/admin/agendas`,
 				{
 					...data,
 					is_pinned: data.is_pinned === 'on'

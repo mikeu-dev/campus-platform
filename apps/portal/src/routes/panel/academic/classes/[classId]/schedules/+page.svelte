@@ -24,6 +24,7 @@
 	import { ArrowLeft, Plus, Pencil, Trash2, Loader2, Clock, MapPin } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -50,7 +51,7 @@
 	async function fetchSchedules() {
 		loading = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/classes/${classId}/schedules`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes/${classId}/schedules`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -102,7 +103,7 @@
 
 			let res: Response;
 			if (editingId) {
-				res = await fetch(`http://localhost:3002/api/v1/schedules/${editingId}`, {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/schedules/${editingId}`, {
 					method: 'PUT',
 					headers: {
 						'Content-Type': 'application/json',
@@ -112,7 +113,7 @@
 				});
 			} else {
 				body.class_id = classId;
-				res = await fetch('http://localhost:3002/api/v1/schedules', {
+				res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/schedules`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -141,7 +142,7 @@
 		if (!confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) return;
 
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/schedules/${scheduleId}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/schedules/${scheduleId}`, {
 				method: 'DELETE',
 				headers: { Authorization: `Bearer ${data.token}` }
 			});

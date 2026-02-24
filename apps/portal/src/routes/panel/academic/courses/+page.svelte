@@ -22,6 +22,7 @@
 	import { Search, Loader2, FileEdit, Trash2, Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -68,7 +69,7 @@
 				search: search
 			});
 
-			const res = await fetch(`http://localhost:3002/api/v1/courses?${query.toString()}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/courses?${query.toString()}`, {
 				headers: {
 					Authorization: `Bearer ${data.token}`
 				}
@@ -90,7 +91,7 @@
 	async function handleCreateCourse() {
 		createLoading = true;
 		try {
-			const res = await fetch('http://localhost:3002/api/v1/courses', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/courses`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -133,7 +134,7 @@
 	async function handleUpdateCourse() {
 		editLoading = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/courses/${editingCourse.id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/courses/${editingCourse.id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',
@@ -171,7 +172,7 @@
 			return;
 
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/courses/${id}`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/courses/${id}`, {
 				method: 'DELETE',
 				headers: {
 					Authorization: `Bearer ${data.token}`

@@ -15,6 +15,7 @@
 	import { ArrowLeft, Save, Loader2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { PUBLIC_ACADEMIC_API_URL } from '$env/static/public';
 
 	interface Props {
 		data: { token?: string };
@@ -51,7 +52,7 @@
 	async function fetchGrades() {
 		loading = true;
 		try {
-			const res = await fetch(`http://localhost:3002/api/v1/classes/${classId}/grades`, {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/classes/${classId}/grades`, {
 				headers: { Authorization: `Bearer ${data.token}` }
 			});
 			const response = await res.json();
@@ -99,7 +100,7 @@
 				return;
 			}
 
-			const res = await fetch('http://localhost:3002/api/v1/grades/batch', {
+			const res = await fetch(`${PUBLIC_ACADEMIC_API_URL}/grades/batch`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
