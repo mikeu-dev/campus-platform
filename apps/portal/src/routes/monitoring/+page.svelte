@@ -46,7 +46,7 @@
 		</header>
 
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-			{#each healthStates as service}
+			{#each healthStates as service (service.url)}
 				<div
 					class="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
 				>

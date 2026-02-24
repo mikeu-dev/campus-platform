@@ -1,10 +1,11 @@
+/* eslint-disable */
+const http = require('http');
+const https = require('https');
+
 /**
  * Standalone Health Checker CLI
  * Usage: node scripts/check-health.js
  */
-const http = require('http');
-const https = require('https');
-
 // Configuration - Fallback to localhost if ENV not set
 // In production, user can provide URLs via env or edit this list
 const SERVICES = [

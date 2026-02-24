@@ -8,20 +8,6 @@ export const load = async ({ fetch }) => {
 	let pages: any[] = [];
 	let links: any[] = [];
 
-	const fetchWithTimeout = async (url: string, timeoutMs = 3000) => {
-		const controller = new AbortController();
-		const id = setTimeout(() => controller.abort(), timeoutMs);
-
-		try {
-			const response = await fetch(url, { signal: controller.signal });
-			clearTimeout(id);
-			return response;
-		} catch (e) {
-			clearTimeout(id);
-			throw e;
-		}
-	};
-
 	try {
 		const res = await fetch(`${PUBLIC_PUBLIC_API_URL}/${tenantId}/shared`);
 		if (res.ok) {

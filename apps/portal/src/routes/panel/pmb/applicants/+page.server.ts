@@ -12,7 +12,12 @@ export const load = async ({ url, locals }: any) => {
 
 	try {
 		// Fetch applicants with filters
+		const params: any = {};
+		if (periodId) params.period_id = periodId;
+		if (status) params.status = status;
+
 		const applicantsRes = await axios.get(`${PUBLIC_ADMISSION_API_URL}/admin/applicants`, {
+			params,
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		applicants = applicantsRes.data.data;
