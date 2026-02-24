@@ -1,6 +1,9 @@
 {
     "name": "public-service",
     "version": "1.0.0",
+    "engines": {
+        "node": "20.x"
+    },
     "description": "Public Info and CMS Service",
     "main": "src/index.js",
     "scripts": {

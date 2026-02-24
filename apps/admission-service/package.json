@@ -1,6 +1,9 @@
 {
     "name": "admission-service",
     "version": "1.0.0",
+    "engines": {
+        "node": "20.x"
+    },
     "description": "Student Admission (PMB) Service",
     "main": "src/index.js",
     "scripts": {
