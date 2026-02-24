@@ -1,5 +1,8 @@
 require('dotenv').config();
+const { inject } = require('@vercel/analytics');
 const app = require('./app');
+
+inject();
 const prisma = require('./lib/prisma');
 
 const PORT = process.env.PORT || 3001;

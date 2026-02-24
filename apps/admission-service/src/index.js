@@ -3,6 +3,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
+const { inject } = require('@vercel/analytics');
+
+inject();
 
 const publicRoutes = require('./routes/public.routes');
 const adminRoutes = require('./routes/admin.routes');

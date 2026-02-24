@@ -39,12 +39,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.4.0
- * Query Engine version: ab56fe763f921d033a6c195e7ddeb3e255bdbb57
+ * Prisma Client JS version: 7.4.1
+ * Query Engine version: 55ae170b1ced7fc6ed07a15f110549408c501bb3
  */
 Prisma.prismaVersion = {
-  client: "7.4.0",
-  engine: "ab56fe763f921d033a6c195e7ddeb3e255bdbb57"
+  client: "7.4.1",
+  engine: "55ae170b1ced7fc6ed07a15f110549408c501bb3"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -174,8 +174,8 @@ exports.Prisma.ModelName = {
  */
 const config = {
   "previewFeatures": [],
-  "clientVersion": "7.4.0",
-  "engineVersion": "ab56fe763f921d033a6c195e7ddeb3e255bdbb57",
+  "clientVersion": "7.4.1",
+  "engineVersion": "55ae170b1ced7fc6ed07a15f110549408c501bb3",
   "activeProvider": "postgresql",
   "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel pmb_applicants {\n  id                     String          @id @default(dbgenerated(\"gen_random_uuid()\")) @db.Uuid\n  tenant_id              String          @db.Uuid\n  period_id              String?         @db.Uuid\n  registration_number    String          @unique @db.VarChar(20)\n  full_name              String          @db.VarChar(255)\n  email                  String          @db.VarChar(255)\n  phone_number           String?         @db.VarChar(20)\n  identity_number        String?         @db.VarChar(50)\n  address                String?\n  birth_place            String?         @db.VarChar(100)\n  birth_date             DateTime?       @db.Date\n  gender                 String?         @db.VarChar(10)\n  religion               String?         @db.VarChar(20)\n  previous_school        String?         @db.VarChar(255)\n  first_choice_prodi_id  String?         @db.Uuid\n  second_choice_prodi_id String?         @db.Uuid\n  status                 String?         @default(\"REGISTERED\") @db.VarChar(20)\n  selection_score        Decimal?        @db.Decimal(10, 2)\n  created_at             DateTime?       @default(now()) @db.Timestamptz(6)\n  updated_at             DateTime?       @default(now()) @db.Timestamptz(6)\n  pmb_periods            pmb_periods?    @relation(fields: [period_id], references: [id], onDelete: NoAction, onUpdate: NoAction)\n  pmb_documents          pmb_documents[]\n\n  @@index([registration_number], map: \"idx_pmb_applicants_reg_num\")\n  @@index([status], map: \"idx_pmb_applicants_status\")\n  @@index([tenant_id], map: \"idx_pmb_applicants_tenant\")\n}\n\nmodel pmb_documents {\n  id             String          @id @default(dbgenerated(\"gen_random_uuid()\")) @db.Uuid\n  applicant_id   String?         @db.Uuid\n  document_type  String          @db.VarChar(50)\n  file_url       String\n  status         String?         @default(\"PENDING\") @db.VarChar(20)\n  notes          String?\n  created_at     DateTime?       @default(now()) @db.Timestamptz(6)\n  updated_at     DateTime?       @default(now()) @db.Timestamptz(6)\n  pmb_applicants pmb_applicants? @relation(fields: [applicant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)\n}\n\nmodel pmb_periods {\n  id             String           @id @default(dbgenerated(\"gen_random_uuid()\")) @db.Uuid\n  tenant_id      String           @db.Uuid\n  name           String           @db.VarChar(100)\n  start_date     DateTime         @db.Date\n  end_date       DateTime         @db.Date\n  is_active      Boolean?         @default(true)\n  description    String?\n  created_at     DateTime?        @default(now()) @db.Timestamptz(6)\n  updated_at     DateTime?        @default(now()) @db.Timestamptz(6)\n  pmb_applicants pmb_applicants[]\n}\n\nmodel pmb_prodis {\n  id         String    @id @default(dbgenerated(\"gen_random_uuid()\")) @db.Uuid\n  tenant_id  String    @db.Uuid\n  name       String    @db.VarChar(255)\n  faculty    String?   @db.VarChar(255)\n  is_active  Boolean?  @default(true)\n  created_at DateTime? @default(now()) @db.Timestamptz(6)\n}\n"
 }
